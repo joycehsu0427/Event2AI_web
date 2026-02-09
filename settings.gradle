@@ -1,0 +1,3 @@
+rootProject.name = 'Event2AI_web'
+
+include 'backend'
