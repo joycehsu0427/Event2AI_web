@@ -16,5 +16,3 @@ Thumbs.db
 ### VS Code ###
 .vscode/
 
-### Environment Variables ###
-.env
