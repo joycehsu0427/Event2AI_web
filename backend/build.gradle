@@ -18,15 +18,24 @@ repositories {
 	mavenCentral()
 }
 
+configurations {
+	mockitoAgent
+}
+
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'         // JPA + Hibernate
-	implementation 'org.springframework.boot:spring-boot-starter-validation'       // Bean Validation (新增)
+	implementation 'org.springframework.boot:spring-boot-starter-validation'       // Bean Validation
+	implementation 'tw.teddysoft.ucontract:uContract:2.0.0'                        // uContract
 	runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL 驅動
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+	mockitoAgent('org.mockito:mockito-core') {
+		transitive = false
+	}
 }
 
 tasks.named('test') {
 	useJUnitPlatform()
+	jvmArgs("-javaagent:${configurations.mockitoAgent.singleFile}")
 }
