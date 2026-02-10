@@ -20,8 +20,9 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
-	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'  // 新增：JPA + Hibernate
-	runtimeOnly 'com.mysql:mysql-connector-j'                               // 新增：MySQL 驅動
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'         // JPA + Hibernate
+	implementation 'org.springframework.boot:spring-boot-starter-validation'       // Bean Validation (新增)
+	runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL 驅動
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
