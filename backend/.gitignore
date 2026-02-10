@@ -1,5 +1,6 @@
 HELP.md
 .gradle
+.gradle-local/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
@@ -38,3 +39,8 @@ out/
 
 ### Environment Variables ###
 .env
+
+application.properties
+
+#BR use
+codex
