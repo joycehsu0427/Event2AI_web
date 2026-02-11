@@ -2,13 +2,13 @@ package event.to.ai.backend.service;
 
 import event.to.ai.backend.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.dto.StickyNoteDTO;
+import event.to.ai.backend.entity.Point2D;
 import event.to.ai.backend.entity.StickyNote;
 import event.to.ai.backend.repository.StickyNoteRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -61,11 +61,11 @@ public class StickyNoteService {
         StickyNote stickyNote = new StickyNote();
 
         // 設定位置
-        Point2D.Double pos = new Point2D.Double(request.getPosX(), request.getPosY());
+        Point2D pos = new Point2D(request.getPosX(), request.getPosY());
         stickyNote.setPos(pos);
 
         // 設定地理位置
-        Point2D.Double geo = new Point2D.Double(request.getGeoX(), request.getGeoY());
+        Point2D geo = new Point2D(request.getGeoX(), request.getGeoY());
         stickyNote.setGeo(geo);
 
         // 設定其他屬性
@@ -86,11 +86,11 @@ public class StickyNoteService {
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
         // 更新位置
-        Point2D.Double pos = new Point2D.Double(request.getPosX(), request.getPosY());
+        Point2D pos = new Point2D(request.getPosX(), request.getPosY());
         stickyNote.setPos(pos);
 
         // 更新地理位置
-        Point2D.Double geo = new Point2D.Double(request.getGeoX(), request.getGeoY());
+        Point2D geo = new Point2D(request.getGeoX(), request.getGeoY());
         stickyNote.setGeo(geo);
 
         // 更新其他屬性

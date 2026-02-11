@@ -1,6 +1,5 @@
 package event.to.ai.backend.entity;
 
-import java.awt.geom.Point2D;
 import java.util.UUID;
 
 import jakarta.persistence.AttributeOverride;
