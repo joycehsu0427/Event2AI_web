@@ -18,14 +18,13 @@ public class CreateStickyNoteRequest {
     @NotNull(message = "Geo Y is required")
     private Double geoY;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
     @NotBlank(message = "Color is required")
     @Size(max = 50, message = "Color must not exceed 50 characters")
     private String color;
 
-    @NotBlank(message = "Tag is required")
+    @Size(max = 30, message = "tag must not exceed 30 characters.")
     private String tag;
 
     // Constructors
