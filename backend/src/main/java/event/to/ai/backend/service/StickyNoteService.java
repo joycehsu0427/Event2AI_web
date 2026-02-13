@@ -2,6 +2,7 @@ package event.to.ai.backend.service;
 
 import event.to.ai.backend.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.dto.StickyNoteDTO;
+import event.to.ai.backend.dto.UpdateStickyNoteRequest;
 import event.to.ai.backend.entity.Point2D;
 import event.to.ai.backend.entity.StickyNote;
 import event.to.ai.backend.repository.StickyNoteRepository;
@@ -60,11 +61,11 @@ public class StickyNoteService {
     public StickyNoteDTO createStickyNote(CreateStickyNoteRequest request) {
         StickyNote stickyNote = new StickyNote();
 
-        // 設定位置
+        // 設定座標位置
         Point2D pos = new Point2D(request.getPosX(), request.getPosY());
         stickyNote.setPos(pos);
 
-        // 設定地理位置
+        // 設定大小
         Point2D geo = new Point2D(request.getGeoX(), request.getGeoY());
         stickyNote.setGeo(geo);
 
@@ -81,23 +82,35 @@ public class StickyNoteService {
      * 更新便利貼
      */
     @Transactional
-    public StickyNoteDTO updateStickyNote(UUID id, CreateStickyNoteRequest request) {
+    public StickyNoteDTO updateStickyNote(UUID id, UpdateStickyNoteRequest request) {
+        // 將 stickyNote 從資料庫撈出來
         StickyNote stickyNote = stickyNoteRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
+        // ignore
+
         // 更新位置
-        Point2D pos = new Point2D(request.getPosX(), request.getPosY());
-        stickyNote.setPos(pos);
+        if (request.getPosX() != null && request.getPosY() != null) {
+            stickyNote.setPos(new Point2D(request.getPosX(), request.getPosY()));
+        }
+        // 更新大小
+        if (request.getGeoX() != null && request.getGeoY() != null) {
+            stickyNote.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
+        }
+        // 更新文字
+        if (request.getDescription() != null) {
+            stickyNote.setDescription(request.getDescription());
+        }
+        // 更新顏色
+        if (request.getColor() != null) {
+            stickyNote.setColor(request.getColor());
+        }
+        // 更新 tag
+        if (request.getTag() != null) {
+            stickyNote.setTag(request.getTag());
+        }
 
-        // 更新地理位置
-        Point2D geo = new Point2D(request.getGeoX(), request.getGeoY());
-        stickyNote.setGeo(geo);
-
-        // 更新其他屬性
-        stickyNote.setDescription(request.getDescription());
-        stickyNote.setColor(request.getColor());
-        stickyNote.setTag(request.getTag());
-
+        // 存回資料庫
         StickyNote updatedNote = stickyNoteRepository.save(stickyNote);
         return convertToDTO(updatedNote);
     }

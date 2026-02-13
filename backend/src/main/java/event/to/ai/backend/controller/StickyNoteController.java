@@ -2,6 +2,7 @@ package event.to.ai.backend.controller;
 
 import event.to.ai.backend.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.dto.StickyNoteDTO;
+import event.to.ai.backend.dto.UpdateStickyNoteRequest;
 import event.to.ai.backend.service.StickyNoteService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,7 @@ public class StickyNoteController {
     }
 
     /**
-     * GET /api/sticky-notes - 取得所有便利貼
+     * GET /api/sticky-notes - 取得所有 StickyNote
      */
     @GetMapping
     public ResponseEntity<List<StickyNoteDTO>> getAllStickyNotes(
@@ -63,7 +64,7 @@ public class StickyNoteController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStickyNote(@PathVariable UUID id,
-                                             @Valid @RequestBody CreateStickyNoteRequest request) {
+                                             @Valid @RequestBody UpdateStickyNoteRequest request) {
         try {
             StickyNoteDTO updatedNote = stickyNoteService.updateStickyNote(id, request);
             return ResponseEntity.ok(updatedNote);
