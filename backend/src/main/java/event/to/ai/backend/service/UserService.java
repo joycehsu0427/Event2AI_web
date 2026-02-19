@@ -5,6 +5,7 @@ import event.to.ai.backend.dto.UserDTO;
 import event.to.ai.backend.entity.User;
 import event.to.ai.backend.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,12 @@ import java.util.stream.Collectors;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     /**
@@ -54,17 +57,24 @@ public class UserService {
      */
     @Transactional
     public UserDTO createUser(CreateUserRequest request) {
+        String username = request.getUsername().trim();
+        String email = request.getEmail().trim();
+
         // Check if username already exists
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists: " + request.getUsername());
+        if (userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username already exists: " + username);
         }
 
         // Check if email already exists
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+        if (userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists: " + email);
         }
 
-        User user = new User(request.getUsername(), request.getEmail());
+        User user = new User(
+                username,
+                email,
+                passwordEncoder.encode(request.getPassword())
+        );
         User savedUser = userRepository.save(user);
         return convertToDTO(savedUser);
     }
@@ -77,20 +87,24 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
+        String username = request.getUsername().trim();
+        String email = request.getEmail().trim();
+
         // Check if new username conflicts with existing users
-        if (!user.getUsername().equals(request.getUsername()) &&
-            userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already exists: " + request.getUsername());
+        if (!user.getUsername().equals(username) &&
+            userRepository.existsByUsername(username)) {
+            throw new RuntimeException("Username already exists: " + username);
         }
 
         // Check if new email conflicts with existing users
-        if (!user.getEmail().equals(request.getEmail()) &&
-            userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already exists: " + request.getEmail());
+        if (!user.getEmail().equals(email) &&
+            userRepository.existsByEmail(email)) {
+            throw new RuntimeException("Email already exists: " + email);
         }
 
-        user.setUsername(request.getUsername());
-        user.setEmail(request.getEmail());
+        user.setUsername(username);
+        user.setEmail(email);
+        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
 
         User updatedUser = userRepository.save(user);
         return convertToDTO(updatedUser);

@@ -1,18 +1,18 @@
 spring.application.name=Event2AI_backend
 
-# ===== MySQL ???? =====
+# MySQL
 spring.datasource.url=jdbc:mysql://localhost:3306/event2ai?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Taipei
 spring.datasource.username=${DB_USERNAME}
 spring.datasource.password=${DB_PASSWORD}
 spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 
-# ===== JPA / Hibernate ?? =====
-# ddl-auto ?????
-#   - none??????????????
-#   - update????? Entity ?????????????
-#   - create????????????????
-#   - create-drop??????????
+# JPA / Hibernate
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
 spring.jpa.properties.hibernate.format_sql=true
 spring.jpa.open-in-view=false
+
+# JWT
+# Use a strong 32+ byte secret in production
+app.jwt.secret=${JWT_SECRET:replace-with-a-32-byte-minimum-dev-secret-key}
+app.jwt.access-token-expiration-seconds=${JWT_ACCESS_TOKEN_EXPIRATION_SECONDS:3600}
