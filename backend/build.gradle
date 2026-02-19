@@ -16,6 +16,7 @@ java {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 }
 
 configurations {
@@ -30,6 +31,7 @@ dependencies {
 	implementation 'tw.teddysoft.ucontract:uContract:2.0.0'                        // uContract
 	runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL 驅動
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'tw.teddysoft.ezspec:ezspec-core:2.0.3'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 	mockitoAgent('org.mockito:mockito-core') {
 		transitive = false

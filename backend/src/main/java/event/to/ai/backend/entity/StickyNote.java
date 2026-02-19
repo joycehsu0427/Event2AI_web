@@ -10,6 +10,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -35,6 +37,10 @@ public class StickyNote {
         @AttributeOverride(name = "y", column = @Column(name = "geo_y", nullable = false))
     })
     private Point2D geo;
+
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
+    private Board board;
 
     @Column(nullable = false)
     private String description;
@@ -78,6 +84,14 @@ public class StickyNote {
         this.geo = geo;
     }
 
+    public Board getBoard() {
+        return board;
+    }
+
+    public void setBoard(Board board) {
+        this.board = board;
+    }
+
     public String getDescription(){
         return description;
     }
@@ -107,6 +121,7 @@ public class StickyNote {
     public String toString() {
         return "StickyNote{" +
                 "id=" + id +
+                ", boardId=" + (board == null ? null : board.getId()) +
                 ", pos.x=" + pos.getX() +
                 ", pos.y=" + pos.getY() +
                 ", geo.x=" + geo.getX() +
