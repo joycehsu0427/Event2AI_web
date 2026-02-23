@@ -1,10 +1,11 @@
-package event.to.ai.backend.service;
+package event.to.ai.backend.board.application;
 
+import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.dto.BoardDTO;
 import event.to.ai.backend.dto.CreateBoardRequest;
 import event.to.ai.backend.dto.UpdateBoardRequest;
 import event.to.ai.backend.entity.Board;
-import event.to.ai.backend.repository.BoardRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,38 +15,50 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class BoardService {
+public class BoardApplicationService {
 
-    private final BoardRepository boardRepository;
+    private final BoardRepositoryPort boardRepositoryPort;
+    private final UserRepositoryPort userRepositoryPort;
 
     @Autowired
-    public BoardService(BoardRepository boardRepository) {
-        this.boardRepository = boardRepository;
+    public BoardApplicationService(BoardRepositoryPort boardRepositoryPort,
+                                   UserRepositoryPort userRepositoryPort) {
+        this.boardRepositoryPort = boardRepositoryPort;
+        this.userRepositoryPort = userRepositoryPort;
     }
 
     public List<BoardDTO> getAllBoards() {
-        return boardRepository.findAll()
+        return boardRepositoryPort.findAll()
                 .stream()
-                .map(this::convertToDTO)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     public BoardDTO getBoardById(UUID id) {
-        Board board = boardRepository.findById(id)
+        Board board = boardRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
-        return convertToDTO(board);
+        return toDTO(board);
     }
 
     @Transactional
-    public BoardDTO createBoard(CreateBoardRequest request) {
-        Board board = new Board(request.getTitle().trim(), request.getDescription());
-        Board savedBoard = boardRepository.save(board);
-        return convertToDTO(savedBoard);
+    public BoardDTO createBoard(Long actorUserId, CreateBoardRequest request) {
+        userRepositoryPort.findById(actorUserId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + actorUserId));
+
+        String title = request.getTitle().trim();
+        if (title.isEmpty()) {
+            throw new RuntimeException("Board title cannot be blank");
+        }
+
+        Board board = new Board(title, request.getDescription());
+        board.setOwnerId(actorUserId);
+        Board savedBoard = boardRepositoryPort.save(board);
+        return toDTO(savedBoard);
     }
 
     @Transactional
     public BoardDTO updateBoard(UUID id, UpdateBoardRequest request) {
-        Board board = boardRepository.findById(id)
+        Board board = boardRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
 
         if (request.getTitle() != null) {
@@ -60,23 +73,24 @@ public class BoardService {
             board.setDescription(request.getDescription());
         }
 
-        Board updatedBoard = boardRepository.save(board);
-        return convertToDTO(updatedBoard);
+        Board updatedBoard = boardRepositoryPort.save(board);
+        return toDTO(updatedBoard);
     }
 
     @Transactional
     public void deleteBoard(UUID id) {
-        if (!boardRepository.existsById(id)) {
+        if (!boardRepositoryPort.existsById(id)) {
             throw new RuntimeException("Board not found with id: " + id);
         }
-        boardRepository.deleteById(id);
+        boardRepositoryPort.deleteById(id);
     }
 
-    private BoardDTO convertToDTO(Board board) {
+    private BoardDTO toDTO(Board board) {
         return new BoardDTO(
                 board.getId(),
                 board.getTitle(),
                 board.getDescription(),
+                board.getOwnerId(),
                 board.getCreatedAt(),
                 board.getUpdatedAt()
         );

@@ -27,6 +27,9 @@ public class Board {
     @Column(length = 1000)
     private String description;
 
+    @Column(name = "owner_id", nullable = false)
+    private Long ownerId;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -74,6 +77,14 @@ public class Board {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getOwnerId() {
+        return ownerId;
+    }
+
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     public LocalDateTime getCreatedAt() {

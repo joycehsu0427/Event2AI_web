@@ -1,6 +1,7 @@
 package event.to.ai.backend.service;
 
 import event.to.ai.backend.dto.CreateUserRequest;
+import event.to.ai.backend.dto.UpdateUserRequest;
 import event.to.ai.backend.dto.UserDTO;
 import event.to.ai.backend.entity.User;
 import event.to.ai.backend.repository.UserRepository;
@@ -83,28 +84,37 @@ public class UserService {
      * Update user
      */
     @Transactional
-    public UserDTO updateUser(Long id, CreateUserRequest request) {
+    public UserDTO updateUser(Long id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        String username = request.getUsername().trim();
-        String email = request.getEmail().trim();
-
-        // Check if new username conflicts with existing users
-        if (!user.getUsername().equals(username) &&
-            userRepository.existsByUsername(username)) {
-            throw new RuntimeException("Username already exists: " + username);
+        if (request.getUsername() != null) {
+            String username = request.getUsername().trim();
+            if (username.isEmpty()) {
+                throw new RuntimeException("Username cannot be blank");
+            }
+            if (!user.getUsername().equals(username) &&
+                userRepository.existsByUsername(username)) {
+                throw new RuntimeException("Username already exists: " + username);
+            }
+            user.setUsername(username);
         }
 
-        // Check if new email conflicts with existing users
-        if (!user.getEmail().equals(email) &&
-            userRepository.existsByEmail(email)) {
-            throw new RuntimeException("Email already exists: " + email);
+        if (request.getEmail() != null) {
+            String email = request.getEmail().trim();
+            if (email.isEmpty()) {
+                throw new RuntimeException("Email cannot be blank");
+            }
+            if (!user.getEmail().equals(email) &&
+                userRepository.existsByEmail(email)) {
+                throw new RuntimeException("Email already exists: " + email);
+            }
+            user.setEmail(email);
         }
 
-        user.setUsername(username);
-        user.setEmail(email);
-        user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        if (request.getPassword() != null) {
+            user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
+        }
 
         User updatedUser = userRepository.save(user);
         return convertToDTO(updatedUser);

@@ -1,6 +1,7 @@
 package event.to.ai.backend.entity;
 
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -14,7 +15,7 @@ public class User {
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Column(nullable = false, length = 100)
+    @Column(nullable = false, unique = true, length = 100)
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)

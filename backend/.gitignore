@@ -42,5 +42,9 @@ out/
 
 application.properties
 
+# 
+.gradle-tmp/
+.gradle-run/
+
 #BR use
 codex

@@ -6,6 +6,8 @@
 
 ### Gradle ###
 .gradle/
+.gradle-cache
+.gradle-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 

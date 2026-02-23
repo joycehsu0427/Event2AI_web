@@ -32,7 +32,7 @@ public class AuthService {
 
     public AuthResponse register(CreateUserRequest request) {
         UserDTO createdUser = userService.createUser(request);
-        String token = jwtService.generateToken(createdUser.getUsername());
+        String token = jwtService.generateToken(createdUser.getId());
         return new AuthResponse(token, "Bearer", jwtService.getAccessTokenExpirationSeconds(), createdUser);
     }
 
@@ -53,7 +53,7 @@ public class AuthService {
                 user.getUpdatedAt()
         );
 
-        String token = jwtService.generateToken(user.getUsername());
+        String token = jwtService.generateToken(user.getId());
         return new AuthResponse(token, "Bearer", jwtService.getAccessTokenExpirationSeconds(), userDTO);
     }
 }

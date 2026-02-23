@@ -1,6 +1,7 @@
 package event.to.ai.backend.controller;
 
 import event.to.ai.backend.dto.CreateUserRequest;
+import event.to.ai.backend.dto.UpdateUserRequest;
 import event.to.ai.backend.dto.UserDTO;
 import event.to.ai.backend.service.UserService;
 import jakarta.validation.Valid;
@@ -76,7 +77,7 @@ public class UserController {
      */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateUser(@PathVariable Long id,
-                                       @Valid @RequestBody CreateUserRequest request) {
+                                       @Valid @RequestBody UpdateUserRequest request) {
         try {
             UserDTO updatedUser = userService.updateUser(id, request);
             return ResponseEntity.ok(updatedUser);

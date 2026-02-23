@@ -1,9 +1,10 @@
 package event.to.ai.backend.controller;
 
+import event.to.ai.backend.auth.CurrentUserIdProvider;
+import event.to.ai.backend.board.application.BoardApplicationService;
 import event.to.ai.backend.dto.BoardDTO;
 import event.to.ai.backend.dto.CreateBoardRequest;
 import event.to.ai.backend.dto.UpdateBoardRequest;
-import event.to.ai.backend.service.BoardService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,22 +27,25 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class BoardController {
 
-    private final BoardService boardService;
+    private final BoardApplicationService boardApplicationService;
+    private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
-    public BoardController(BoardService boardService) {
-        this.boardService = boardService;
+    public BoardController(BoardApplicationService boardApplicationService,
+                           CurrentUserIdProvider currentUserIdProvider) {
+        this.boardApplicationService = boardApplicationService;
+        this.currentUserIdProvider = currentUserIdProvider;
     }
 
     @GetMapping
     public ResponseEntity<List<BoardDTO>> getAllBoards() {
-        return ResponseEntity.ok(boardService.getAllBoards());
+        return ResponseEntity.ok(boardApplicationService.getAllBoards());
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getBoardById(@PathVariable UUID id) {
         try {
-            return ResponseEntity.ok(boardService.getBoardById(id));
+            return ResponseEntity.ok(boardApplicationService.getBoardById(id));
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -50,7 +54,8 @@ public class BoardController {
     @PostMapping
     public ResponseEntity<?> createBoard(@Valid @RequestBody CreateBoardRequest request) {
         try {
-            BoardDTO createdBoard = boardService.createBoard(request);
+            Long actorUserId = currentUserIdProvider.getCurrentUserId();
+            BoardDTO createdBoard = boardApplicationService.createBoard(actorUserId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBoard);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -60,7 +65,7 @@ public class BoardController {
     @PutMapping("/{id}")
     public ResponseEntity<?> updateBoard(@PathVariable UUID id, @Valid @RequestBody UpdateBoardRequest request) {
         try {
-            return ResponseEntity.ok(boardService.updateBoard(id, request));
+            return ResponseEntity.ok(boardApplicationService.updateBoard(id, request));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -69,7 +74,7 @@ public class BoardController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteBoard(@PathVariable UUID id) {
         try {
-            boardService.deleteBoard(id);
+            boardApplicationService.deleteBoard(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

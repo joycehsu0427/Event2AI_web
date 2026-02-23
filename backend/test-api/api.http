@@ -1,0 +1,61 @@
+@baseUrl = http://localhost:8080
+
+### 註冊
+# @name register
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "email": "demo_user@example.com",
+  "password": "demoPass123"
+}
+
+### 登入
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "demoPass123"
+}
+
+### 從登入回應擷取 token
+@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzcxODIxODc1LCJleHAiOjE3NzE4MjU0NzV9.30vOoniIrjm6rReYJXH5hNs1I4ilARdSuoBa3Joj7Ms
+
+### 建立 Board（需要 JWT）
+# @name createBoard
+POST {{baseUrl}}/api/boards
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "title": "My First Board",
+  "description": "Board created from api.http"
+}
+
+### 取得所有 Boards（需要 JWT）
+GET {{baseUrl}}/api/boards
+Authorization: Bearer {{accessToken}}
+
+### 從建立 Board 回應擷取 boardId
+@boardId = ee04c5c3-5b6d-4bd0-b4af-426c94d155f4
+
+### 更新 Board（需要 JWT）
+PUT {{baseUrl}}/api/boards/{{boardId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "title": "My First Board (Updated)",
+  "description": "Updated from api.http"
+}
+
+### 取得單一 Board（需要 JWT）
+GET {{baseUrl}}/api/boards/{{boardId}}
+Authorization: Bearer {{accessToken}}
+
+### 刪除 Board（需要 JWT）
+DELETE {{baseUrl}}/api/boards/{{boardId}}
+Authorization: Bearer {{accessToken}}

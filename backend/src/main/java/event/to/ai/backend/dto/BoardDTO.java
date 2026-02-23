@@ -8,16 +8,18 @@ public class BoardDTO {
     private UUID id;
     private String title;
     private String description;
+    private Long ownerUserId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public BoardDTO() {
     }
 
-    public BoardDTO(UUID id, String title, String description, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public BoardDTO(UUID id, String title, String description, Long ownerUserId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
+        this.ownerUserId = ownerUserId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -44,6 +46,14 @@ public class BoardDTO {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
     }
 
     public LocalDateTime getCreatedAt() {

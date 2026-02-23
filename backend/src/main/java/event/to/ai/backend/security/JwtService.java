@@ -4,7 +4,6 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -21,29 +20,33 @@ public class JwtService {
     @Value("${app.jwt.access-token-expiration-seconds:3600}")
     private long accessTokenExpirationSeconds;
 
-    public String generateToken(String username) {
+    public String generateToken(Long userId) {
         Instant now = Instant.now();
         Instant expiration = now.plusSeconds(accessTokenExpirationSeconds);
 
         return Jwts.builder()
-                .subject(username)
+                .subject(String.valueOf(userId))
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(expiration))
                 .signWith(getSigningKey())
                 .compact();
     }
 
-    public String extractUsername(String token) {
-        return extractAllClaims(token).getSubject();
+    public Long extractUserId(String token) {
+        try {
+            return Long.parseLong(extractAllClaims(token).getSubject());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("Invalid user id in token", e);
+        }
     }
 
     public long getAccessTokenExpirationSeconds() {
         return accessTokenExpirationSeconds;
     }
 
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+    public boolean isTokenValid(String token, Long userId) {
+        Long tokenUserId = extractUserId(token);
+        return tokenUserId.equals(userId) && !isTokenExpired(token);
     }
 
     private boolean isTokenExpired(String token) {

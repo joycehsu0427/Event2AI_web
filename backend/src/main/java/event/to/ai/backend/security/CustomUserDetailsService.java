@@ -23,10 +23,16 @@ public class CustomUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found: " + username));
 
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
-                .password(user.getPasswordHash())
-                .authorities("ROLE_USER")
-                .build();
+        return toPrincipal(user);
+    }
+
+    public AuthUserPrincipal loadUserById(Long userId) throws UsernameNotFoundException {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
+        return toPrincipal(user);
+    }
+
+    private AuthUserPrincipal toPrincipal(User user) {
+        return new AuthUserPrincipal(user.getId(), user.getUsername(), user.getPasswordHash());
     }
 }
