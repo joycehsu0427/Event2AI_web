@@ -1,12 +1,13 @@
 package event.to.ai.backend.service;
 
 import event.to.ai.backend.dto.AuthResponse;
-import event.to.ai.backend.dto.CreateUserRequest;
 import event.to.ai.backend.dto.LoginRequest;
-import event.to.ai.backend.dto.UserDTO;
-import event.to.ai.backend.entity.User;
 import event.to.ai.backend.repository.UserRepository;
 import event.to.ai.backend.security.JwtService;
+import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
+import event.to.ai.backend.user.application.UserApplicationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,23 +16,23 @@ import org.springframework.stereotype.Service;
 public class AuthService {
 
     private final UserRepository userRepository;
-    private final UserService userService;
+    private final UserApplicationService userApplicationService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     @Autowired
     public AuthService(UserRepository userRepository,
-                       UserService userService,
+                       UserApplicationService userApplicationService,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService) {
         this.userRepository = userRepository;
-        this.userService = userService;
+        this.userApplicationService = userApplicationService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
     }
 
     public AuthResponse register(CreateUserRequest request) {
-        UserDTO createdUser = userService.createUser(request);
+        UserDTO createdUser = userApplicationService.createUser(request);
         String token = jwtService.generateToken(createdUser.getId());
         return new AuthResponse(token, "Bearer", jwtService.getAccessTokenExpirationSeconds(), createdUser);
     }

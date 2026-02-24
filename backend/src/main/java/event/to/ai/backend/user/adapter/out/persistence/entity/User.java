@@ -1,4 +1,4 @@
-package event.to.ai.backend.entity;
+package event.to.ai.backend.user.adapter.out.persistence.entity;
 
 import jakarta.persistence.*;
 

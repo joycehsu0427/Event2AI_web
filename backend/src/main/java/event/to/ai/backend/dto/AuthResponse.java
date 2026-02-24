@@ -1,5 +1,7 @@
 package event.to.ai.backend.dto;
 
+import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
+
 public class AuthResponse {
 
     private String accessToken;

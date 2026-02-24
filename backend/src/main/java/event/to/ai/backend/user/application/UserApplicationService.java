@@ -1,10 +1,10 @@
-package event.to.ai.backend.service;
+package event.to.ai.backend.user.application;
 
-import event.to.ai.backend.dto.CreateUserRequest;
-import event.to.ai.backend.dto.UpdateUserRequest;
-import event.to.ai.backend.dto.UserDTO;
-import event.to.ai.backend.entity.User;
-import event.to.ai.backend.repository.UserRepository;
+import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UpdateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
+import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -14,14 +14,14 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-public class UserService {
+public class UserApplicationService {
 
-    private final UserRepository userRepository;
+    private final UserRepositoryPort userRepositoryPort;
     private final PasswordEncoder passwordEncoder;
 
     @Autowired
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
+    public UserApplicationService(UserRepositoryPort userRepositoryPort, PasswordEncoder passwordEncoder) {
+        this.userRepositoryPort = userRepositoryPort;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -29,7 +29,7 @@ public class UserService {
      * Get all users
      */
     public List<UserDTO> getAllUsers() {
-        return userRepository.findAll()
+        return userRepositoryPort.findAll()
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -39,7 +39,7 @@ public class UserService {
      * Get user by ID
      */
     public UserDTO getUserById(Long id) {
-        User user = userRepository.findById(id)
+        User user = userRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         return convertToDTO(user);
     }
@@ -48,7 +48,7 @@ public class UserService {
      * Get user by username
      */
     public UserDTO getUserByUsername(String username) {
-        User user = userRepository.findByUsername(username)
+        User user = userRepositoryPort.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + username));
         return convertToDTO(user);
     }
@@ -62,12 +62,12 @@ public class UserService {
         String email = request.getEmail().trim();
 
         // Check if username already exists
-        if (userRepository.existsByUsername(username)) {
+        if (userRepositoryPort.existsByUsername(username)) {
             throw new RuntimeException("Username already exists: " + username);
         }
 
         // Check if email already exists
-        if (userRepository.existsByEmail(email)) {
+        if (userRepositoryPort.existsByEmail(email)) {
             throw new RuntimeException("Email already exists: " + email);
         }
 
@@ -76,7 +76,7 @@ public class UserService {
                 email,
                 passwordEncoder.encode(request.getPassword())
         );
-        User savedUser = userRepository.save(user);
+        User savedUser = userRepositoryPort.save(user);
         return convertToDTO(savedUser);
     }
 
@@ -85,7 +85,7 @@ public class UserService {
      */
     @Transactional
     public UserDTO updateUser(Long id, UpdateUserRequest request) {
-        User user = userRepository.findById(id)
+        User user = userRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         if (request.getUsername() != null) {
@@ -94,7 +94,7 @@ public class UserService {
                 throw new RuntimeException("Username cannot be blank");
             }
             if (!user.getUsername().equals(username) &&
-                userRepository.existsByUsername(username)) {
+                userRepositoryPort.existsByUsername(username)) {
                 throw new RuntimeException("Username already exists: " + username);
             }
             user.setUsername(username);
@@ -106,7 +106,7 @@ public class UserService {
                 throw new RuntimeException("Email cannot be blank");
             }
             if (!user.getEmail().equals(email) &&
-                userRepository.existsByEmail(email)) {
+                userRepositoryPort.existsByEmail(email)) {
                 throw new RuntimeException("Email already exists: " + email);
             }
             user.setEmail(email);
@@ -116,7 +116,7 @@ public class UserService {
             user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         }
 
-        User updatedUser = userRepository.save(user);
+        User updatedUser = userRepositoryPort.save(user);
         return convertToDTO(updatedUser);
     }
 
@@ -125,10 +125,10 @@ public class UserService {
      */
     @Transactional
     public void deleteUser(Long id) {
-        if (!userRepository.existsById(id)) {
+        if (!userRepositoryPort.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);
         }
-        userRepository.deleteById(id);
+        userRepositoryPort.deleteById(id);
     }
 
     /**

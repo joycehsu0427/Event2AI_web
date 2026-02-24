@@ -1,4 +1,4 @@
-package event.to.ai.backend.dto;
+package event.to.ai.backend.user.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
 
@@ -7,8 +7,6 @@ public class UserDTO {
     private Long id;
     private String username;
     private String email;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     // Constructors
     public UserDTO() {
@@ -18,8 +16,6 @@ public class UserDTO {
         this.id = id;
         this.username = username;
         this.email = email;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     // Getters and Setters
@@ -46,20 +42,5 @@ public class UserDTO {
     public void setEmail(String email) {
         this.email = email;
     }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
-    }
 }
+

@@ -1,9 +1,9 @@
-package event.to.ai.backend.controller;
+package event.to.ai.backend.user.adapter.in.web;
 
-import event.to.ai.backend.dto.CreateUserRequest;
-import event.to.ai.backend.dto.UpdateUserRequest;
-import event.to.ai.backend.dto.UserDTO;
-import event.to.ai.backend.service.UserService;
+import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UpdateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
+import event.to.ai.backend.user.application.UserApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -17,11 +17,11 @@ import java.util.List;
 @CrossOrigin(origins = "*")
 public class UserController {
 
-    private final UserService userService;
+    private final UserApplicationService userApplicationService;
 
     @Autowired
-    public UserController(UserService userService) {
-        this.userService = userService;
+    public UserController(UserApplicationService userApplicationService) {
+        this.userApplicationService = userApplicationService;
     }
 
     /**
@@ -29,7 +29,7 @@ public class UserController {
      */
     @GetMapping
     public ResponseEntity<List<UserDTO>> getAllUsers() {
-        List<UserDTO> users = userService.getAllUsers();
+        List<UserDTO> users = userApplicationService.getAllUsers();
         return ResponseEntity.ok(users);
     }
 
@@ -39,7 +39,7 @@ public class UserController {
     @GetMapping("/{id}")
     public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
         try {
-            UserDTO user = userService.getUserById(id);
+            UserDTO user = userApplicationService.getUserById(id);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -52,7 +52,7 @@ public class UserController {
     @GetMapping("/username/{username}")
     public ResponseEntity<UserDTO> getUserByUsername(@PathVariable String username) {
         try {
-            UserDTO user = userService.getUserByUsername(username);
+            UserDTO user = userApplicationService.getUserByUsername(username);
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
@@ -65,7 +65,7 @@ public class UserController {
     @PostMapping
     public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
         try {
-            UserDTO createdUser = userService.createUser(request);
+            UserDTO createdUser = userApplicationService.createUser(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -79,7 +79,7 @@ public class UserController {
     public ResponseEntity<?> updateUser(@PathVariable Long id,
                                        @Valid @RequestBody UpdateUserRequest request) {
         try {
-            UserDTO updatedUser = userService.updateUser(id, request);
+            UserDTO updatedUser = userApplicationService.updateUser(id, request);
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -92,7 +92,7 @@ public class UserController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteUser(@PathVariable Long id) {
         try {
-            userService.deleteUser(id);
+            userApplicationService.deleteUser(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

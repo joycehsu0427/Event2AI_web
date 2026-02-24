@@ -1,7 +1,7 @@
 package event.to.ai.backend.security;
 
-import event.to.ai.backend.entity.User;
 import event.to.ai.backend.repository.UserRepository;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;

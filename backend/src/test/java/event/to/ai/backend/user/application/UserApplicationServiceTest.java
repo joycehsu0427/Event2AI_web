@@ -1,10 +1,10 @@
-package event.to.ai.backend.service;
+package event.to.ai.backend.user.application;
 
-import event.to.ai.backend.dto.CreateUserRequest;
-import event.to.ai.backend.dto.UpdateUserRequest;
-import event.to.ai.backend.dto.UserDTO;
-import event.to.ai.backend.entity.User;
-import event.to.ai.backend.repository.UserRepository;
+import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UpdateUserRequest;
+import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
+import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentMatcher;
 import org.mockito.InjectMocks;
@@ -27,16 +27,16 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class UserServiceTest {
+class UserApplicationServiceTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserRepositoryPort userRepositoryPort;
 
     @Mock
     private PasswordEncoder passwordEncoder;
 
     @InjectMocks
-    private UserService userService;
+    private UserApplicationService userApplicationService;
 
     @EzScenario
     public void createUserShouldTrimFieldsHashPasswordAndPersist() {
@@ -46,10 +46,10 @@ class UserServiceTest {
                     CreateUserRequest request = new CreateUserRequest("  alice  ", "  alice@example.com  ", "mySecret123");
                     env.put("request", request);
 
-                    when(userRepository.existsByUsername("alice")).thenReturn(false);
-                    when(userRepository.existsByEmail("alice@example.com")).thenReturn(false);
+                    when(userRepositoryPort.existsByUsername("alice")).thenReturn(false);
+                    when(userRepositoryPort.existsByEmail("alice@example.com")).thenReturn(false);
                     when(passwordEncoder.encode("mySecret123")).thenReturn("HASHED_PASSWORD");
-                    when(userRepository.save(any(User.class))).thenAnswer(invocation -> {
+                    when(userRepositoryPort.save(any(User.class))).thenAnswer(invocation -> {
                         User user = invocation.getArgument(0);
                         user.setId(1L);
                         return user;
@@ -57,7 +57,7 @@ class UserServiceTest {
                 })
                 .When("creating user", env -> {
                     CreateUserRequest request = env.get("request", CreateUserRequest.class);
-                    UserDTO result = userService.createUser(request);
+                    UserDTO result = userApplicationService.createUser(request);
                     env.put("result", result);
                 })
                 .Then("result should return persisted user info without password", env -> {
@@ -71,7 +71,7 @@ class UserServiceTest {
                             "alice".equals(user.getUsername()) &&
                                     "alice@example.com".equals(user.getEmail()) &&
                                     "HASHED_PASSWORD".equals(user.getPasswordHash());
-                    verify(userRepository).save(argThat(matcher));
+                    verify(userRepositoryPort).save(argThat(matcher));
                     verify(passwordEncoder).encode("mySecret123");
                 })
                 .Execute();
@@ -84,11 +84,11 @@ class UserServiceTest {
                 .Given("a request with duplicated username", env -> {
                     CreateUserRequest request = new CreateUserRequest("alice", "alice@example.com", "mySecret123");
                     env.put("request", request);
-                    when(userRepository.existsByUsername("alice")).thenReturn(true);
+                    when(userRepositoryPort.existsByUsername("alice")).thenReturn(true);
                 })
                 .When("creating user", env -> {
                     CreateUserRequest request = env.get("request", CreateUserRequest.class);
-                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.createUser(request));
+                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userApplicationService.createUser(request));
                     env.put("error", ex);
                 })
                 .Then("error should indicate duplicated username", env -> {
@@ -96,8 +96,8 @@ class UserServiceTest {
                     assertEquals("Username already exists: alice", ex.getMessage());
                 })
                 .And("email check and save should not happen", env -> {
-                    verify(userRepository, never()).existsByEmail(any(String.class));
-                    verify(userRepository, never()).save(any(User.class));
+                    verify(userRepositoryPort, never()).existsByEmail(any(String.class));
+                    verify(userRepositoryPort, never()).save(any(User.class));
                 })
                 .Execute();
     }
@@ -112,15 +112,15 @@ class UserServiceTest {
                     UpdateUserRequest request = new UpdateUserRequest("  newName  ", "  new@example.com  ", "newPassword123");
 
                     env.put("request", request);
-                    when(userRepository.findById(10L)).thenReturn(Optional.of(existing));
-                    when(userRepository.existsByUsername("newName")).thenReturn(false);
-                    when(userRepository.existsByEmail("new@example.com")).thenReturn(false);
+                    when(userRepositoryPort.findById(10L)).thenReturn(Optional.of(existing));
+                    when(userRepositoryPort.existsByUsername("newName")).thenReturn(false);
+                    when(userRepositoryPort.existsByEmail("new@example.com")).thenReturn(false);
                     when(passwordEncoder.encode("newPassword123")).thenReturn("NEW_HASH");
-                    when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                    when(userRepositoryPort.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("updating user", env -> {
                     UpdateUserRequest request = env.get("request", UpdateUserRequest.class);
-                    UserDTO result = userService.updateUser(10L, request);
+                    UserDTO result = userApplicationService.updateUser(10L, request);
                     env.put("result", result);
                 })
                 .Then("updated DTO should reflect trimmed values", env -> {
@@ -135,7 +135,7 @@ class UserServiceTest {
                                     "newName".equals(user.getUsername()) &&
                                     "new@example.com".equals(user.getEmail()) &&
                                     "NEW_HASH".equals(user.getPasswordHash());
-                    verify(userRepository).save(argThat(matcher));
+                    verify(userRepositoryPort).save(argThat(matcher));
                     verify(passwordEncoder).encode("newPassword123");
                 })
                 .Execute();
@@ -145,10 +145,10 @@ class UserServiceTest {
     public void updateUserShouldThrowWhenUserNotFound() {
         Feature.New("User Service")
                 .newScenario("Update user fails when id does not exist")
-                .Given("a non-existing user id", env -> when(userRepository.findById(999L)).thenReturn(Optional.empty()))
+                .Given("a non-existing user id", env -> when(userRepositoryPort.findById(999L)).thenReturn(Optional.empty()))
                 .When("updating user", env -> {
                     UpdateUserRequest request = new UpdateUserRequest("alice", "alice@example.com", "mySecret123");
-                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.updateUser(999L, request));
+                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userApplicationService.updateUser(999L, request));
                     env.put("error", ex);
                 })
                 .Then("error should mention user not found", env -> {
@@ -167,10 +167,10 @@ class UserServiceTest {
                     user1.setId(1L);
                     User user2 = new User("bob", "bob@example.com", "HASH2");
                     user2.setId(2L);
-                    when(userRepository.findAll()).thenReturn(List.of(user1, user2));
+                    when(userRepositoryPort.findAll()).thenReturn(List.of(user1, user2));
                 })
                 .When("getting all users", env -> {
-                    List<UserDTO> result = userService.getAllUsers();
+                    List<UserDTO> result = userApplicationService.getAllUsers();
                     env.put("result", result);
                 })
                 .Then("result should include two mapped users", env -> {
@@ -179,7 +179,7 @@ class UserServiceTest {
                     assertEquals("alice", result.get(0).getUsername());
                     assertEquals("bob", result.get(1).getUsername());
                 })
-                .And("repository should be queried once", env -> verify(userRepository).findAll())
+                .And("repository should be queried once", env -> verify(userRepositoryPort).findAll())
                 .Execute();
     }
 
@@ -190,10 +190,10 @@ class UserServiceTest {
                 .Given("an existing user id", env -> {
                     User user = new User("alice", "alice@example.com", "HASH1");
                     user.setId(1L);
-                    when(userRepository.findById(1L)).thenReturn(Optional.of(user));
+                    when(userRepositoryPort.findById(1L)).thenReturn(Optional.of(user));
                 })
                 .When("getting user by id", env -> {
-                    UserDTO result = userService.getUserById(1L);
+                    UserDTO result = userApplicationService.getUserById(1L);
                     env.put("result", result);
                 })
                 .Then("result should contain user id and identity fields", env -> {
@@ -209,9 +209,9 @@ class UserServiceTest {
     public void getUserByIdShouldThrowWhenNotFound() {
         Feature.New("User Service")
                 .newScenario("Get user by id fails when id does not exist")
-                .Given("a non-existing user id", env -> when(userRepository.findById(404L)).thenReturn(Optional.empty()))
+                .Given("a non-existing user id", env -> when(userRepositoryPort.findById(404L)).thenReturn(Optional.empty()))
                 .When("getting user by id", env -> {
-                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.getUserById(404L));
+                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userApplicationService.getUserById(404L));
                     env.put("error", ex);
                 })
                 .Then("error should mention user id not found", env -> {
@@ -228,10 +228,10 @@ class UserServiceTest {
                 .Given("an existing username", env -> {
                     User user = new User("alice", "alice@example.com", "HASH1");
                     user.setId(1L);
-                    when(userRepository.findByUsername("alice")).thenReturn(Optional.of(user));
+                    when(userRepositoryPort.findByUsername("alice")).thenReturn(Optional.of(user));
                 })
                 .When("getting user by username", env -> {
-                    UserDTO result = userService.getUserByUsername("alice");
+                    UserDTO result = userApplicationService.getUserByUsername("alice");
                     env.put("result", result);
                 })
                 .Then("result should contain user identity fields", env -> {
@@ -247,9 +247,9 @@ class UserServiceTest {
     public void getUserByUsernameShouldThrowWhenNotFound() {
         Feature.New("User Service")
                 .newScenario("Get user by username fails when username does not exist")
-                .Given("a non-existing username", env -> when(userRepository.findByUsername("nobody")).thenReturn(Optional.empty()))
+                .Given("a non-existing username", env -> when(userRepositoryPort.findByUsername("nobody")).thenReturn(Optional.empty()))
                 .When("getting user by username", env -> {
-                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.getUserByUsername("nobody"));
+                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userApplicationService.getUserByUsername("nobody"));
                     env.put("error", ex);
                 })
                 .Then("error should mention username not found", env -> {
@@ -263,9 +263,9 @@ class UserServiceTest {
     public void deleteUserShouldDeleteWhenExists() {
         Feature.New("User Service")
                 .newScenario("Delete user removes user when id exists")
-                .Given("an existing user id", env -> when(userRepository.existsById(10L)).thenReturn(true))
-                .When("deleting user", env -> userService.deleteUser(10L))
-                .Then("repository should delete by id", env -> verify(userRepository).deleteById(10L))
+                .Given("an existing user id", env -> when(userRepositoryPort.existsById(10L)).thenReturn(true))
+                .When("deleting user", env -> userApplicationService.deleteUser(10L))
+                .Then("repository should delete by id", env -> verify(userRepositoryPort).deleteById(10L))
                 .Execute();
     }
 
@@ -273,16 +273,16 @@ class UserServiceTest {
     public void deleteUserShouldThrowWhenNotFound() {
         Feature.New("User Service")
                 .newScenario("Delete user fails when id does not exist")
-                .Given("a non-existing user id", env -> when(userRepository.existsById(999L)).thenReturn(false))
+                .Given("a non-existing user id", env -> when(userRepositoryPort.existsById(999L)).thenReturn(false))
                 .When("deleting user", env -> {
-                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.deleteUser(999L));
+                    RuntimeException ex = assertThrows(RuntimeException.class, () -> userApplicationService.deleteUser(999L));
                     env.put("error", ex);
                 })
                 .Then("error should mention user id not found", env -> {
                     RuntimeException ex = env.get("error", RuntimeException.class);
                     assertEquals("User not found with id: 999", ex.getMessage());
                 })
-                .And("repository delete should not be called", env -> verify(userRepository, never()).deleteById(999L))
+                .And("repository delete should not be called", env -> verify(userRepositoryPort, never()).deleteById(999L))
                 .Execute();
     }
 }

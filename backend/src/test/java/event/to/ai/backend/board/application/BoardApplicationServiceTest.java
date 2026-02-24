@@ -2,11 +2,11 @@ package event.to.ai.backend.board.application;
 
 import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
-import event.to.ai.backend.dto.BoardDTO;
-import event.to.ai.backend.dto.CreateBoardRequest;
-import event.to.ai.backend.dto.UpdateBoardRequest;
-import event.to.ai.backend.entity.Board;
-import event.to.ai.backend.entity.User;
+import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
+import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
+import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
