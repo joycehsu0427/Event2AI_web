@@ -1,9 +1,9 @@
-package event.to.ai.backend.controller;
+package event.to.ai.backend.stickynote.adapter.in.web;
 
-import event.to.ai.backend.dto.CreateStickyNoteRequest;
-import event.to.ai.backend.dto.StickyNoteDTO;
-import event.to.ai.backend.dto.UpdateStickyNoteRequest;
-import event.to.ai.backend.service.StickyNoteService;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
+import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,11 +27,11 @@ import java.util.UUID;
 @CrossOrigin(origins = "*")
 public class StickyNoteController {
 
-    private final StickyNoteService stickyNoteService;
+    private final StickyNoteApplicationService stickyNoteApplicationService;
 
     @Autowired
-    public StickyNoteController(StickyNoteService stickyNoteService) {
-        this.stickyNoteService = stickyNoteService;
+    public StickyNoteController(StickyNoteApplicationService stickyNoteApplicationService) {
+        this.stickyNoteApplicationService = stickyNoteApplicationService;
     }
 
     @GetMapping
@@ -43,15 +43,15 @@ public class StickyNoteController {
         List<StickyNoteDTO> stickyNotes;
 
         if (id != null) {
-            stickyNotes = stickyNoteService.getStickyNotesById(id);
+            stickyNotes = stickyNoteApplicationService.getStickyNotesById(id);
         } else if (boardId != null && color != null) {
-            stickyNotes = stickyNoteService.getStickyNotesByBoardIdAndColor(boardId, color);
+            stickyNotes = stickyNoteApplicationService.getStickyNotesByBoardIdAndColor(boardId, color);
         } else if (boardId != null) {
-            stickyNotes = stickyNoteService.getStickyNotesByBoardId(boardId);
+            stickyNotes = stickyNoteApplicationService.getStickyNotesByBoardId(boardId);
         } else if (color != null) {
-            stickyNotes = stickyNoteService.getStickyNotesByColor(color);
+            stickyNotes = stickyNoteApplicationService.getStickyNotesByColor(color);
         } else {
-            stickyNotes = stickyNoteService.getAllStickyNotes();
+            stickyNotes = stickyNoteApplicationService.getAllStickyNotes();
         }
 
         return ResponseEntity.ok(stickyNotes);
@@ -60,7 +60,7 @@ public class StickyNoteController {
     @PostMapping
     public ResponseEntity<?> createStickyNote(@Valid @RequestBody CreateStickyNoteRequest request) {
         try {
-            StickyNoteDTO createdNote = stickyNoteService.createStickyNote(request);
+            StickyNoteDTO createdNote = stickyNoteApplicationService.createStickyNote(request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdNote);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -71,7 +71,7 @@ public class StickyNoteController {
     public ResponseEntity<?> updateStickyNote(@PathVariable UUID id,
                                               @Valid @RequestBody UpdateStickyNoteRequest request) {
         try {
-            StickyNoteDTO updatedNote = stickyNoteService.updateStickyNote(id, request);
+            StickyNoteDTO updatedNote = stickyNoteApplicationService.updateStickyNote(id, request);
             return ResponseEntity.ok(updatedNote);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -81,7 +81,7 @@ public class StickyNoteController {
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteStickyNote(@PathVariable UUID id) {
         try {
-            stickyNoteService.deleteStickyNote(id);
+            stickyNoteApplicationService.deleteStickyNote(id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

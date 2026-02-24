@@ -1,13 +1,13 @@
-package event.to.ai.backend.service;
+package event.to.ai.backend.stickynote.application;
 
-import event.to.ai.backend.dto.CreateStickyNoteRequest;
-import event.to.ai.backend.dto.StickyNoteDTO;
-import event.to.ai.backend.dto.UpdateStickyNoteRequest;
-import event.to.ai.backend.entity.Board;
-import event.to.ai.backend.entity.Point2D;
-import event.to.ai.backend.entity.StickyNote;
-import event.to.ai.backend.repository.BoardRepository;
-import event.to.ai.backend.repository.StickyNoteRepository;
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
+import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
+import event.to.ai.backend.stickynote.adapter.out.persistence.entity.Point2D;
+import event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote;
+import event.to.ai.backend.stickynote.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.stickynote.application.port.out.StickyNoteRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,19 +18,20 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class StickyNoteService {
+public class StickyNoteApplicationService {
 
-    private final StickyNoteRepository stickyNoteRepository;
-    private final BoardRepository boardRepository;
+    private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
+    private final BoardRepositoryPort boardRepositoryPort;
 
     @Autowired
-    public StickyNoteService(StickyNoteRepository stickyNoteRepository, BoardRepository boardRepository) {
-        this.stickyNoteRepository = stickyNoteRepository;
-        this.boardRepository = boardRepository;
+    public StickyNoteApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
+                                        BoardRepositoryPort boardRepositoryPort) {
+        this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
+        this.boardRepositoryPort = boardRepositoryPort;
     }
 
     public List<StickyNoteDTO> getAllStickyNotes() {
-        return stickyNoteRepository.findAll()
+        return stickyNoteRepositoryPort.findAll()
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -38,26 +39,26 @@ public class StickyNoteService {
 
     public List<StickyNoteDTO> getStickyNotesById(UUID id) {
         List<StickyNoteDTO> result = new ArrayList<>();
-        stickyNoteRepository.findById(id).ifPresent(stickyNote -> result.add(convertToDTO(stickyNote)));
+        stickyNoteRepositoryPort.findById(id).ifPresent(stickyNote -> result.add(convertToDTO(stickyNote)));
         return result;
     }
 
     public List<StickyNoteDTO> getStickyNotesByColor(String color) {
-        return stickyNoteRepository.findByColor(color)
+        return stickyNoteRepositoryPort.findByColor(color)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public List<StickyNoteDTO> getStickyNotesByBoardId(UUID boardId) {
-        return stickyNoteRepository.findByBoardId(boardId)
+        return stickyNoteRepositoryPort.findByBoardId(boardId)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     public List<StickyNoteDTO> getStickyNotesByBoardIdAndColor(UUID boardId, String color) {
-        return stickyNoteRepository.findByBoardIdAndColor(boardId, color)
+        return stickyNoteRepositoryPort.findByBoardIdAndColor(boardId, color)
                 .stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
@@ -65,7 +66,7 @@ public class StickyNoteService {
 
     @Transactional
     public StickyNoteDTO createStickyNote(CreateStickyNoteRequest request) {
-        Board board = boardRepository.findById(request.getBoardId())
+        Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
         StickyNote stickyNote = new StickyNote();
@@ -76,17 +77,17 @@ public class StickyNoteService {
         stickyNote.setColor(request.getColor());
         stickyNote.setTag(request.getTag());
 
-        StickyNote savedNote = stickyNoteRepository.save(stickyNote);
+        StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(savedNote);
     }
 
     @Transactional
     public StickyNoteDTO updateStickyNote(UUID id, UpdateStickyNoteRequest request) {
-        StickyNote stickyNote = stickyNoteRepository.findById(id)
+        StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
         if (request.getBoardId() != null) {
-            Board board = boardRepository.findById(request.getBoardId())
+            Board board = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
             stickyNote.setBoard(board);
         }
@@ -107,16 +108,16 @@ public class StickyNoteService {
             stickyNote.setTag(request.getTag());
         }
 
-        StickyNote updatedNote = stickyNoteRepository.save(stickyNote);
+        StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(updatedNote);
     }
 
     @Transactional
     public void deleteStickyNote(UUID id) {
-        if (!stickyNoteRepository.existsById(id)) {
+        if (!stickyNoteRepositoryPort.existsById(id)) {
             throw new RuntimeException("StickyNote not found with id: " + id);
         }
-        stickyNoteRepository.deleteById(id);
+        stickyNoteRepositoryPort.deleteById(id);
     }
 
     private StickyNoteDTO convertToDTO(StickyNote stickyNote) {

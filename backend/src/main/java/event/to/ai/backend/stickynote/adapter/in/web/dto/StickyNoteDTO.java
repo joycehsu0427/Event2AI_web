@@ -1,35 +1,26 @@
-package event.to.ai.backend.dto;
-
-import jakarta.validation.constraints.Size;
+package event.to.ai.backend.stickynote.adapter.in.web.dto;
 
 import java.util.UUID;
 
-public class UpdateStickyNoteRequest {
+public class StickyNoteDTO {
 
+    private UUID id;
     private UUID boardId;
-
     private Double posX;
-
     private Double posY;
-
     private Double geoX;
-
     private Double geoY;
-
     private String description;
-
-    @Size(max = 50, message = "Color must not exceed 50 characters")
     private String color;
-
-    @Size(max = 30, message = "tag must not exceed 30 characters.")
     private String tag;
 
     // Constructors
-    public UpdateStickyNoteRequest() {
+    public StickyNoteDTO() {
     }
 
-    public UpdateStickyNoteRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
-                                   String description, String color, String tag) {
+    public StickyNoteDTO(UUID id, UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
+                        String description, String color, String tag) {
+        this.id = id;
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
@@ -40,6 +31,15 @@ public class UpdateStickyNoteRequest {
         this.tag = tag;
     }
 
+    // Getters and Setters
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
+    }
+
     public UUID getBoardId() {
         return boardId;
     }
@@ -48,7 +48,6 @@ public class UpdateStickyNoteRequest {
         this.boardId = boardId;
     }
 
-    // Getters and Setters
     public Double getPosX() {
         return posX;
     }

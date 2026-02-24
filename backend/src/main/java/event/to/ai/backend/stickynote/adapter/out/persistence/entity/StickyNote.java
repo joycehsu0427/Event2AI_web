@@ -1,7 +1,8 @@
-package event.to.ai.backend.entity;
+package event.to.ai.backend.stickynote.adapter.out.persistence.entity;
 
 import java.util.UUID;
 
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;

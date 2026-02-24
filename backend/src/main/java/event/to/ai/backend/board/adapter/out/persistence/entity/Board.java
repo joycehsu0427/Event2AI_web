@@ -1,4 +1,4 @@
-package event.to.ai.backend.entity;
+package event.to.ai.backend.board.adapter.out.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

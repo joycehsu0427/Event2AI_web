@@ -1,6 +1,6 @@
 package event.to.ai.backend.repository;
 
-import event.to.ai.backend.entity.StickyNote;
+import event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

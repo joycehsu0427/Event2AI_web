@@ -1,4 +1,4 @@
-package event.to.ai.backend.dto;
+package event.to.ai.backend.board.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -9,8 +9,6 @@ public class BoardDTO {
     private String title;
     private String description;
     private Long ownerUserId;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
 
     public BoardDTO() {
     }
@@ -20,8 +18,6 @@ public class BoardDTO {
         this.title = title;
         this.description = description;
         this.ownerUserId = ownerUserId;
-        this.createdAt = createdAt;
-        this.updatedAt = updatedAt;
     }
 
     public UUID getId() {
@@ -54,21 +50,5 @@ public class BoardDTO {
 
     public void setOwnerUserId(Long ownerUserId) {
         this.ownerUserId = ownerUserId;
-    }
-
-    public LocalDateTime getCreatedAt() {
-        return createdAt;
-    }
-
-    public void setCreatedAt(LocalDateTime createdAt) {
-        this.createdAt = createdAt;
-    }
-
-    public LocalDateTime getUpdatedAt() {
-        return updatedAt;
-    }
-
-    public void setUpdatedAt(LocalDateTime updatedAt) {
-        this.updatedAt = updatedAt;
     }
 }

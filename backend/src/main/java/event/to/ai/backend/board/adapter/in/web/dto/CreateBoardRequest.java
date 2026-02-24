@@ -1,19 +1,21 @@
-package event.to.ai.backend.dto;
+package event.to.ai.backend.board.adapter.in.web.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public class UpdateBoardRequest {
+public class CreateBoardRequest {
 
+    @NotBlank(message = "Board title is required")
     @Size(max = 200, message = "Board title must not exceed 200 characters")
     private String title;
 
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
-    public UpdateBoardRequest() {
+    public CreateBoardRequest() {
     }
 
-    public UpdateBoardRequest(String title, String description) {
+    public CreateBoardRequest(String title, String description) {
         this.title = title;
         this.description = description;
     }

@@ -2,10 +2,10 @@ package event.to.ai.backend.board.application;
 
 import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
-import event.to.ai.backend.dto.BoardDTO;
-import event.to.ai.backend.dto.CreateBoardRequest;
-import event.to.ai.backend.dto.UpdateBoardRequest;
-import event.to.ai.backend.entity.Board;
+import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
+import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
+import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

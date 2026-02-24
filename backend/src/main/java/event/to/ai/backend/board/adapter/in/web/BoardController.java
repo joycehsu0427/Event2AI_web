@@ -1,10 +1,10 @@
-package event.to.ai.backend.controller;
+package event.to.ai.backend.board.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.board.application.BoardApplicationService;
-import event.to.ai.backend.dto.BoardDTO;
-import event.to.ai.backend.dto.CreateBoardRequest;
-import event.to.ai.backend.dto.UpdateBoardRequest;
+import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
+import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
+import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
