@@ -5,6 +5,7 @@ import java.util.UUID;
 public class StickyNoteDTO {
 
     private UUID id;
+    private UUID boardId;
     private Double posX;
     private Double posY;
     private Double geoX;
@@ -17,9 +18,10 @@ public class StickyNoteDTO {
     public StickyNoteDTO() {
     }
 
-    public StickyNoteDTO(UUID id, Double posX, Double posY, Double geoX, Double geoY,
+    public StickyNoteDTO(UUID id, UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
                         String description, String color, String tag) {
         this.id = id;
+        this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;
@@ -36,6 +38,14 @@ public class StickyNoteDTO {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    public UUID getBoardId() {
+        return boardId;
+    }
+
+    public void setBoardId(UUID boardId) {
+        this.boardId = boardId;
     }
 
     public Double getPosX() {

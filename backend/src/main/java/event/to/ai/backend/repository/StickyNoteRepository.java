@@ -10,10 +10,9 @@ import java.util.UUID;
 @Repository
 public interface StickyNoteRepository extends JpaRepository<StickyNote, UUID> {
 
-    // 根據 id 查詢返回卡片
-    List<StickyNote> findStickyNoteById(UUID id);
+    List<StickyNote> findByBoardId(UUID boardId);
 
-    // 根據顏色查詢返回屬於該顏色的卡片
-    List<StickyNote> findStickyNotesByColor(String color);
+    List<StickyNote> findByBoardIdAndColor(UUID boardId, String color);
 
+    List<StickyNote> findByColor(String color);
 }

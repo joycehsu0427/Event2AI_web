@@ -4,7 +4,12 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class CreateStickyNoteRequest {
+
+    @NotNull(message = "Board ID is required")
+    private UUID boardId;
 
     @NotNull(message = "Position X is required")
     private Double posX;
@@ -18,6 +23,7 @@ public class CreateStickyNoteRequest {
     @NotNull(message = "Geo Y is required")
     private Double geoY;
 
+    @NotBlank(message = "Description is required")
     private String description;
 
     @NotBlank(message = "Color is required")
@@ -25,14 +31,16 @@ public class CreateStickyNoteRequest {
     private String color;
 
     @Size(max = 30, message = "tag must not exceed 30 characters.")
+    @NotBlank(message = "Tag is required")
     private String tag;
 
     // Constructors
     public CreateStickyNoteRequest() {
     }
 
-    public CreateStickyNoteRequest(Double posX, Double posY, Double geoX, Double geoY,
+    public CreateStickyNoteRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
                                   String description, String color, String tag) {
+        this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;
@@ -40,6 +48,14 @@ public class CreateStickyNoteRequest {
         this.description = description;
         this.color = color;
         this.tag = tag;
+    }
+
+    public UUID getBoardId() {
+        return boardId;
+    }
+
+    public void setBoardId(UUID boardId) {
+        this.boardId = boardId;
     }
 
     // Getters and Setters

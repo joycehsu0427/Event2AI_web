@@ -8,7 +8,16 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,18 +34,20 @@ public class StickyNoteController {
         this.stickyNoteService = stickyNoteService;
     }
 
-    /**
-     * GET /api/sticky-notes - 取得所有 StickyNote
-     */
     @GetMapping
     public ResponseEntity<List<StickyNoteDTO>> getAllStickyNotes(
             @RequestParam(required = false) UUID id,
-            @RequestParam(required = false) String color) {
+            @RequestParam(required = false) String color,
+            @RequestParam(required = false) UUID boardId) {
 
         List<StickyNoteDTO> stickyNotes;
 
         if (id != null) {
             stickyNotes = stickyNoteService.getStickyNotesById(id);
+        } else if (boardId != null && color != null) {
+            stickyNotes = stickyNoteService.getStickyNotesByBoardIdAndColor(boardId, color);
+        } else if (boardId != null) {
+            stickyNotes = stickyNoteService.getStickyNotesByBoardId(boardId);
         } else if (color != null) {
             stickyNotes = stickyNoteService.getStickyNotesByColor(color);
         } else {
@@ -46,9 +57,6 @@ public class StickyNoteController {
         return ResponseEntity.ok(stickyNotes);
     }
 
-    /**
-     * POST /api/sticky-notes - 建立新便利貼
-     */
     @PostMapping
     public ResponseEntity<?> createStickyNote(@Valid @RequestBody CreateStickyNoteRequest request) {
         try {
@@ -59,12 +67,9 @@ public class StickyNoteController {
         }
     }
 
-    /**
-     * PUT /api/sticky-notes/{id} - 更新便利貼
-     */
     @PutMapping("/{id}")
     public ResponseEntity<?> updateStickyNote(@PathVariable UUID id,
-                                             @Valid @RequestBody UpdateStickyNoteRequest request) {
+                                              @Valid @RequestBody UpdateStickyNoteRequest request) {
         try {
             StickyNoteDTO updatedNote = stickyNoteService.updateStickyNote(id, request);
             return ResponseEntity.ok(updatedNote);
@@ -73,9 +78,6 @@ public class StickyNoteController {
         }
     }
 
-    /**
-     * DELETE /api/sticky-notes/{id} - 刪除便利貼
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteStickyNote(@PathVariable UUID id) {
         try {

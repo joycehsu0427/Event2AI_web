@@ -1,10 +1,12 @@
 package event.to.ai.backend.dto;
 
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import java.util.UUID;
+
 public class UpdateStickyNoteRequest {
+
+    private UUID boardId;
 
     private Double posX;
 
@@ -26,8 +28,9 @@ public class UpdateStickyNoteRequest {
     public UpdateStickyNoteRequest() {
     }
 
-    public UpdateStickyNoteRequest(Double posX, Double posY, Double geoX, Double geoY,
+    public UpdateStickyNoteRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
                                    String description, String color, String tag) {
+        this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;
@@ -35,6 +38,14 @@ public class UpdateStickyNoteRequest {
         this.description = description;
         this.color = color;
         this.tag = tag;
+    }
+
+    public UUID getBoardId() {
+        return boardId;
+    }
+
+    public void setBoardId(UUID boardId) {
+        this.boardId = boardId;
     }
 
     // Getters and Setters
