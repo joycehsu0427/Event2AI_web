@@ -1,6 +1,6 @@
 package event.to.ai.backend.repository;
 
-import event.to.ai.backend.entity.User;
+import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
