@@ -1,5 +1,10 @@
 @baseUrl = http://localhost:8080
 
+###
+# ==============================
+#   AUTH
+# ==============================
+
 ### 註冊
 # @name register
 POST {{baseUrl}}/api/auth/register
@@ -21,41 +26,44 @@ Content-Type: application/json
   "password": "demoPass123"
 }
 
-### 從登入回應擷取 token
-@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzcxODIxODc1LCJleHAiOjE3NzE4MjU0NzV9.30vOoniIrjm6rReYJXH5hNs1I4ilARdSuoBa3Joj7Ms
+### 從登入回應自動擷取 token（執行上方登入後即生效）
+@accessToken = {{login.response.body.$.accessToken}}
 
-### 建立 Board（需要 JWT）
-# @name createBoard
-POST {{baseUrl}}/api/boards
+###
+# ==============================
+#   USER（需要 JWT）
+# ==============================
+
+### 取得目前登入的使用者（依 access token 識別）
+GET {{baseUrl}}/api/users/me
+Authorization: Bearer {{accessToken}}
+
+### 取得所有使用者
+GET {{baseUrl}}/api/users
+Authorization: Bearer {{accessToken}}
+
+### 從上方回應手動填入 userId
+@userId = 1
+
+### 取得單一使用者（by ID）
+GET {{baseUrl}}/api/users/{{userId}}
+Authorization: Bearer {{accessToken}}
+
+### 取得單一使用者（by username）
+GET {{baseUrl}}/api/users/username/demo_user
+Authorization: Bearer {{accessToken}}
+
+### 更新使用者（by ID）
+PUT {{baseUrl}}/api/users/{{userId}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
 {
-  "title": "My First Board",
-  "description": "Board created from api.http"
+  "username": "demo_user_updated",
+  "email": "demo_updated@example.com",
+  "password": "newPass456"
 }
 
-### 取得所有 Boards（需要 JWT）
-GET {{baseUrl}}/api/boards
-Authorization: Bearer {{accessToken}}
-
-### 從建立 Board 回應擷取 boardId
-@boardId = ee04c5c3-5b6d-4bd0-b4af-426c94d155f4
-
-### 更新 Board（需要 JWT）
-PUT {{baseUrl}}/api/boards/{{boardId}}
-Content-Type: application/json
-Authorization: Bearer {{accessToken}}
-
-{
-  "title": "My First Board (Updated)",
-  "description": "Updated from api.http"
-}
-
-### 取得單一 Board（需要 JWT）
-GET {{baseUrl}}/api/boards/{{boardId}}
-Authorization: Bearer {{accessToken}}
-
-### 刪除 Board（需要 JWT）
-DELETE {{baseUrl}}/api/boards/{{boardId}}
+### 刪除使用者（by ID）
+DELETE {{baseUrl}}/api/users/{{userId}}
 Authorization: Bearer {{accessToken}}

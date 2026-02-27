@@ -1,4 +1,4 @@
-package event.to.ai.backend.repository;
+package event.to.ai.backend.board.adapter.out.persistence;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import org.springframework.data.jpa.repository.JpaRepository;

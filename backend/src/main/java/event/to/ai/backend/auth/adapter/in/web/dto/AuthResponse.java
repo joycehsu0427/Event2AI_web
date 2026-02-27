@@ -1,4 +1,4 @@
-package event.to.ai.backend.dto;
+package event.to.ai.backend.auth.adapter.in.web.dto;
 
 import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
 

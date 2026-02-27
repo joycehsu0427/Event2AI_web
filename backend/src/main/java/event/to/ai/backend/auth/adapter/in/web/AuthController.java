@@ -1,8 +1,8 @@
-package event.to.ai.backend.controller;
+package event.to.ai.backend.auth.adapter.in.web;
 
-import event.to.ai.backend.dto.AuthResponse;
-import event.to.ai.backend.dto.LoginRequest;
-import event.to.ai.backend.service.AuthService;
+import event.to.ai.backend.auth.adapter.in.web.dto.AuthResponse;
+import event.to.ai.backend.auth.adapter.in.web.dto.LoginRequest;
+import event.to.ai.backend.auth.application.AuthService;
 import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;

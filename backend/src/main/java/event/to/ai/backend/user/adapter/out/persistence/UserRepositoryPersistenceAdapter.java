@@ -1,6 +1,6 @@
 package event.to.ai.backend.user.adapter.out.persistence;
 
-import event.to.ai.backend.repository.UserRepository;
+import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;

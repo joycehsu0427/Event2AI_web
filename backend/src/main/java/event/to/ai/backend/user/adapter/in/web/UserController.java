@@ -1,12 +1,11 @@
 package event.to.ai.backend.user.adapter.in.web;
 
-import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
+import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.user.adapter.in.web.dto.UpdateUserRequest;
 import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
 import event.to.ai.backend.user.application.UserApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,10 +17,23 @@ import java.util.List;
 public class UserController {
 
     private final UserApplicationService userApplicationService;
+    private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
-    public UserController(UserApplicationService userApplicationService) {
+    public UserController(UserApplicationService userApplicationService,
+                          CurrentUserIdProvider currentUserIdProvider) {
         this.userApplicationService = userApplicationService;
+        this.currentUserIdProvider = currentUserIdProvider;
+    }
+
+    /**
+     * GET /api/users/me - Get current authenticated user
+     */
+    @GetMapping("/me")
+    public ResponseEntity<UserDTO> getCurrentUser() {
+        Long userId = currentUserIdProvider.getCurrentUserId();
+        UserDTO user = userApplicationService.getUserById(userId);
+        return ResponseEntity.ok(user);
     }
 
     /**
@@ -56,19 +68,6 @@ public class UserController {
             return ResponseEntity.ok(user);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
-        }
-    }
-
-    /**
-     * POST /api/users - Create new user
-     */
-    @PostMapping
-    public ResponseEntity<?> createUser(@Valid @RequestBody CreateUserRequest request) {
-        try {
-            UserDTO createdUser = userApplicationService.createUser(request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 

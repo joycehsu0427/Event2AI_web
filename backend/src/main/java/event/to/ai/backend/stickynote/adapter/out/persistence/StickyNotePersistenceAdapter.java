@@ -1,6 +1,6 @@
 package event.to.ai.backend.stickynote.adapter.out.persistence;
 
-import event.to.ai.backend.repository.StickyNoteRepository;
+import event.to.ai.backend.stickynote.adapter.out.persistence.StickyNoteRepository;
 import event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote;
 import event.to.ai.backend.stickynote.application.port.out.StickyNoteRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;

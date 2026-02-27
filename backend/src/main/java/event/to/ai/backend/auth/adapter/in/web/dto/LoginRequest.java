@@ -1,4 +1,4 @@
-package event.to.ai.backend.dto;
+package event.to.ai.backend.auth.adapter.in.web.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

@@ -1,13 +1,13 @@
-package event.to.ai.backend.service;
+package event.to.ai.backend.auth.application;
 
-import event.to.ai.backend.dto.AuthResponse;
-import event.to.ai.backend.dto.LoginRequest;
-import event.to.ai.backend.repository.UserRepository;
+import event.to.ai.backend.auth.adapter.in.web.dto.AuthResponse;
+import event.to.ai.backend.auth.adapter.in.web.dto.LoginRequest;
 import event.to.ai.backend.security.JwtService;
 import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
 import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import event.to.ai.backend.user.application.UserApplicationService;
+import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -15,17 +15,17 @@ import org.springframework.stereotype.Service;
 @Service
 public class AuthService {
 
-    private final UserRepository userRepository;
+    private final UserRepositoryPort userRepositoryPort;
     private final UserApplicationService userApplicationService;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
 
     @Autowired
-    public AuthService(UserRepository userRepository,
+    public AuthService(UserRepositoryPort userRepositoryPort,
                        UserApplicationService userApplicationService,
                        PasswordEncoder passwordEncoder,
                        JwtService jwtService) {
-        this.userRepository = userRepository;
+        this.userRepositoryPort = userRepositoryPort;
         this.userApplicationService = userApplicationService;
         this.passwordEncoder = passwordEncoder;
         this.jwtService = jwtService;
@@ -39,7 +39,7 @@ public class AuthService {
 
     public AuthResponse login(LoginRequest request) {
         String username = request.getUsername().trim();
-        User user = userRepository.findByUsername(username)
+        User user = userRepositoryPort.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("Invalid username or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
