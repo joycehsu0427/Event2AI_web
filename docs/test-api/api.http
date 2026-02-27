@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 ### 從登入回應擷取 token
-@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzcxODIxODc1LCJleHAiOjE3NzE4MjU0NzV9.30vOoniIrjm6rReYJXH5hNs1I4ilARdSuoBa3Joj7Ms
+@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzcyMTczMTY0LCJleHAiOjE3NzIxNzY3NjR9.5FtsHpDzO0iCTSEl54ONxUYjFCgPVjPr_OruL8lfZkQ
 
 ### 建立 Board（需要 JWT）
 # @name createBoard
