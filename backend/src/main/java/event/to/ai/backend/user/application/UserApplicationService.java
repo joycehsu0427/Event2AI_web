@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -38,7 +39,7 @@ public class UserApplicationService {
     /**
      * Get user by ID
      */
-    public UserDTO getUserById(Long id) {
+    public UserDTO getUserById(UUID id) {
         User user = userRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         return convertToDTO(user);
@@ -84,7 +85,7 @@ public class UserApplicationService {
      * Update user
      */
     @Transactional
-    public UserDTO updateUser(Long id, UpdateUserRequest request) {
+    public UserDTO updateUser(UUID id, UpdateUserRequest request) {
         User user = userRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
@@ -124,7 +125,7 @@ public class UserApplicationService {
      * Delete user
      */
     @Transactional
-    public void deleteUser(Long id) {
+    public void deleteUser(UUID id) {
         if (!userRepositoryPort.existsById(id)) {
             throw new RuntimeException("User not found with id: " + id);
         }

@@ -43,7 +43,7 @@ GET {{baseUrl}}/api/users
 Authorization: Bearer {{accessToken}}
 
 ### 從上方回應手動填入 userId
-@userId = 1
+@userId = 00000000-0000-0000-0000-000000000001
 
 ### 取得單一使用者（by ID）
 GET {{baseUrl}}/api/users/{{userId}}

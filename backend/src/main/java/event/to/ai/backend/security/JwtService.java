@@ -10,6 +10,7 @@ import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 
 @Service
 public class JwtService {
@@ -20,7 +21,7 @@ public class JwtService {
     @Value("${app.jwt.access-token-expiration-seconds:3600}")
     private long accessTokenExpirationSeconds;
 
-    public String generateToken(Long userId) {
+    public String generateToken(UUID userId) {
         Instant now = Instant.now();
         Instant expiration = now.plusSeconds(accessTokenExpirationSeconds);
 
@@ -32,10 +33,10 @@ public class JwtService {
                 .compact();
     }
 
-    public Long extractUserId(String token) {
+    public UUID extractUserId(String token) {
         try {
-            return Long.parseLong(extractAllClaims(token).getSubject());
-        } catch (NumberFormatException e) {
+            return UUID.fromString(extractAllClaims(token).getSubject());
+        } catch (IllegalArgumentException e) {
             throw new IllegalArgumentException("Invalid user id in token", e);
         }
     }
@@ -44,8 +45,8 @@ public class JwtService {
         return accessTokenExpirationSeconds;
     }
 
-    public boolean isTokenValid(String token, Long userId) {
-        Long tokenUserId = extractUserId(token);
+    public boolean isTokenValid(String token, UUID userId) {
+        UUID tokenUserId = extractUserId(token);
         return tokenUserId.equals(userId) && !isTokenExpired(token);
     }
 

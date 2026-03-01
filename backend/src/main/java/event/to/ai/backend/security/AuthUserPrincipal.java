@@ -6,20 +6,21 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.UUID;
 
 public class AuthUserPrincipal implements UserDetails {
 
-    private final Long id;
+    private final UUID id;
     private final String username;
     private final String passwordHash;
 
-    public AuthUserPrincipal(Long id, String username, String passwordHash) {
+    public AuthUserPrincipal(UUID id, String username, String passwordHash) {
         this.id = id;
         this.username = username;
         this.passwordHash = passwordHash;
     }
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 

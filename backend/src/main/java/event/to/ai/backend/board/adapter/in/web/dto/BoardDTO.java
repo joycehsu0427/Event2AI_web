@@ -8,12 +8,12 @@ public class BoardDTO {
     private UUID id;
     private String title;
     private String description;
-    private Long ownerUserId;
+    private UUID ownerUserId;
 
     public BoardDTO() {
     }
 
-    public BoardDTO(UUID id, String title, String description, Long ownerUserId, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public BoardDTO(UUID id, String title, String description, UUID ownerUserId, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.title = title;
         this.description = description;
@@ -44,11 +44,11 @@ public class BoardDTO {
         this.description = description;
     }
 
-    public Long getOwnerUserId() {
+    public UUID getOwnerUserId() {
         return ownerUserId;
     }
 
-    public void setOwnerUserId(Long ownerUserId) {
+    public void setOwnerUserId(UUID ownerUserId) {
         this.ownerUserId = ownerUserId;
     }
 }

@@ -54,7 +54,7 @@ public class BoardController {
     @PostMapping
     public ResponseEntity<?> createBoard(@Valid @RequestBody CreateBoardRequest request) {
         try {
-            Long actorUserId = currentUserIdProvider.getCurrentUserId();
+            UUID actorUserId = currentUserIdProvider.getCurrentUserId();
             BoardDTO createdBoard = boardApplicationService.createBoard(actorUserId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdBoard);
         } catch (RuntimeException e) {

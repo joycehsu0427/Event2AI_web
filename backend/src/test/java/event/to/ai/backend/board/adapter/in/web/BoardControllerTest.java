@@ -55,7 +55,7 @@ class BoardControllerTest {
         Feature.New("Board Controller")
                 .newScenario("Create board uses current user id and returns 201")
                 .Given("a valid request and authenticated actor id", env -> {
-                    Long actorUserId = 11L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000011");
                     CreateBoardRequest request = new CreateBoardRequest("Team Board", "planning");
                     BoardDTO response = new BoardDTO(UUID.randomUUID(), "Team Board", "planning", actorUserId, null, null);
                     env.put("actorUserId", actorUserId);
@@ -66,13 +66,14 @@ class BoardControllerTest {
                 })
                 .When("creating board via POST /api/boards", env -> {
                     CreateBoardRequest request = env.get("request", CreateBoardRequest.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     try {
                         MvcResult result = mockMvc.perform(post("/api/boards")
                                         .contentType(MediaType.APPLICATION_JSON)
                                         .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.title").value("Team Board"))
-                                .andExpect(jsonPath("$.ownerUserId").value(11))
+                                .andExpect(jsonPath("$.ownerUserId").value(actorUserId.toString()))
                                 .andReturn();
                         env.put("result", result);
                     } catch (Exception e) {
@@ -80,7 +81,7 @@ class BoardControllerTest {
                     }
                 })
                 .Then("controller should call provider and service with actor id", env -> {
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     verify(currentUserIdProvider).getCurrentUserId();
                     verify(boardApplicationService).createBoard(eq(actorUserId), any(CreateBoardRequest.class));
                 })
@@ -92,7 +93,7 @@ class BoardControllerTest {
         Feature.New("Board Controller")
                 .newScenario("Create board returns 400 when service throws runtime exception")
                 .Given("a valid request but service throws validation error", env -> {
-                    Long actorUserId = 11L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000011");
                     CreateBoardRequest request = new CreateBoardRequest("Team Board", "planning");
                     env.put("request", request);
                     when(currentUserIdProvider.getCurrentUserId()).thenReturn(actorUserId);
@@ -113,7 +114,7 @@ class BoardControllerTest {
                 })
                 .Then("error body should be returned from controller", env -> {
                     verify(currentUserIdProvider).getCurrentUserId();
-                    verify(boardApplicationService).createBoard(eq(11L), any(CreateBoardRequest.class));
+                    verify(boardApplicationService).createBoard(eq(UUID.fromString("00000000-0000-0000-0000-000000000011")), any(CreateBoardRequest.class));
                 })
                 .Execute();
     }

@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/users")
@@ -31,7 +32,7 @@ public class UserController {
      */
     @GetMapping("/me")
     public ResponseEntity<UserDTO> getCurrentUser() {
-        Long userId = currentUserIdProvider.getCurrentUserId();
+        UUID userId = currentUserIdProvider.getCurrentUserId();
         UserDTO user = userApplicationService.getUserById(userId);
         return ResponseEntity.ok(user);
     }
@@ -49,7 +50,7 @@ public class UserController {
      * GET /api/users/{id} - Get user by ID
      */
     @GetMapping("/{id}")
-    public ResponseEntity<UserDTO> getUserById(@PathVariable Long id) {
+    public ResponseEntity<UserDTO> getUserById(@PathVariable UUID id) {
         try {
             UserDTO user = userApplicationService.getUserById(id);
             return ResponseEntity.ok(user);
@@ -75,7 +76,7 @@ public class UserController {
      * PUT /api/users/{id} - Update user
      */
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateUser(@PathVariable Long id,
+    public ResponseEntity<?> updateUser(@PathVariable UUID id,
                                        @Valid @RequestBody UpdateUserRequest request) {
         try {
             UserDTO updatedUser = userApplicationService.updateUser(id, request);
@@ -89,7 +90,7 @@ public class UserController {
      * DELETE /api/users/{id} - Delete user
      */
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(@PathVariable Long id) {
+    public ResponseEntity<?> deleteUser(@PathVariable UUID id) {
         try {
             userApplicationService.deleteUser(id);
             return ResponseEntity.noContent().build();

@@ -1,6 +1,8 @@
 package event.to.ai.backend.auth;
 
+import java.util.UUID;
+
 public interface CurrentUserIdProvider {
 
-    Long getCurrentUserId();
+    UUID getCurrentUserId();
 }

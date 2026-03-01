@@ -41,7 +41,7 @@ public class BoardApplicationService {
     }
 
     @Transactional
-    public BoardDTO createBoard(Long actorUserId, CreateBoardRequest request) {
+    public BoardDTO createBoard(UUID actorUserId, CreateBoardRequest request) {
         userRepositoryPort.findById(actorUserId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + actorUserId));
 

@@ -7,6 +7,7 @@ import tw.teddysoft.ezspec.extension.junit5.EzScenario;
 import tw.teddysoft.ezspec.keyword.Feature;
 
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,21 +26,24 @@ class SecurityCurrentUserIdProviderTest {
         Feature.New("Security CurrentUserId Provider")
                 .newScenario("Resolve user id from AuthUserPrincipal")
                 .Given("an authenticated security context with AuthUserPrincipal", env -> {
-                    AuthUserPrincipal principal = new AuthUserPrincipal(77L, "alice", "hash");
+                    UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000077");
+                    AuthUserPrincipal principal = new AuthUserPrincipal(userId, "alice", "hash");
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             principal,
                             null,
                             principal.getAuthorities()
                     );
                     SecurityContextHolder.getContext().setAuthentication(authentication);
+                    env.put("userId", userId);
                 })
                 .When("getting current user id", env -> {
-                    Long result = provider.getCurrentUserId();
+                    UUID result = provider.getCurrentUserId();
                     env.put("result", result);
                 })
                 .Then("provider should return principal id", env -> {
-                    Long result = env.get("result", Long.class);
-                    assertEquals(77L, result);
+                    UUID expected = env.get("userId", UUID.class);
+                    UUID result = env.get("result", UUID.class);
+                    assertEquals(expected, result);
                 })
                 .Execute();
     }

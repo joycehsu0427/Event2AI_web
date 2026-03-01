@@ -8,6 +8,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.UUID;
+
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
 
@@ -26,7 +28,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         return toPrincipal(user);
     }
 
-    public AuthUserPrincipal loadUserById(Long userId) throws UsernameNotFoundException {
+    public AuthUserPrincipal loadUserById(UUID userId) throws UsernameNotFoundException {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UsernameNotFoundException("User not found with id: " + userId));
         return toPrincipal(user);

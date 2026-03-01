@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Component
 public class UserRepositoryPersistenceAdapter implements UserRepositoryPort {
@@ -25,7 +26,7 @@ public class UserRepositoryPersistenceAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public Optional<User> findById(Long id) {
+    public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
     }
 
@@ -35,7 +36,7 @@ public class UserRepositoryPersistenceAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public boolean existsById(Long id) {
+    public boolean existsById(UUID id) {
         return userRepository.existsById(id);
     }
 
@@ -55,7 +56,7 @@ public class UserRepositoryPersistenceAdapter implements UserRepositoryPort {
     }
 
     @Override
-    public void deleteById(Long id) {
+    public void deleteById(UUID id) {
         userRepository.deleteById(id);
     }
 }

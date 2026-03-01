@@ -100,7 +100,7 @@ class BoardApiIntegrationTest {
                     env.put("token", token);
                 })
                 .When("creating board via API and fetching it back", env -> {
-                    Long userId = env.get("userId", Long.class);
+                    UUID userId = env.get("userId", UUID.class);
                     String token = env.get("token", String.class);
                     try {
                         MvcResult createResult = mockMvc.perform(post("/api/boards")
@@ -109,7 +109,7 @@ class BoardApiIntegrationTest {
                                         .content("{\"title\":\"  Team Board  \",\"description\":\"planning\"}"))
                                 .andExpect(status().isCreated())
                                 .andExpect(jsonPath("$.title").value("Team Board"))
-                                .andExpect(jsonPath("$.ownerUserId").value(userId))
+                                .andExpect(jsonPath("$.ownerUserId").value(userId.toString()))
                                 .andReturn();
 
                         JsonNode created = objectMapper.readTree(createResult.getResponse().getContentAsString());
@@ -120,13 +120,13 @@ class BoardApiIntegrationTest {
                                         .header("Authorization", "Bearer " + token))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.id").value(boardId.toString()))
-                                .andExpect(jsonPath("$.ownerUserId").value(userId));
+                                .andExpect(jsonPath("$.ownerUserId").value(userId.toString()));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 })
                 .Then("board should be persisted with user owner id", env -> {
-                    Long userId = env.get("userId", Long.class);
+                    UUID userId = env.get("userId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
                     Board persisted = boardRepository.findById(boardId).orElseThrow();
                     assertEquals(userId, persisted.getOwnerId());

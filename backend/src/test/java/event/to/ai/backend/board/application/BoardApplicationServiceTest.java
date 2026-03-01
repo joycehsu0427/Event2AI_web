@@ -41,7 +41,7 @@ class BoardApplicationServiceTest {
         Feature.New("Board Application Service")
                 .newScenario("Create board uses authenticated user as owner")
                 .Given("a valid actor and create-board request", env -> {
-                    Long actorUserId = 1L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
                     CreateBoardRequest request = new CreateBoardRequest("  Team Board  ", "planning");
 
                     env.put("actorUserId", actorUserId);
@@ -55,14 +55,14 @@ class BoardApplicationServiceTest {
                     });
                 })
                 .When("creating board", env -> {
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     CreateBoardRequest request = env.get("request", CreateBoardRequest.class);
                     BoardDTO result = boardApplicationService.createBoard(actorUserId, request);
                     env.put("result", result);
                 })
                 .Then("result should include trimmed title and owner id", env -> {
                     BoardDTO result = env.get("result", BoardDTO.class);
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     assertEquals("Team Board", result.getTitle());
                     assertEquals("planning", result.getDescription());
                     assertEquals(actorUserId, result.getOwnerUserId());
@@ -75,7 +75,7 @@ class BoardApplicationServiceTest {
         Feature.New("Board Application Service")
                 .newScenario("Create board fails when actor user does not exist")
                 .Given("a non-existing actor user id", env -> {
-                    Long actorUserId = 999L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000999");
                     CreateBoardRequest request = new CreateBoardRequest("Board", "Desc");
 
                     env.put("actorUserId", actorUserId);
@@ -83,7 +83,7 @@ class BoardApplicationServiceTest {
                     when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.empty());
                 })
                 .When("creating board", env -> {
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     CreateBoardRequest request = env.get("request", CreateBoardRequest.class);
                     RuntimeException ex = assertThrows(
                             RuntimeException.class,
@@ -93,7 +93,7 @@ class BoardApplicationServiceTest {
                 })
                 .Then("error should mention missing user", env -> {
                     RuntimeException ex = env.get("error", RuntimeException.class);
-                    assertEquals("User not found with id: 999", ex.getMessage());
+                    assertEquals("User not found with id: 00000000-0000-0000-0000-000000000999", ex.getMessage());
                 })
                 .And("board should not be saved", env ->
                         verify(boardRepositoryPort, never()).save(any(Board.class))

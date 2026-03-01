@@ -27,8 +27,8 @@ public class Board {
     @Column(length = 1000)
     private String description;
 
-    @Column(name = "owner_id", nullable = false)
-    private Long ownerId;
+    @Column(name = "owner_id", nullable = false, columnDefinition = "BINARY(16)")
+    private UUID ownerId;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -79,11 +79,11 @@ public class Board {
         this.description = description;
     }
 
-    public Long getOwnerId() {
+    public UUID getOwnerId() {
         return ownerId;
     }
 
-    public void setOwnerId(Long ownerId) {
+    public void setOwnerId(UUID ownerId) {
         this.ownerId = ownerId;
     }
 

@@ -43,7 +43,7 @@ class BoardTest {
         Feature.New("Board")
                 .newScenario("Create board trims title and uses actor user id as owner id")
                 .Given("an authenticated actor and create request", env -> {
-                    Long actorUserId = 42L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000042");
                     CreateBoardRequest request = new CreateBoardRequest("  Sprint Board  ", "planning");
                     User actor = new User("actor", "actor@example.com", "hash");
                     actor.setId(actorUserId);
@@ -58,7 +58,7 @@ class BoardTest {
                     });
                 })
                 .When("creating board", env -> {
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     CreateBoardRequest request = env.get("request", CreateBoardRequest.class);
                     BoardDTO result = boardApplicationService.createBoard(actorUserId, request);
                     env.put("result", result);
@@ -67,13 +67,13 @@ class BoardTest {
                     BoardDTO result = env.get("result", BoardDTO.class);
                     assertEquals("Sprint Board", result.getTitle());
                     assertEquals("planning", result.getDescription());
-                    assertEquals(42L, result.getOwnerUserId());
+                    assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000042"), result.getOwnerUserId());
                 })
                 .And("saved board should be persisted with actor owner id", env ->
                         verify(boardRepositoryPort).save(argThat(board ->
                                 "Sprint Board".equals(board.getTitle()) &&
                                         "planning".equals(board.getDescription()) &&
-                                        42L == board.getOwnerId()
+                                        UUID.fromString("00000000-0000-0000-0000-000000000042").equals(board.getOwnerId())
                         ))
                 )
                 .Execute();
@@ -84,7 +84,7 @@ class BoardTest {
         Feature.New("Board")
                 .newScenario("Create board rejects blank title after trim")
                 .Given("an authenticated actor and blank title request", env -> {
-                    Long actorUserId = 42L;
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000042");
                     CreateBoardRequest request = new CreateBoardRequest("   ", "planning");
                     User actor = new User("actor", "actor@example.com", "hash");
                     actor.setId(actorUserId);
@@ -94,7 +94,7 @@ class BoardTest {
                     when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(actor));
                 })
                 .When("creating board", env -> {
-                    Long actorUserId = env.get("actorUserId", Long.class);
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     CreateBoardRequest request = env.get("request", CreateBoardRequest.class);
                     RuntimeException ex = assertThrows(RuntimeException.class,
                             () -> boardApplicationService.createBoard(actorUserId, request));
@@ -116,7 +116,7 @@ class BoardTest {
                     UUID boardId = UUID.randomUUID();
                     Board board = new Board("Old Title", "Old Desc");
                     board.setId(boardId);
-                    board.setOwnerId(7L);
+                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000007"));
 
                     UpdateBoardRequest request = new UpdateBoardRequest("  New Team Board  ", "New Desc");
 
@@ -135,13 +135,13 @@ class BoardTest {
                     BoardDTO result = env.get("result", BoardDTO.class);
                     assertEquals("New Team Board", result.getTitle());
                     assertEquals("New Desc", result.getDescription());
-                    assertEquals(7L, result.getOwnerUserId());
+                    assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000007"), result.getOwnerUserId());
                 })
                 .And("saved board should preserve owner while applying trimmed updates", env ->
                         verify(boardRepositoryPort).save(argThat(board ->
                                 "New Team Board".equals(board.getTitle()) &&
                                         "New Desc".equals(board.getDescription()) &&
-                                        7L == board.getOwnerId()
+                                        UUID.fromString("00000000-0000-0000-0000-000000000007").equals(board.getOwnerId())
                         ))
                 )
                 .Execute();
@@ -155,7 +155,7 @@ class BoardTest {
                     UUID boardId = UUID.randomUUID();
                     Board board = new Board("Stable Title", "Old Desc");
                     board.setId(boardId);
-                    board.setOwnerId(9L);
+                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
 
                     UpdateBoardRequest request = new UpdateBoardRequest(null, "Only Desc Changed");
 
@@ -174,13 +174,13 @@ class BoardTest {
                     BoardDTO result = env.get("result", BoardDTO.class);
                     assertEquals("Stable Title", result.getTitle());
                     assertEquals("Only Desc Changed", result.getDescription());
-                    assertEquals(9L, result.getOwnerUserId());
+                    assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000009"), result.getOwnerUserId());
                 })
                 .And("saved board should preserve title and owner id", env ->
                         verify(boardRepositoryPort).save(argThat(board ->
                                 "Stable Title".equals(board.getTitle()) &&
                                         "Only Desc Changed".equals(board.getDescription()) &&
-                                        9L == board.getOwnerId()
+                                        UUID.fromString("00000000-0000-0000-0000-000000000009").equals(board.getOwnerId())
                         ))
                 )
                 .Execute();

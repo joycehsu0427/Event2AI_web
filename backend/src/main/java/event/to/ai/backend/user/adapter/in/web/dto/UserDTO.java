@@ -1,10 +1,11 @@
 package event.to.ai.backend.user.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 public class UserDTO {
 
-    private Long id;
+    private UUID id;
     private String username;
     private String email;
 
@@ -12,18 +13,18 @@ public class UserDTO {
     public UserDTO() {
     }
 
-    public UserDTO(Long id, String username, String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
+    public UserDTO(UUID id, String username, String email, LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.username = username;
         this.email = email;
     }
 
     // Getters and Setters
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(Long id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
@@ -43,4 +44,3 @@ public class UserDTO {
         this.email = email;
     }
 }
-
