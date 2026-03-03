@@ -1,6 +1,7 @@
 package event.to.ai.backend.board.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.application.BoardApplicationService;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
@@ -38,14 +39,22 @@ public class BoardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<BoardDTO>> getAllBoards() {
-        return ResponseEntity.ok(boardApplicationService.getAllBoards());
+    public ResponseEntity<List<BoardDTO>> getAllMyBoards() {
+        // 從 Access Token 拿回 UUID
+        UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
+        return ResponseEntity.ok(boardApplicationService.getAllMyBoards(currentUserId));
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getBoardById(@PathVariable UUID id) {
         try {
-            return ResponseEntity.ok(boardApplicationService.getBoardById(id));
+            UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
+            BoardDTO board = boardApplicationService.getBoardById(id);
+            // 若 userId != board.ownerId 則回傳 FORBIDDEN
+            if (!board.getOwnerUserId().equals(currentUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            return ResponseEntity.ok(board);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
@@ -62,20 +71,32 @@ public class BoardController {
         }
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<?> updateBoard(@PathVariable UUID id, @Valid @RequestBody UpdateBoardRequest request) {
+    @PutMapping("/{boardId}")
+    public ResponseEntity<?> updateBoard(@PathVariable UUID boardId, @Valid @RequestBody UpdateBoardRequest request) {
         try {
-            return ResponseEntity.ok(boardApplicationService.updateBoard(id, request));
+            UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
+            BoardDTO board = boardApplicationService.getBoardById(boardId);
+            if (!board.getOwnerUserId().equals(currentUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            return ResponseEntity.ok(boardApplicationService.updateBoard(boardId, request));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
-    @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteBoard(@PathVariable UUID id) {
+    @DeleteMapping("/{boardId}")
+    public ResponseEntity<?> deleteBoard(@PathVariable UUID boardId) {
         try {
-            boardApplicationService.deleteBoard(id);
-            return ResponseEntity.noContent().build();
+            UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
+            BoardDTO board = boardApplicationService.getBoardById(boardId);
+            if (!board.getOwnerUserId().equals(currentUserId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
+            else{
+                boardApplicationService.deleteBoard(boardId);
+                return ResponseEntity.noContent().build();
+            }
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }

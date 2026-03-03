@@ -22,7 +22,7 @@ Content-Type: application/json
 }
 
 ### 從登入回應擷取 token
-@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxIiwiaWF0IjoxNzcyMTczMTY0LCJleHAiOjE3NzIxNzY3NjR9.5FtsHpDzO0iCTSEl54ONxUYjFCgPVjPr_OruL8lfZkQ
+@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOjE3NzI1MzU2OTUsImV4cCI6MTc3MjUzOTI5NX0.g9bzxBFWTdiJlIUSt7d3Xhhm9ZgckZEVAKTTBJ-5L-A
 
 ### 建立 Board（需要 JWT）
 # @name createBoard
@@ -40,7 +40,7 @@ GET {{baseUrl}}/api/boards
 Authorization: Bearer {{accessToken}}
 
 ### 從建立 Board 回應擷取 boardId
-@boardId = ee04c5c3-5b6d-4bd0-b4af-426c94d155f4
+@boardId = a4221021-1cdc-4135-959a-71550254b226
 
 ### 更新 Board（需要 JWT）
 PUT {{baseUrl}}/api/boards/{{boardId}}

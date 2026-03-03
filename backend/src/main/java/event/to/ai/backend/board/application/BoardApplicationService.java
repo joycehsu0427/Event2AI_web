@@ -27,8 +27,8 @@ public class BoardApplicationService {
         this.userRepositoryPort = userRepositoryPort;
     }
 
-    public List<BoardDTO> getAllBoards() {
-        return boardRepositoryPort.findAll()
+    public List<BoardDTO> getAllMyBoards(UUID userId) {
+        return boardRepositoryPort.findById(userId)
                 .stream()
                 .map(this::toDTO)
                 .collect(Collectors.toList());
