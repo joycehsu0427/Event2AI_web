@@ -32,7 +32,7 @@ Authorization: Bearer {{accessToken}}
 
 {
   "title": "My First Board",
-  "description": "Board created from api.http"
+  "description": "Board created from board_api.http"
 }
 
 ### 取得所有 Boards（需要 JWT）
@@ -49,7 +49,7 @@ Authorization: Bearer {{accessToken}}
 
 {
   "title": "My First Board (Updated)",
-  "description": "Updated from api.http"
+  "description": "Updated from board_api.http"
 }
 
 ### 取得單一 Board（需要 JWT）
