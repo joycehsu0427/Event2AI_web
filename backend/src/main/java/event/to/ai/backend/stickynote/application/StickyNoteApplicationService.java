@@ -65,9 +65,13 @@ public class StickyNoteApplicationService {
     }
 
     @Transactional
-    public StickyNoteDTO createStickyNote(CreateStickyNoteRequest request) {
+    public StickyNoteDTO createStickyNote(UUID actorUserId, CreateStickyNoteRequest request) {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
+
+        if (!board.getOwnerId().equals(actorUserId)) {
+            throw new RuntimeException("Forbidden");
+        }
 
         StickyNote stickyNote = new StickyNote();
         stickyNote.setBoard(board);
@@ -82,9 +86,13 @@ public class StickyNoteApplicationService {
     }
 
     @Transactional
-    public StickyNoteDTO updateStickyNote(UUID id, UpdateStickyNoteRequest request) {
+    public StickyNoteDTO updateStickyNote(UUID actorUserId, UUID id, UpdateStickyNoteRequest request) {
         StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
+
+        if (!stickyNote.getBoard().getOwnerId().equals(actorUserId)) {
+            throw new RuntimeException("Forbidden");
+        }
 
         if (request.getBoardId() != null) {
             Board board = boardRepositoryPort.findById(request.getBoardId())
@@ -113,10 +121,14 @@ public class StickyNoteApplicationService {
     }
 
     @Transactional
-    public void deleteStickyNote(UUID id) {
-        if (!stickyNoteRepositoryPort.existsById(id)) {
-            throw new RuntimeException("StickyNote not found with id: " + id);
+    public void deleteStickyNote(UUID actorUserId, UUID id) {
+        StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
+                .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
+
+        if (!stickyNote.getBoard().getOwnerId().equals(actorUserId)) {
+            throw new RuntimeException("Forbidden");
         }
+
         stickyNoteRepositoryPort.deleteById(id);
     }
 
