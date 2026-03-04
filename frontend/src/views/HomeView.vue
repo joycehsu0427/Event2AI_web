@@ -1,8 +1,19 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import type { Board } from '@/types/board'
+import { useRouter } from 'vue-router'
+import type { Board } from '@/types/Board'
 import axios from 'axios'
-// ─── Mock Data (replace with API calls) ──────────────────────────────────────
+import { useAuthStore } from '@/stores/authStore'
+// ─── Auth ─────────────────────────────────────────────────────────────────────
+const router = useRouter()
+const authStore = useAuthStore()
+const token = authStore.token
+
+function handleLogout() {
+  authStore.logout()
+  router.push({ name: 'login' })
+}
+
 
 const BOARD_COLORS = [
   '#4f46e5', '#0ea5e9', '#10b981', '#f59e0b',
@@ -156,12 +167,27 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
         />
       </div>
 
-      <button class="btn-primary" @click="openCreateModal">
+      <button id="btn-create-board" class="btn-primary" @click="openCreateModal">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
           <path d="M12 5v14M5 12h14"/>
         </svg>
         新增 Board
       </button>
+
+      <!-- User & Logout -->
+      <div class="navbar-user">
+        <div class="user-avatar" :title="authStore.currentUser?.username ?? 'User'">
+          {{ (authStore.currentUser?.username ?? 'U').charAt(0).toUpperCase() }}
+        </div>
+        <button id="btn-logout" class="btn-logout" @click="handleLogout" title="登出">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+            <polyline points="16 17 21 12 16 7"/>
+            <line x1="21" y1="12" x2="9" y2="12"/>
+          </svg>
+          登出
+        </button>
+      </div>
     </header>
 
     <!-- ── Main Content ───────────────────────────────────────────────────── -->
@@ -393,6 +419,52 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
 }
 
 .search-input::placeholder { color: #9999aa; }
+
+/* ── Navbar User / Logout ─────────────────────────────────────────────────── */
+.navbar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  cursor: default;
+  user-select: none;
+}
+
+.btn-logout {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: transparent;
+  color: #5a5a72;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+  white-space: nowrap;
+}
+.btn-logout:hover {
+  background: #fef2f2;
+  color: #dc2626;
+  border-color: #fecaca;
+}
 
 /* ── Buttons ──────────────────────────────────────────────────────────────── */
 .btn-primary {
