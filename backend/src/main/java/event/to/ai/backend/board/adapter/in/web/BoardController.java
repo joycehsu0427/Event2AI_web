@@ -1,7 +1,6 @@
 package event.to.ai.backend.board.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.application.BoardApplicationService;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;

@@ -5,7 +5,7 @@ import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -26,7 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BoardApplicationServiceTest {
+class BoardJpaEntityApplicationServiceTest {
 
     @Mock
     private BoardRepositoryPort boardRepositoryPort;
@@ -49,10 +49,10 @@ class BoardApplicationServiceTest {
                     env.put("request", request);
 
                     when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(new User()));
-                    when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> {
-                        Board board = invocation.getArgument(0);
-                        board.setId(UUID.randomUUID());
-                        return board;
+                    when(boardRepositoryPort.save(any(BoardJpaEntity.class))).thenAnswer(invocation -> {
+                        BoardJpaEntity boardJpaEntity = invocation.getArgument(0);
+                        boardJpaEntity.setId(UUID.randomUUID());
+                        return boardJpaEntity;
                     });
                 })
                 .When("creating board", env -> {
@@ -77,16 +77,16 @@ class BoardApplicationServiceTest {
                 .newScenario("Get all my boards returns all boards owned by the authenticated user")
                 .Given("a user with two owned boards", env -> {
                     UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
-                    Board firstBoard = new Board("Roadmap", "Q1");
-                    firstBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000101"));
-                    firstBoard.setOwnerId(actorUserId);
+                    BoardJpaEntity firstBoardJpaEntity = new BoardJpaEntity("Roadmap", "Q1");
+                    firstBoardJpaEntity.setId(UUID.fromString("00000000-0000-0000-0000-000000000101"));
+                    firstBoardJpaEntity.setOwnerId(actorUserId);
 
-                    Board secondBoard = new Board("Retrospective", "Sprint 5");
-                    secondBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000102"));
-                    secondBoard.setOwnerId(actorUserId);
+                    BoardJpaEntity secondBoardJpaEntity = new BoardJpaEntity("Retrospective", "Sprint 5");
+                    secondBoardJpaEntity.setId(UUID.fromString("00000000-0000-0000-0000-000000000102"));
+                    secondBoardJpaEntity.setOwnerId(actorUserId);
 
                     env.put("actorUserId", actorUserId);
-                    when(boardRepositoryPort.findAllByOwnerId(actorUserId)).thenReturn(List.of(firstBoard, secondBoard));
+                    when(boardRepositoryPort.findAllByOwnerId(actorUserId)).thenReturn(List.of(firstBoardJpaEntity, secondBoardJpaEntity));
                 })
                 .When("requesting all boards for that user", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -128,7 +128,7 @@ class BoardApplicationServiceTest {
                     assertEquals("User not found with id: 00000000-0000-0000-0000-000000000999", ex.getMessage());
                 })
                 .And("board should not be saved", env ->
-                        verify(boardRepositoryPort, never()).save(any(Board.class))
+                        verify(boardRepositoryPort, never()).save(any(BoardJpaEntity.class))
                 )
                 .Execute();
     }
@@ -139,13 +139,13 @@ class BoardApplicationServiceTest {
                 .newScenario("Update board fails when title is blank after trim")
                 .Given("an existing board and blank title update request", env -> {
                     UUID boardId = UUID.randomUUID();
-                    Board board = new Board("Old", "Desc");
-                    board.setId(boardId);
+                    BoardJpaEntity boardJpaEntity = new BoardJpaEntity("Old", "Desc");
+                    boardJpaEntity.setId(boardId);
                     UpdateBoardRequest request = new UpdateBoardRequest("   ", null);
 
                     env.put("boardId", boardId);
                     env.put("request", request);
-                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
+                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(boardJpaEntity));
                 })
                 .When("updating board", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
@@ -161,7 +161,7 @@ class BoardApplicationServiceTest {
                     assertEquals("Board title cannot be blank", ex.getMessage());
                 })
                 .And("board should not be saved", env ->
-                        verify(boardRepositoryPort, never()).save(any(Board.class))
+                        verify(boardRepositoryPort, never()).save(any(BoardJpaEntity.class))
                 )
                 .Execute();
     }

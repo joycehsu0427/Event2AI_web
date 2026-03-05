@@ -1,6 +1,6 @@
 package event.to.ai.backend.stickynote.application;
 
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
@@ -65,15 +65,15 @@ public class StickyNoteApplicationService {
 
     @Transactional
     public StickyNoteDTO createStickyNote(UUID actorUserId, CreateStickyNoteRequest request) {
-        Board board = boardRepositoryPort.findById(request.getBoardId())
+        BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
-        if (!board.getOwnerId().equals(actorUserId)) {
+        if (!boardJpaEntity.getOwnerId().equals(actorUserId)) {
             throw new RuntimeException("Forbidden");
         }
 
         StickyNote stickyNote = new StickyNote();
-        stickyNote.setBoard(board);
+        stickyNote.setBoard(boardJpaEntity);
         stickyNote.setPos(new Point2D(request.getPosX(), request.getPosY()));
         stickyNote.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
         stickyNote.setDescription(request.getDescription());
@@ -94,12 +94,12 @@ public class StickyNoteApplicationService {
         }
 
         if (request.getBoardId() != null) {
-            Board board = boardRepositoryPort.findById(request.getBoardId())
+            BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
-            if (!board.getOwnerId().equals(actorUserId)) {
+            if (!boardJpaEntity.getOwnerId().equals(actorUserId)) {
                 throw new RuntimeException("Forbidden");
             }
-            stickyNote.setBoard(board);
+            stickyNote.setBoard(boardJpaEntity);
         }
 
         if (request.getPosX() != null && request.getPosY() != null) {

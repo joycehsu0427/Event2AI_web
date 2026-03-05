@@ -1,6 +1,6 @@
 package event.to.ai.backend.stickynote.adapter.out.persistence;
 
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
 import event.to.ai.backend.stickynote.application.port.out.BoardRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +20,7 @@ public class StickyNoteBoardPersistenceAdapter implements BoardRepositoryPort {
     }
 
     @Override
-    public Optional<Board> findById(UUID id) {
+    public Optional<BoardJpaEntity> findById(UUID id) {
         return boardRepository.findById(id);
     }
 }

@@ -6,7 +6,7 @@ import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
-class BoardTest {
+class BoardJpaEntityTest {
 
     @Mock
     private BoardRepositoryPort boardRepositoryPort;
@@ -51,10 +51,10 @@ class BoardTest {
                     env.put("actorUserId", actorUserId);
                     env.put("request", request);
                     when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(actor));
-                    when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> {
-                        Board board = invocation.getArgument(0);
-                        board.setId(UUID.randomUUID());
-                        return board;
+                    when(boardRepositoryPort.save(any(BoardJpaEntity.class))).thenAnswer(invocation -> {
+                        BoardJpaEntity boardJpaEntity = invocation.getArgument(0);
+                        boardJpaEntity.setId(UUID.randomUUID());
+                        return boardJpaEntity;
                     });
                 })
                 .When("creating board", env -> {
@@ -104,7 +104,7 @@ class BoardTest {
                     RuntimeException ex = env.get("error", RuntimeException.class);
                     assertEquals("Board title cannot be blank", ex.getMessage());
                 })
-                .And("board should not be saved", env -> verify(boardRepositoryPort, never()).save(any(Board.class)))
+                .And("board should not be saved", env -> verify(boardRepositoryPort, never()).save(any(BoardJpaEntity.class)))
                 .Execute();
     }
 
@@ -114,16 +114,16 @@ class BoardTest {
                 .newScenario("Update board applies trimmed title and keeps existing owner")
                 .Given("an existing board with owner and update request", env -> {
                     UUID boardId = UUID.randomUUID();
-                    Board board = new Board("Old Title", "Old Desc");
-                    board.setId(boardId);
-                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000007"));
+                    BoardJpaEntity boardJpaEntity = new BoardJpaEntity("Old Title", "Old Desc");
+                    boardJpaEntity.setId(boardId);
+                    boardJpaEntity.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000007"));
 
                     UpdateBoardRequest request = new UpdateBoardRequest("  New Team Board  ", "New Desc");
 
                     env.put("boardId", boardId);
                     env.put("request", request);
-                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
-                    when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(boardJpaEntity));
+                    when(boardRepositoryPort.save(any(BoardJpaEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("updating board", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
@@ -153,16 +153,16 @@ class BoardTest {
                 .newScenario("Update board keeps original title when title input is null")
                 .Given("an existing board and description-only update", env -> {
                     UUID boardId = UUID.randomUUID();
-                    Board board = new Board("Stable Title", "Old Desc");
-                    board.setId(boardId);
-                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
+                    BoardJpaEntity boardJpaEntity = new BoardJpaEntity("Stable Title", "Old Desc");
+                    boardJpaEntity.setId(boardId);
+                    boardJpaEntity.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
 
                     UpdateBoardRequest request = new UpdateBoardRequest(null, "Only Desc Changed");
 
                     env.put("boardId", boardId);
                     env.put("request", request);
-                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
-                    when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> invocation.getArgument(0));
+                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(boardJpaEntity));
+                    when(boardRepositoryPort.save(any(BoardJpaEntity.class))).thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("updating board", env -> {
                     UUID boardId = env.get("boardId", UUID.class);

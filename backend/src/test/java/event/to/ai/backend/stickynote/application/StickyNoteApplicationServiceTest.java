@@ -1,6 +1,6 @@
 package event.to.ai.backend.stickynote.application;
 
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.stickynote.adapter.out.persistence.entity.Point2D;
@@ -122,9 +122,9 @@ class StickyNoteApplicationServiceTest {
                             actorUserId,
                             "pink"
                     );
-                    Board foreignBoard = new Board("Foreign Board", "Description");
-                    foreignBoard.setId(foreignBoardId);
-                    foreignBoard.setOwnerId(otherUserId);
+                    BoardJpaEntity foreignBoardJpaEntity = new BoardJpaEntity("Foreign Board", "Description");
+                    foreignBoardJpaEntity.setId(foreignBoardId);
+                    foreignBoardJpaEntity.setOwnerId(otherUserId);
 
                     UpdateStickyNoteRequest request = new UpdateStickyNoteRequest(
                             foreignBoardId,
@@ -141,7 +141,7 @@ class StickyNoteApplicationServiceTest {
                     env.put("stickyNoteId", stickyNoteId);
                     env.put("request", request);
                     when(stickyNoteRepositoryPort.findById(stickyNoteId)).thenReturn(Optional.of(ownedNote));
-                    when(boardRepositoryPort.findById(foreignBoardId)).thenReturn(Optional.of(foreignBoard));
+                    when(boardRepositoryPort.findById(foreignBoardId)).thenReturn(Optional.of(foreignBoardJpaEntity));
                 })
                 .When("updating sticky note board", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -162,13 +162,13 @@ class StickyNoteApplicationServiceTest {
     }
 
     private StickyNote createStickyNote(UUID stickyNoteId, UUID boardId, UUID ownerId, String color) {
-        Board board = new Board("Board", "Description");
-        board.setId(boardId);
-        board.setOwnerId(ownerId);
+        BoardJpaEntity boardJpaEntity = new BoardJpaEntity("Board", "Description");
+        boardJpaEntity.setId(boardId);
+        boardJpaEntity.setOwnerId(ownerId);
 
         StickyNote stickyNote = new StickyNote();
         stickyNote.setId(stickyNoteId);
-        stickyNote.setBoard(board);
+        stickyNote.setBoard(boardJpaEntity);
         stickyNote.setPos(new Point2D(10.0, 20.0));
         stickyNote.setGeo(new Point2D(100.0, 50.0));
         stickyNote.setDescription("Demo note");

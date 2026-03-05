@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "boards")
-public class Board {
+public class BoardJpaEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -36,10 +36,10 @@ public class Board {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public Board() {
+    public BoardJpaEntity() {
     }
 
-    public Board(String title, String description) {
+    public BoardJpaEntity(String title, String description) {
         this.title = title;
         this.description = description;
     }

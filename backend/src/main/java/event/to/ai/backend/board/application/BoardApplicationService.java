@@ -5,7 +5,7 @@ import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,9 +35,9 @@ public class BoardApplicationService {
     }
 
     public BoardDTO getBoardById(UUID id) {
-        Board board = boardRepositoryPort.findById(id)
+        BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
-        return toDTO(board);
+        return toDTO(boardJpaEntity);
     }
 
     @Transactional
@@ -50,15 +50,15 @@ public class BoardApplicationService {
             throw new RuntimeException("Board title cannot be blank");
         }
 
-        Board board = new Board(title, request.getDescription());
-        board.setOwnerId(actorUserId);
-        Board savedBoard = boardRepositoryPort.save(board);
-        return toDTO(savedBoard);
+        BoardJpaEntity boardJpaEntity = new BoardJpaEntity(title, request.getDescription());
+        boardJpaEntity.setOwnerId(actorUserId);
+        BoardJpaEntity savedBoardJpaEntity = boardRepositoryPort.save(boardJpaEntity);
+        return toDTO(savedBoardJpaEntity);
     }
 
     @Transactional
     public BoardDTO updateBoard(UUID id, UpdateBoardRequest request) {
-        Board board = boardRepositoryPort.findById(id)
+        BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
 
         if (request.getTitle() != null) {
@@ -66,15 +66,15 @@ public class BoardApplicationService {
             if (title.isEmpty()) {
                 throw new RuntimeException("Board title cannot be blank");
             }
-            board.setTitle(title);
+            boardJpaEntity.setTitle(title);
         }
 
         if (request.getDescription() != null) {
-            board.setDescription(request.getDescription());
+            boardJpaEntity.setDescription(request.getDescription());
         }
 
-        Board updatedBoard = boardRepositoryPort.save(board);
-        return toDTO(updatedBoard);
+        BoardJpaEntity updatedBoardJpaEntity = boardRepositoryPort.save(boardJpaEntity);
+        return toDTO(updatedBoardJpaEntity);
     }
 
     @Transactional
@@ -85,14 +85,14 @@ public class BoardApplicationService {
         boardRepositoryPort.deleteById(id);
     }
 
-    private BoardDTO toDTO(Board board) {
+    private BoardDTO toDTO(BoardJpaEntity boardJpaEntity) {
         return new BoardDTO(
-                board.getId(),
-                board.getTitle(),
-                board.getDescription(),
-                board.getOwnerId(),
-                board.getCreatedAt(),
-                board.getUpdatedAt()
+                boardJpaEntity.getId(),
+                boardJpaEntity.getTitle(),
+                boardJpaEntity.getDescription(),
+                boardJpaEntity.getOwnerId(),
+                boardJpaEntity.getCreatedAt(),
+                boardJpaEntity.getUpdatedAt()
         );
     }
 }

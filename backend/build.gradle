@@ -30,7 +30,8 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.7'
 	implementation 'tw.teddysoft.ucontract:uContract:2.0.0'                        // uContract
-	runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL driver
+    implementation 'tw.teddysoft.ezddd:ezddd-core:4.1.0'
+    runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL driver
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.7'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.7'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
@@ -46,3 +47,4 @@ tasks.named('test') {
 	useJUnitPlatform()
 	jvmArgs("-javaagent:${configurations.mockitoAgent.singleFile}")
 }
+

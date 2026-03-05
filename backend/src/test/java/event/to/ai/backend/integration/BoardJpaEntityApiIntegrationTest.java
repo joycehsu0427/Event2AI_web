@@ -2,7 +2,7 @@ package event.to.ai.backend.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
 import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
 import event.to.ai.backend.security.JwtService;
@@ -33,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("test")
-class BoardApiIntegrationTest {
+class BoardJpaEntityApiIntegrationTest {
 
     private MockMvc mockMvc;
 
@@ -128,7 +128,7 @@ class BoardApiIntegrationTest {
                 .Then("board should be persisted with user owner id", env -> {
                     UUID userId = env.get("userId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
-                    Board persisted = boardRepository.findById(boardId).orElseThrow();
+                    BoardJpaEntity persisted = boardRepository.findById(boardId).orElseThrow();
                     assertEquals(userId, persisted.getOwnerId());
                     assertEquals("Team Board", persisted.getTitle());
                 })

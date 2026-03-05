@@ -1,8 +1,7 @@
 package event.to.ai.backend.board.adapter.out.persistence;
 
 import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
-import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -21,23 +20,23 @@ public class BoardPersistenceAdapter implements BoardRepositoryPort {
     }
 
     @Override
-    public List<Board> findAll() {
+    public List<BoardJpaEntity> findAll() {
         return boardRepository.findAll();
     }
 
     @Override
-    public List<Board> findAllByOwnerId(UUID ownerId) {
+    public List<BoardJpaEntity> findAllByOwnerId(UUID ownerId) {
         return boardRepository.findAllByOwnerId(ownerId);
     }
 
     @Override
-    public Optional<Board> findById(UUID id) {
+    public Optional<BoardJpaEntity> findById(UUID id) {
         return boardRepository.findById(id);
     }
 
     @Override
-    public Board save(Board board) {
-        return boardRepository.save(board);
+    public BoardJpaEntity save(BoardJpaEntity boardJpaEntity) {
+        return boardRepository.save(boardJpaEntity);
     }
 
     @Override
