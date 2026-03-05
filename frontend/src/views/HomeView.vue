@@ -68,10 +68,12 @@ const filteredBoards = computed(() =>
 // ─── Create Board ─────────────────────────────────────────────────────────────
 const showCreateModal = ref(false)
 const createName = ref('')
+const createDescription = ref('')
 const createError = ref('')
 
 function openCreateModal() {
   createName.value = ''
+  createDescription.value = ''
   createError.value = ''
   showCreateModal.value = true
 }
@@ -84,11 +86,12 @@ async function submitCreate() {
   }
 
   const response = await axios.post('http://localhost:8080/api/boards', {
-    title: name
+    title: name,
+    description: createDescription.value.trim()
   }, {
     headers: { Authorization: `Bearer ${token}` }
   })
-  console.log('Create response:', response.data)
+  
   const newBoard: Board = {
     id: response.data.id,
     title: response.data.title,
@@ -101,15 +104,16 @@ async function submitCreate() {
   showCreateModal.value = false
 }
 // ─── Edit Board ───────────────────────────────────────────────────────────────
-/*
 const showEditModal = ref(false)
 const editTarget = ref<Board | null>(null)
 const editName = ref('')
+const editDescription = ref('')
 const editError = ref('')
 
 function openEditModal(board: Board) {
   editTarget.value = board
-  editName.value = board.name
+  editName.value = board.title
+  editDescription.value = board.description
   editError.value = ''
   showEditModal.value = true
 }
@@ -122,16 +126,20 @@ async function submitEdit() {
   }
   if (!editTarget.value) return
 
-  // TODO: replace with API call
-  // await api.patch(`/boards/${editTarget.value.id}`, { name })
+  const response = await axios.put(`http://localhost:8080/api/boards/${editTarget.value.id}`, {
+    title: name,
+    description: editDescription.value.trim()
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+
   const target = boards.value.find(b => b.id === editTarget.value!.id)
   if (target) {
-    target.name = name
-    target.updatedAt = nowISO()
+    target.title = name
+    target.description = editDescription.value.trim()
   }
   showEditModal.value = false
 }
-*/
 // ─── Delete Board ─────────────────────────────────────────────────────────────
 /*
 const showDeleteModal = ref(false)
@@ -292,6 +300,14 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
               autofocus
               @keyup.enter="submitCreate"
             />
+            <label class="field-label" style="margin-top: 12px;">描述（選填）</label>
+            <textarea
+              v-model="createDescription"
+              class="field-input"
+              placeholder="輸入 board 描述..."
+              rows="3"
+              style="resize: vertical;"
+            />
             <p v-if="createError" class="field-error">{{ createError }}</p>
           </div>
           <div class="modal-footer">
@@ -327,6 +343,14 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
               placeholder="輸入新名稱..."
               autofocus
               @keyup.enter="submitEdit"
+            />
+            <label class="field-label" style="margin-top: 12px;">描述（選填）</label>
+            <textarea
+              v-model="editDescription"
+              class="field-input"
+              placeholder="輸入 board 描述..."
+              rows="3"
+              style="resize: vertical;"
             />
             <p v-if="editError" class="field-error">{{ editError }}</p>
           </div>
