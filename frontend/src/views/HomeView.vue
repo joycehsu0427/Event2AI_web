@@ -4,6 +4,9 @@ import { useRouter } from 'vue-router'
 import type { Board } from '@/types/board'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
+import BoardCard from '@/components/board/BoardCard.vue'
+import BoardFormModal from '@/components/board/BoardFormModal.vue'
+import BoardDeleteModal from '@/components/board/BoardDeleteModal.vue'
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const router = useRouter()
 const authStore = useAuthStore()
@@ -67,31 +70,19 @@ const filteredBoards = computed(() =>
 
 // ─── Create Board ─────────────────────────────────────────────────────────────
 const showCreateModal = ref(false)
-const createName = ref('')
-const createDescription = ref('')
-const createError = ref('')
 
 function openCreateModal() {
-  createName.value = ''
-  createDescription.value = ''
-  createError.value = ''
   showCreateModal.value = true
 }
 
-async function submitCreate() {
-  const name = createName.value.trim()
-  if (!name) {
-    createError.value = '請輸入 board 名稱'
-    return
-  }
-
+async function submitCreate(payload: { title: string; description: string }) {
   const response = await axios.post('http://localhost:8080/api/boards', {
-    title: name,
-    description: createDescription.value.trim()
+    title: payload.title,
+    description: payload.description
   }, {
     headers: { Authorization: `Bearer ${token}` }
   })
-  
+
   const newBoard: Board = {
     id: response.data.id,
     title: response.data.title,
@@ -106,37 +97,26 @@ async function submitCreate() {
 // ─── Edit Board ───────────────────────────────────────────────────────────────
 const showEditModal = ref(false)
 const editTarget = ref<Board | null>(null)
-const editName = ref('')
-const editDescription = ref('')
-const editError = ref('')
 
 function openEditModal(board: Board) {
   editTarget.value = board
-  editName.value = board.title
-  editDescription.value = board.description
-  editError.value = ''
   showEditModal.value = true
 }
 
-async function submitEdit() {
-  const name = editName.value.trim()
-  if (!name) {
-    editError.value = '請輸入 board 名稱'
-    return
-  }
+async function submitEdit(payload: { title: string; description: string }) {
   if (!editTarget.value) return
 
-  const response = await axios.put(`http://localhost:8080/api/boards/${editTarget.value.id}`, {
-    title: name,
-    description: editDescription.value.trim()
+  await axios.put(`http://localhost:8080/api/boards/${editTarget.value.id}`, {
+    title: payload.title,
+    description: payload.description
   }, {
     headers: { Authorization: `Bearer ${token}` }
   })
 
   const target = boards.value.find(b => b.id === editTarget.value!.id)
   if (target) {
-    target.title = name
-    target.description = editDescription.value.trim()
+    target.title = payload.title
+    target.description = payload.description
   }
   showEditModal.value = false
 }
@@ -152,18 +132,11 @@ function openDeleteModal(board: Board) {
 async function confirmDelete() {
   if (!deleteTarget.value) return
 
-  const response = await axios.delete(`http://localhost:8080/api/boards/${deleteTarget.value.id}`, {
+  await axios.delete(`http://localhost:8080/api/boards/${deleteTarget.value.id}`, {
     headers: { Authorization: `Bearer ${token}` }
   })
   boards.value = boards.value.filter(b => b.id !== deleteTarget.value!.id)
   showDeleteModal.value = false
-}
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-
-function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
-  if ((e.target as HTMLElement).classList.contains('modal-overlay')) {
-    closeFn()
-  }
 }
 </script>
 
@@ -235,160 +208,30 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
 
       <!-- Board grid -->
       <div v-else class="board-grid">
-        <div
+        <BoardCard
           v-for="board in filteredBoards"
           :key="board.id"
-          class="board-card"
-        >
-          <!-- Thumbnail -->
-          <div class="board-thumbnail" :style="{ background: board.color }">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1.5">
-              <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
-              <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
-            </svg>
-
-            <!-- Action buttons overlay -->
-            <div class="card-actions">
-              <button class="icon-btn" title="編輯" @click.stop="openEditModal(board)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-              <button class="icon-btn icon-btn--danger" title="刪除" @click.stop="openDeleteModal(board)">
-                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                  <path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          <!-- Info -->
-          <div class="board-info">
-            <p class="board-name">{{ board.title }}</p>
-            <p class="board-owner">被 {{ board.ownerName }} 擁有</p>
-          </div>
-        </div>
+          :board="board"
+          @edit="openEditModal"
+          @delete="openDeleteModal"
+        />
       </div>
     </main>
 
-    <!-- ── Create Modal ───────────────────────────────────────────────────── -->
-    <Teleport to="body">
-      <div
-        v-if="showCreateModal"
-        class="modal-overlay"
-        @click="closeOnOverlay($event, () => showCreateModal = false)"
-      >
-        <div class="modal">
-          <div class="modal-header">
-            <h3>新增 Board</h3>
-            <button class="close-btn" @click="showCreateModal = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6 6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <label class="field-label">Board 名稱</label>
-            <input
-              v-model="createName"
-              type="text"
-              class="field-input"
-              placeholder="輸入 board 名稱..."
-              autofocus
-              @keyup.enter="submitCreate"
-            />
-            <label class="field-label" style="margin-top: 12px;">描述（選填）</label>
-            <textarea
-              v-model="createDescription"
-              class="field-input"
-              placeholder="輸入 board 描述..."
-              rows="3"
-              style="resize: vertical;"
-            />
-            <p v-if="createError" class="field-error">{{ createError }}</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost" @click="showCreateModal = false">取消</button>
-            <button class="btn-primary" @click="submitCreate">建立</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- ── Edit Modal ─────────────────────────────────────────────────────── -->
-    <Teleport to="body">
-      <div
-        v-if="showEditModal"
-        class="modal-overlay"
-        @click="closeOnOverlay($event, () => showEditModal = false)"
-      >
-        <div class="modal">
-          <div class="modal-header">
-            <h3>編輯 Board</h3>
-            <button class="close-btn" @click="showEditModal = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6 6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <label class="field-label">Board 名稱</label>
-            <input
-              v-model="editName"
-              type="text"
-              class="field-input"
-              placeholder="輸入新名稱..."
-              autofocus
-              @keyup.enter="submitEdit"
-            />
-            <label class="field-label" style="margin-top: 12px;">描述（選填）</label>
-            <textarea
-              v-model="editDescription"
-              class="field-input"
-              placeholder="輸入 board 描述..."
-              rows="3"
-              style="resize: vertical;"
-            />
-            <p v-if="editError" class="field-error">{{ editError }}</p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost" @click="showEditModal = false">取消</button>
-            <button class="btn-primary" @click="submitEdit">儲存</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
-
-    <!-- ── Delete Confirm Modal ───────────────────────────────────────────── -->
-    <Teleport to="body">
-      <div
-        v-if="showDeleteModal"
-        class="modal-overlay"
-        @click="closeOnOverlay($event, () => showDeleteModal = false)"
-      >
-        <div class="modal modal--sm">
-          <div class="modal-header">
-            <h3>刪除 Board</h3>
-            <button class="close-btn" @click="showDeleteModal = false">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M18 6 6 18M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-          <div class="modal-body">
-            <p class="delete-message">
-              確定要刪除 <strong>「{{ deleteTarget?.title }}」</strong> 嗎？此操作無法復原。
-            </p>
-          </div>
-          <div class="modal-footer">
-            <button class="btn-ghost" @click="showDeleteModal = false">取消</button>
-            <button class="btn-danger" @click="confirmDelete">刪除</button>
-          </div>
-        </div>
-      </div>
-    </Teleport>
+    <!-- ── Modals ────────────────────────────────────────────────────────── -->
+    <BoardFormModal v-model="showCreateModal" mode="create" @submit="submitCreate" />
+    <BoardFormModal
+      v-model="showEditModal"
+      mode="edit"
+      :initial-title="editTarget?.title"
+      :initial-description="editTarget?.description"
+      @submit="submitEdit"
+    />
+    <BoardDeleteModal
+      v-model="showDeleteModal"
+      :board-title="deleteTarget?.title ?? ''"
+      @confirm="confirmDelete"
+    />
   </div>
 </template>
 
@@ -589,79 +432,6 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
   gap: 20px;
 }
 
-.board-card {
-  background: #fff;
-  border-radius: 12px;
-  border: 1px solid #e5e5ea;
-  overflow: hidden;
-  cursor: pointer;
-  transition: box-shadow .2s, transform .2s;
-}
-
-.board-card:hover {
-  box-shadow: 0 8px 24px rgba(0,0,0,.1);
-  transform: translateY(-2px);
-}
-
-.board-thumbnail {
-  position: relative;
-  height: 140px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.card-actions {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  display: flex;
-  gap: 6px;
-  opacity: 0;
-  transition: opacity .15s;
-}
-
-.board-card:hover .card-actions {
-  opacity: 1;
-}
-
-.icon-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  background: rgba(255,255,255,.9);
-  border: none;
-  border-radius: 6px;
-  color: #1a1a2e;
-  cursor: pointer;
-  transition: background .15s;
-}
-
-.icon-btn:hover { background: #fff; }
-
-.icon-btn--danger:hover { color: #ef4444; }
-
-.board-info {
-  padding: 12px 14px;
-}
-
-.board-name {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.board-date {
-  margin: 0;
-  font-size: 12px;
-  color: #8e8e9a;
-}
-
 /* ── Empty State ──────────────────────────────────────────────────────────── */
 .empty-state {
   display: flex;
@@ -673,106 +443,4 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
   font-size: 15px;
 }
 
-/* ── Modal ────────────────────────────────────────────────────────────────── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-  backdrop-filter: blur(2px);
-}
-
-.modal {
-  background: #fff;
-  border-radius: 14px;
-  width: 440px;
-  max-width: calc(100vw - 32px);
-  box-shadow: 0 20px 60px rgba(0,0,0,.2);
-  animation: modal-in .2s ease;
-}
-
-.modal--sm { width: 360px; }
-
-@keyframes modal-in {
-  from { opacity: 0; transform: scale(.95) translateY(8px); }
-  to   { opacity: 1; transform: scale(1)  translateY(0); }
-}
-
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 24px 16px;
-  border-bottom: 1px solid #f0f0f5;
-}
-
-.modal-header h3 {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 700;
-}
-
-.close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: none;
-  border-radius: 6px;
-  color: #8e8e9a;
-  cursor: pointer;
-  transition: background .15s, color .15s;
-}
-
-.close-btn:hover { background: #f5f5f7; color: #1a1a2e; }
-
-.modal-body {
-  padding: 20px 24px;
-}
-
-.field-label {
-  display: block;
-  font-size: 13px;
-  font-weight: 600;
-  color: #5a5a72;
-  margin-bottom: 8px;
-}
-
-.field-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid #e5e5ea;
-  border-radius: 8px;
-  font-size: 15px;
-  outline: none;
-  transition: border-color .2s;
-}
-
-.field-input:focus { border-color: #4f46e5; }
-
-.field-error {
-  margin: 8px 0 0;
-  font-size: 13px;
-  color: #ef4444;
-}
-
-.delete-message {
-  margin: 0;
-  font-size: 15px;
-  color: #5a5a72;
-  line-height: 1.6;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 10px;
-  padding: 16px 24px 20px;
-  border-top: 1px solid #f0f0f5;
-}
 </style>
