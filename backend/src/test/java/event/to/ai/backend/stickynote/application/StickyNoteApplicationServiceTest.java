@@ -65,7 +65,7 @@ class StickyNoteApplicationServiceTest {
                     env.put("result", result);
                 })
                 .Then("only owned sticky notes should be returned", env -> {
-                    List<StickyNoteDTO> result = env.get("result");
+                    List<StickyNoteDTO> result = env.get("result", List.class);
                     assertEquals(1, result.size());
                     assertEquals(UUID.fromString("00000000-0000-0000-0000-000000000011"), result.get(0).getId());
                     assertEquals("yellow", result.get(0).getColor());
@@ -100,7 +100,7 @@ class StickyNoteApplicationServiceTest {
                     env.put("result", result);
                 })
                 .Then("service should not expose the foreign note", env -> {
-                    List<StickyNoteDTO> result = env.get("result");
+                    List<StickyNoteDTO> result = env.get("result", List.class);
                     assertTrue(result.isEmpty());
                 })
                 .Execute();
@@ -177,3 +177,4 @@ class StickyNoteApplicationServiceTest {
         return stickyNote;
     }
 }
+

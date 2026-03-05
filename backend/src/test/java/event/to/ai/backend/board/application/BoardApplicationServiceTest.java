@@ -94,7 +94,7 @@ class BoardApplicationServiceTest {
                     env.put("result", result);
                 })
                 .Then("service should return both owned boards", env -> {
-                    List<BoardDTO> result = env.get("result");
+                    List<BoardDTO> result = env.get("result", List.class);
                     assertEquals(2, result.size());
                     assertEquals("Roadmap", result.get(0).getTitle());
                     assertEquals("Retrospective", result.get(1).getTitle());
@@ -195,3 +195,4 @@ class BoardApplicationServiceTest {
                 .Execute();
     }
 }
+
