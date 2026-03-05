@@ -27,7 +27,6 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.accessToken
       user.value = response.data.user ?? null
       localStorage.setItem('token', response.data.accessToken)
-      console.log(response.data)
     } catch (err) {
       // Rethrow so the view can display the right message
       const e = err as { response?: { data?: { message?: string } }; message?: string }

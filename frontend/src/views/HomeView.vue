@@ -141,7 +141,6 @@ async function submitEdit() {
   showEditModal.value = false
 }
 // ─── Delete Board ─────────────────────────────────────────────────────────────
-/*
 const showDeleteModal = ref(false)
 const deleteTarget = ref<Board | null>(null)
 
@@ -153,12 +152,12 @@ function openDeleteModal(board: Board) {
 async function confirmDelete() {
   if (!deleteTarget.value) return
 
-  // TODO: replace with API call
-  // await api.delete(`/boards/${deleteTarget.value.id}`)
+  const response = await axios.delete(`http://localhost:8080/api/boards/${deleteTarget.value.id}`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
   boards.value = boards.value.filter(b => b.id !== deleteTarget.value!.id)
   showDeleteModal.value = false
 }
-*/
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
@@ -380,7 +379,7 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
           </div>
           <div class="modal-body">
             <p class="delete-message">
-              確定要刪除 <strong>「{{ deleteTarget?.name }}」</strong> 嗎？此操作無法復原。
+              確定要刪除 <strong>「{{ deleteTarget?.title }}」</strong> 嗎？此操作無法復原。
             </p>
           </div>
           <div class="modal-footer">
