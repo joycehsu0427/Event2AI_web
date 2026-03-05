@@ -1,5 +1,6 @@
 package event.to.ai.backend.stickynote.adapter.out.persistence.entity;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
@@ -52,10 +53,17 @@ public class StickyNote {
     @Column(nullable=false)
     private String tag;
 
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
+
+
     // Constructors
     public StickyNote() {
     }
- 
+
     public StickyNote(Point2D pos) {
         this.pos = pos;
     }
@@ -68,7 +76,6 @@ public class StickyNote {
     public void setId(UUID id) {
         this.id = id;
     }
-
     public Point2D getPos() {
         return pos;
     }
@@ -113,8 +120,24 @@ public class StickyNote {
         return tag;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
     public void setTag(String tag){
         this.tag = tag;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 
 

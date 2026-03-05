@@ -3,6 +3,7 @@ package event.to.ai.backend.textbox.adapter.out.persistence.entity;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -41,6 +42,12 @@ public class TextBoxes {
 
     @Column(nullable=false)
     private String tag;
+
+    @Column(name = "created_at", nullable = false, updatable = false)
+    private LocalDateTime createdAt;
+
+    @Column(name = "updated_at", nullable = false)
+    private LocalDateTime updatedAt;
 
     // Constructors
     public TextBoxes() {
@@ -107,6 +114,21 @@ public class TextBoxes {
         this.tag = tag;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
+    }
 
     @Override
     public String toString() {
