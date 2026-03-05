@@ -66,7 +66,6 @@ const filteredBoards = computed(() =>
 )
 
 // ─── Create Board ─────────────────────────────────────────────────────────────
-/*
 const showCreateModal = ref(false)
 const createName = ref('')
 const createError = ref('')
@@ -84,19 +83,23 @@ async function submitCreate() {
     return
   }
 
-  // TODO: replace with API call
-  // const res = await api.post('/boards', { name })
+  const response = await axios.post('http://localhost:8080/api/boards', {
+    title: name
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  console.log('Create response:', response.data)
   const newBoard: Board = {
-    id: Date.now().toString(),
-    name,
+    id: response.data.id,
+    title: response.data.title,
+    description: response.data.description,
     color: randomColor(),
-    createdAt: nowISO(),
-    updatedAt: nowISO(),
+    ownerUserId: response.data.ownerUserId,
+    ownerName: await getOwnerName(response.data.ownerUserId)
   }
   boards.value.unshift(newBoard)
   showCreateModal.value = false
 }
-*/
 // ─── Edit Board ───────────────────────────────────────────────────────────────
 /*
 const showEditModal = ref(false)
