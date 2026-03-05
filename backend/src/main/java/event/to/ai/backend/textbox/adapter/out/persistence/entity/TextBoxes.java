@@ -1,4 +1,4 @@
-package event.to.ai.backend.textboxes.adapter.out.persistence.entity;
+package event.to.ai.backend.textbox.adapter.out.persistence.entity;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import jakarta.persistence.*;

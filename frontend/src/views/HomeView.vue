@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Board } from '@/types/Board'
+import type { Board } from '@/types/board'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 // ─── Auth ─────────────────────────────────────────────────────────────────────
@@ -20,19 +20,36 @@ const BOARD_COLORS = [
   '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6',
 ]
 
-function randomColor() {
-  return BOARD_COLORS[Math.floor(Math.random() * BOARD_COLORS.length)]
+function randomColor(): string {
+  return BOARD_COLORS[Math.floor(Math.random() * BOARD_COLORS.length)] ?? '#4f46e5'
 }
 
 const boards = ref<Board[]>([]);
-const boardOwner = ref('');
+
+async function getOwnerName(ownerUserId: string): Promise<string> {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/users/${ownerUserId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    return response.data.username
+  } catch (error) {
+    console.error('Failed to fetch owner name', error)
+    return 'Unknown'
+  }
+}
 
 onMounted(async () => {
   try {
     const response = await axios.get('http://localhost:8080/api/boards', {
       headers: { Authorization: `Bearer ${token}` }
     })
-    console.log(response.data)
+    boards.value = response.data
+    boards.value.forEach(board => {
+      board.color = randomColor()
+    })
+    await Promise.all(boards.value.map(async (board) => {
+      board.ownerName = await getOwnerName(board.ownerUserId)
+    }))
   } catch (error) {
     console.error('API 發生錯誤', error)
   }
@@ -49,7 +66,6 @@ const filteredBoards = computed(() =>
 )
 
 // ─── Create Board ─────────────────────────────────────────────────────────────
-/*
 const showCreateModal = ref(false)
 const createName = ref('')
 const createError = ref('')
@@ -67,19 +83,23 @@ async function submitCreate() {
     return
   }
 
-  // TODO: replace with API call
-  // const res = await api.post('/boards', { name })
+  const response = await axios.post('http://localhost:8080/api/boards', {
+    title: name
+  }, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+  console.log('Create response:', response.data)
   const newBoard: Board = {
-    id: Date.now().toString(),
-    name,
+    id: response.data.id,
+    title: response.data.title,
+    description: response.data.description,
     color: randomColor(),
-    createdAt: nowISO(),
-    updatedAt: nowISO(),
+    ownerUserId: response.data.ownerUserId,
+    ownerName: await getOwnerName(response.data.ownerUserId)
   }
   boards.value.unshift(newBoard)
   showCreateModal.value = false
 }
-*/
 // ─── Edit Board ───────────────────────────────────────────────────────────────
 /*
 const showEditModal = ref(false)
@@ -240,7 +260,7 @@ function closeOnOverlay(e: MouseEvent, closeFn: () => void) {
           <!-- Info -->
           <div class="board-info">
             <p class="board-name">{{ board.title }}</p>
-            <p class="board-owner">被 {{ boardOwner }} 擁有</p>
+            <p class="board-owner">被 {{ board.ownerName }} 擁有</p>
           </div>
         </div>
       </div>
