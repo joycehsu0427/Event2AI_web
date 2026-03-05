@@ -12,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -30,38 +29,38 @@ public class StickyNoteApplicationService {
         this.boardRepositoryPort = boardRepositoryPort;
     }
 
-    public List<StickyNoteDTO> getAllStickyNotes() {
-        return stickyNoteRepositoryPort.findAll()
-                .stream()
+    public List<StickyNoteDTO> getAllStickyNotes(UUID actorUserId) {
+        return filterAndConvert(stickyNoteRepositoryPort.findAll(), actorUserId);
+    }
+
+    public List<StickyNoteDTO> getStickyNotesById(UUID actorUserId, UUID id) {
+        return stickyNoteRepositoryPort.findById(id)
+                .filter(stickyNote -> isOwnedByActor(stickyNote, actorUserId))
+                .map(stickyNote -> List.of(convertToDTO(stickyNote)))
+                .orElseGet(List::of);
+    }
+
+    public List<StickyNoteDTO> getStickyNotesByColor(UUID actorUserId, String color) {
+        return filterAndConvert(stickyNoteRepositoryPort.findByColor(color), actorUserId);
+    }
+
+    public List<StickyNoteDTO> getStickyNotesByBoardId(UUID actorUserId, UUID boardId) {
+        return filterAndConvert(stickyNoteRepositoryPort.findByBoardId(boardId), actorUserId);
+    }
+
+    public List<StickyNoteDTO> getStickyNotesByBoardIdAndColor(UUID actorUserId, UUID boardId, String color) {
+        return filterAndConvert(stickyNoteRepositoryPort.findByBoardIdAndColor(boardId, color), actorUserId);
+    }
+
+    private List<StickyNoteDTO> filterAndConvert(List<StickyNote> stickyNotes, UUID actorUserId) {
+        return stickyNotes.stream()
+                .filter(stickyNote -> isOwnedByActor(stickyNote, actorUserId))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<StickyNoteDTO> getStickyNotesById(UUID id) {
-        List<StickyNoteDTO> result = new ArrayList<>();
-        stickyNoteRepositoryPort.findById(id).ifPresent(stickyNote -> result.add(convertToDTO(stickyNote)));
-        return result;
-    }
-
-    public List<StickyNoteDTO> getStickyNotesByColor(String color) {
-        return stickyNoteRepositoryPort.findByColor(color)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<StickyNoteDTO> getStickyNotesByBoardId(UUID boardId) {
-        return stickyNoteRepositoryPort.findByBoardId(boardId)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<StickyNoteDTO> getStickyNotesByBoardIdAndColor(UUID boardId, String color) {
-        return stickyNoteRepositoryPort.findByBoardIdAndColor(boardId, color)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    private boolean isOwnedByActor(StickyNote stickyNote, UUID actorUserId) {
+        return stickyNote.getBoard() != null && actorUserId.equals(stickyNote.getBoard().getOwnerId());
     }
 
     @Transactional
@@ -97,6 +96,9 @@ public class StickyNoteApplicationService {
         if (request.getBoardId() != null) {
             Board board = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
+            if (!board.getOwnerId().equals(actorUserId)) {
+                throw new RuntimeException("Forbidden");
+            }
             stickyNote.setBoard(board);
         }
 

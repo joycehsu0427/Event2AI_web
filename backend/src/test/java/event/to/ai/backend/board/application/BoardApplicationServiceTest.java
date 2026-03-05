@@ -15,6 +15,7 @@ import tw.teddysoft.ezspec.extension.junit5.EzScenario;
 import tw.teddysoft.ezspec.keyword.Feature;
 
 import java.util.Optional;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -66,6 +67,37 @@ class BoardApplicationServiceTest {
                     assertEquals("Team Board", result.getTitle());
                     assertEquals("planning", result.getDescription());
                     assertEquals(actorUserId, result.getOwnerUserId());
+                })
+                .Execute();
+    }
+
+    @EzScenario
+    public void getAllMyBoardsShouldQueryByOwnerId() {
+        Feature.New("Board Application Service")
+                .newScenario("Get all my boards returns all boards owned by the authenticated user")
+                .Given("a user with two owned boards", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+                    Board firstBoard = new Board("Roadmap", "Q1");
+                    firstBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000101"));
+                    firstBoard.setOwnerId(actorUserId);
+
+                    Board secondBoard = new Board("Retrospective", "Sprint 5");
+                    secondBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000102"));
+                    secondBoard.setOwnerId(actorUserId);
+
+                    env.put("actorUserId", actorUserId);
+                    when(boardRepositoryPort.findAllByOwnerId(actorUserId)).thenReturn(List.of(firstBoard, secondBoard));
+                })
+                .When("requesting all boards for that user", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
+                    List<BoardDTO> result = boardApplicationService.getAllMyBoards(actorUserId);
+                    env.put("result", result);
+                })
+                .Then("service should return both owned boards", env -> {
+                    List<BoardDTO> result = env.get("result");
+                    assertEquals(2, result.size());
+                    assertEquals("Roadmap", result.get(0).getTitle());
+                    assertEquals("Retrospective", result.get(1).getTitle());
                 })
                 .Execute();
     }

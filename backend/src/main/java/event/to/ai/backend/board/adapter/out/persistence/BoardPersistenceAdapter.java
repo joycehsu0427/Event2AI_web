@@ -26,6 +26,11 @@ public class BoardPersistenceAdapter implements BoardRepositoryPort {
     }
 
     @Override
+    public List<Board> findAllByOwnerId(UUID ownerId) {
+        return boardRepository.findAllByOwnerId(ownerId);
+    }
+
+    @Override
     public Optional<Board> findById(UUID id) {
         return boardRepository.findById(id);
     }

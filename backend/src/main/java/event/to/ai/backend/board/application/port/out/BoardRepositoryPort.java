@@ -10,6 +10,8 @@ public interface BoardRepositoryPort {
 
     List<Board> findAll();
 
+    List<Board> findAllByOwnerId(UUID ownerId);
+
     Optional<Board> findById(UUID id);
 
     Board save(Board board);
