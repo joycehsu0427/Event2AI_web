@@ -1,4 +1,4 @@
-package event.to.ai.backend.textboxes.application.port.out;
+package event.to.ai.backend.textbox.application.port.out;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 

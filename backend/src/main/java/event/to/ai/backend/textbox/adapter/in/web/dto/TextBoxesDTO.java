@@ -1,4 +1,4 @@
-package event.to.ai.backend.textboxes.adapter.in.web.dto;
+package event.to.ai.backend.textbox.adapter.in.web.dto;
 
 import java.util.UUID;
 
