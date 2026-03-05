@@ -40,15 +40,15 @@ public class StickyNoteController {
 
     @GetMapping
     public ResponseEntity<List<StickyNoteDTO>> getAllStickyNotes(
-            @RequestParam(required = false) UUID id,
+            @RequestParam(required = false) UUID stickyNoteId,
             @RequestParam(required = false) String color,
             @RequestParam(required = false) UUID boardId) {
 
         UUID currentUserId = currentUserIdProvider.getCurrentUserId();
         List<StickyNoteDTO> stickyNotes;
 
-        if (id != null) {
-            stickyNotes = stickyNoteApplicationService.getStickyNotesById(currentUserId, id);
+        if (stickyNoteId != null) {
+            stickyNotes = stickyNoteApplicationService.getStickyNotesById(currentUserId, stickyNoteId);
         } else if (boardId != null && color != null) {
             stickyNotes = stickyNoteApplicationService.getStickyNotesByBoardIdAndColor(currentUserId, boardId, color);
         } else if (boardId != null) {
