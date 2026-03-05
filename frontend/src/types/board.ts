@@ -4,4 +4,5 @@ export interface Board {
   description: string
   color: string
   ownerUserId: string
+  ownerName: string
 }
