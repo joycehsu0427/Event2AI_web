@@ -1,6 +1,6 @@
-package event.to.ai.backend.textboxes.adapter.out.persistence;
+package event.to.ai.backend.textbox.adapter.out.persistence;
 
-import event.to.ai.backend.textboxes.adapter.out.persistence.entity.TextBoxes;
+import event.to.ai.backend.textbox.adapter.out.persistence.entity.TextBoxes;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

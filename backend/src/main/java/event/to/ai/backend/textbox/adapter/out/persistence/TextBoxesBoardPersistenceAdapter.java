@@ -1,8 +1,8 @@
-package event.to.ai.backend.textboxes.adapter.out.persistence;
+package event.to.ai.backend.textbox.adapter.out.persistence;
 
 import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
-import event.to.ai.backend.textboxes.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.textbox.application.port.out.BoardRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
