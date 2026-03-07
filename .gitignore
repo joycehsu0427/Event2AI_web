@@ -8,6 +8,7 @@
 .gradle/
 .gradle-cache
 .gradle-home/
+.codex-gradle-home/
 build/
 !gradle/wrapper/gradle-wrapper.jar
 
@@ -21,4 +22,3 @@ Thumbs.db
 ### Environment Variables ###
 .env
 *.env
-
