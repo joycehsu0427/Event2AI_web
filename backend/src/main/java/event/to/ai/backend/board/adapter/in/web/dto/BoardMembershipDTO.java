@@ -11,7 +11,6 @@ public class BoardMembershipDTO {
     private UUID boardId;
     private UUID userId;
     private BoardMembershipRole role;
-    private UUID grantedBy;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -19,12 +18,11 @@ public class BoardMembershipDTO {
     }
 
     public BoardMembershipDTO(UUID id, UUID boardId, UUID userId, BoardMembershipRole role,
-                              UUID grantedBy, LocalDateTime createdAt, LocalDateTime updatedAt) {
+                              LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.boardId = boardId;
         this.userId = userId;
         this.role = role;
-        this.grantedBy = grantedBy;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -59,14 +57,6 @@ public class BoardMembershipDTO {
 
     public void setRole(BoardMembershipRole role) {
         this.role = role;
-    }
-
-    public UUID getGrantedBy() {
-        return grantedBy;
-    }
-
-    public void setGrantedBy(UUID grantedBy) {
-        this.grantedBy = grantedBy;
     }
 
     public LocalDateTime getCreatedAt() {

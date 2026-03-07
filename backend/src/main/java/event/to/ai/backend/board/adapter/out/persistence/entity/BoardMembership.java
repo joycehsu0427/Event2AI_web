@@ -49,9 +49,6 @@ public class BoardMembership {
     @Column(nullable = false, length = 20)
     private BoardMembershipRole role;
 
-    @Column(name = "granted_by", columnDefinition = "BINARY(16)")
-    private UUID grantedBy;
-
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -61,11 +58,10 @@ public class BoardMembership {
     public BoardMembership() {
     }
 
-    public BoardMembership(Board board, User user, BoardMembershipRole role, UUID grantedBy) {
+    public BoardMembership(Board board, User user, BoardMembershipRole role) {
         this.board = board;
         this.user = user;
         this.role = role;
-        this.grantedBy = grantedBy;
     }
 
     @PrePersist
@@ -112,14 +108,6 @@ public class BoardMembership {
 
     public void setRole(BoardMembershipRole role) {
         this.role = role;
-    }
-
-    public UUID getGrantedBy() {
-        return grantedBy;
-    }
-
-    public void setGrantedBy(UUID grantedBy) {
-        this.grantedBy = grantedBy;
     }
 
     public LocalDateTime getCreatedAt() {
