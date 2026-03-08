@@ -1,16 +1,12 @@
-package event.to.ai.backend.board.adapter.out.persistence;
+package event.to.ai.backend.board.application.port.out;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipId;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Repository
-public interface BoardMembershipRepository extends JpaRepository<BoardMembership, BoardMembershipId> {
+public interface BoardMembershipRepositoryPort {
 
     List<BoardMembership> findAllByBoardId(UUID boardId);
 
@@ -19,6 +15,8 @@ public interface BoardMembershipRepository extends JpaRepository<BoardMembership
     Optional<BoardMembership> findByBoardIdAndUserId(UUID boardId, UUID userId);
 
     boolean existsByBoardIdAndUserId(UUID boardId, UUID userId);
+
+    BoardMembership save(BoardMembership membership);
 
     void deleteByBoardIdAndUserId(UUID boardId, UUID userId);
 

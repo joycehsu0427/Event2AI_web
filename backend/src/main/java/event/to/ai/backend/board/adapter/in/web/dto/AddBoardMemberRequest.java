@@ -10,6 +10,9 @@ public class AddBoardMemberRequest {
     @NotNull(message = "User id is required")
     private UUID userId;
 
+    @NotNull(message = "User id is required")
+    private UUID boardId;
+
     private BoardMembershipRole role;
 
     public AddBoardMemberRequest() {
@@ -27,6 +30,10 @@ public class AddBoardMemberRequest {
     public void setUserId(UUID userId) {
         this.userId = userId;
     }
+
+    public UUID getBoardId() { return boardId; }
+
+    public void setBoardId(UUID boardId) { this.boardId = boardId; }
 
     public BoardMembershipRole getRole() {
         return role;

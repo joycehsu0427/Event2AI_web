@@ -1,61 +1,175 @@
 @baseUrl = http://localhost:8080
 
-### 註冊
+### ===== 使用者設定 =====
+
+### 註冊 Owner
 # @name register
 POST {{baseUrl}}/api/auth/register
 Content-Type: application/json
 
 {
-  "username": "demo_user",
-  "email": "demo_user@example.com",
+  "username": "demo_owner",
+  "email": "demo_owner@example.com",
   "password": "demoPass123"
 }
 
-### 登入
+### 登入 Owner
 # @name login
 POST {{baseUrl}}/api/auth/login
 Content-Type: application/json
 
 {
-  "username": "demo_user",
+  "username": "demo_owner",
   "password": "demoPass123"
 }
 
-### 從登入回應擷取 token
-@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOjE3NzI1MzU2OTUsImV4cCI6MTc3MjUzOTI5NX0.g9bzxBFWTdiJlIUSt7d3Xhhm9ZgckZEVAKTTBJ-5L-A
+### Owner 的 Access Token（從登入回應貼上）
+@ownerToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzI5NzQ1NTUsImV4cCI6MTc3Mjk3ODE1NX0.GR6kvJxkD7-mGpzDOCtE2T2EKbwXmvRBEtwQazOTZJg
 
-### 建立 Board（需要 JWT）
+### 註冊 Member（用於測試邀請成員）
+POST {{baseUrl}}/api/auth/register
+Content-Type: application/json
+
+{
+  "username": "demo_member",
+  "email": "demo_member@example.com",
+  "password": "demoPass123"
+}
+
+### 登入 Member
+# @name loginMember
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "demo_member",
+  "password": "demoPass123"
+}
+
+### Member 的 Access Token 與 userId（從登入回應貼上）
+@memberToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyZmYyNy0xYmZmLTQ0MjgtYTQ5Yy1mZjFiNjViYTA2ODciLCJpYXQiOjE3NzI5NzQ1NzMsImV4cCI6MTc3Mjk3ODE3M30.fpjnsfmwe2HMopk12ZryYZ_sIjrdMcTjOvOGrdUT2TA
+@memberUserId = 0602ff27-1bff-4428-a49c-ff1b65ba0687
+
+
+### ===== Board CRUD =====
+
+### 建立 Board（Owner）
 # @name createBoard
 POST {{baseUrl}}/api/boards
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{ownerToken}}
 
 {
   "title": "My First Board",
   "description": "Board created from board_api.http"
 }
 
-### 取得所有 Boards（需要 JWT）
+### boardId（從建立 Board 回應貼上）
+@boardId = fc733174-54dd-437a-93b5-55da09fb6148
+
+### 取得所有我的 Boards（Owner）
 GET {{baseUrl}}/api/boards
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{ownerToken}}
 
-### 從建立 Board 回應擷取 boardId
-@boardId = a4221021-1cdc-4135-959a-71550254b226
+### 取得單一 Board（Owner）
+GET {{baseUrl}}/api/boards/{{boardId}}
+Authorization: Bearer {{ownerToken}}
 
-### 更新 Board（需要 JWT）
+### 取得所有 Board（Member，成員加入後才能看到）
+GET {{baseUrl}}/api/boards
+Authorization: Bearer {{memberToken}}
+
+### 取得單一 Board（Member，成員加入後才能使用）
+GET {{baseUrl}}/api/boards/{{boardId}}
+Authorization: Bearer {{memberToken}}
+
+### 更新 Board（Owner）
 PUT {{baseUrl}}/api/boards/{{boardId}}
 Content-Type: application/json
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{ownerToken}}
 
 {
   "title": "My First Board (Updated)",
   "description": "Updated from board_api.http"
 }
 
-### 取得單一 Board（需要 JWT）
-GET {{baseUrl}}/api/boards/{{boardId}}
-Authorization: Bearer {{accessToken}}
+### 更新 Board（Editor，角色升為 EDITOR 後才能使用，預期成功）
+PUT {{baseUrl}}/api/boards/{{boardId}}
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
 
-### 刪除 Board（需要 JWT）
+{
+  "title": "Edited by Member",
+  "description": "This edit was done by an EDITOR member"
+}
+
+### 更新 Board（Viewer，預期回傳 400 - Viewers are not allowed）
+PUT {{baseUrl}}/api/boards/{{boardId}}
+Content-Type: application/json
+Authorization: Bearer {{memberToken}}
+
+{
+  "title": "Edited by Viewer",
+  "description": "This should fail"
+}
+
+
+### ===== Board Membership =====
+
+### 取得 Board 成員列表（Owner）
+GET {{baseUrl}}/api/boards/board_member/{{boardId}}
+Authorization: Bearer {{ownerToken}}
+
+### 新增 Member 為 VIEWER
+POST {{baseUrl}}/api/boards/board_member
+Content-Type: application/json
+Authorization: Bearer {{ownerToken}}
+
+{
+  "boardId": "{{boardId}}",
+  "userId": "{{memberUserId}}",
+  "role": "VIEWER"
+}
+
+### 取得 Board 成員列表（Member，加入後可讀）
+GET {{baseUrl}}/api/boards/board_member/{{boardId}}
+Authorization: Bearer {{memberToken}}
+
+### 更新 Member 角色：VIEWER → EDITOR
+PUT {{baseUrl}}/api/boards/board_member/{{boardId}}
+Content-Type: application/json
+Authorization: Bearer {{ownerToken}}
+
+{
+  "userId": "{{memberUserId}}",
+  "role": "EDITOR"
+}
+
+### 更新 Member 角色：嘗試指派 OWNER（預期回傳 403）
+PUT {{baseUrl}}/api/boards/board_member/{{boardId}}
+Content-Type: application/json
+Authorization: Bearer {{ownerToken}}
+
+{
+  "userId": "{{memberUserId}}",
+  "role": "OWNER"
+}
+
+### 移除 Member（Owner 操作）
+DELETE {{baseUrl}}/api/boards/board_member/{{boardId}}/{{memberUserId}}
+Authorization: Bearer {{ownerToken}}
+
+### 移除 Member（非 Owner 操作，預期回傳 403）
+DELETE {{baseUrl}}/api/boards/board_member/{{boardId}}/{{memberUserId}}
+Authorization: Bearer {{memberToken}}
+
+
+### ===== 刪除 Board =====
+
+### 刪除 Board（非 Owner，預期回傳 403）
 DELETE {{baseUrl}}/api/boards/{{boardId}}
-Authorization: Bearer {{accessToken}}
+Authorization: Bearer {{memberToken}}
+
+### 刪除 Board（Owner，同時會清除所有 memberships）
+DELETE {{baseUrl}}/api/boards/{{boardId}}
+Authorization: Bearer {{ownerToken}}
