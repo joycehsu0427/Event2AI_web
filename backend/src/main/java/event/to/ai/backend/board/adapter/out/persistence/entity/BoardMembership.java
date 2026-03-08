@@ -2,19 +2,17 @@ package event.to.ai.backend.board.adapter.out.persistence.entity;
 
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import jakarta.persistence.Column;
+import jakarta.persistence.EmbeddedId;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
 import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.MapsId;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -22,9 +20,6 @@ import java.util.UUID;
 @Entity
 @Table(
         name = "board_memberships",
-        uniqueConstraints = {
-                @UniqueConstraint(name = "uk_board_memberships_board_user", columnNames = {"board_id", "user_id"})
-        },
         indexes = {
                 @Index(name = "idx_board_memberships_user_id", columnList = "user_id"),
                 @Index(name = "idx_board_memberships_board_id_role", columnList = "board_id,role")
@@ -32,17 +27,17 @@ import java.util.UUID;
 )
 public class BoardMembership {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "BINARY(16)")
-    private UUID id;
+    @EmbeddedId
+    private BoardMembershipId id;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
+    @MapsId("boardId")
+    @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)", updatable = false)
     private Board board;
 
     @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false, columnDefinition = "BINARY(16)")
+    @MapsId("userId")
+    @JoinColumn(name = "user_id", nullable = false, columnDefinition = "BINARY(16)", updatable = false)
     private User user;
 
     @Enumerated(EnumType.STRING)
@@ -62,12 +57,18 @@ public class BoardMembership {
         this.board = board;
         this.user = user;
         this.role = role;
+        if (board != null && user != null) {
+            this.id = new BoardMembershipId(board.getId(), user.getId());
+        }
     }
 
     @PrePersist
     protected void onCreate() {
         if (role == null) {
             role = BoardMembershipRole.VIEWER;
+        }
+        if (id == null && board != null && user != null) {
+            id = new BoardMembershipId(board.getId(), user.getId());
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
@@ -78,11 +79,11 @@ public class BoardMembership {
         updatedAt = LocalDateTime.now();
     }
 
-    public UUID getId() {
+    public BoardMembershipId getId() {
         return id;
     }
 
-    public void setId(UUID id) {
+    public void setId(BoardMembershipId id) {
         this.id = id;
     }
 
@@ -92,6 +93,10 @@ public class BoardMembership {
 
     public void setBoard(Board board) {
         this.board = board;
+        if (this.id == null) {
+            this.id = new BoardMembershipId();
+        }
+        this.id.setBoardId(board == null ? null : board.getId());
     }
 
     public User getUser() {
@@ -100,6 +105,10 @@ public class BoardMembership {
 
     public void setUser(User user) {
         this.user = user;
+        if (this.id == null) {
+            this.id = new BoardMembershipId();
+        }
+        this.id.setUserId(user == null ? null : user.getId());
     }
 
     public BoardMembershipRole getRole() {

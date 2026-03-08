@@ -7,7 +7,6 @@ import java.util.UUID;
 
 public class BoardMembershipDTO {
 
-    private UUID id;
     private UUID boardId;
     private UUID userId;
     private BoardMembershipRole role;
@@ -17,22 +16,13 @@ public class BoardMembershipDTO {
     public BoardMembershipDTO() {
     }
 
-    public BoardMembershipDTO(UUID id, UUID boardId, UUID userId, BoardMembershipRole role,
+    public BoardMembershipDTO(UUID boardId, UUID userId, BoardMembershipRole role,
                               LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this.id = id;
         this.boardId = boardId;
         this.userId = userId;
         this.role = role;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public UUID getBoardId() {

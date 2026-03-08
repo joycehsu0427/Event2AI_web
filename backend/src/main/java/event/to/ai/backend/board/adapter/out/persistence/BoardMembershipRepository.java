@@ -1,6 +1,7 @@
 package event.to.ai.backend.board.adapter.out.persistence;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -9,7 +10,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-public interface BoardMembershipRepository extends JpaRepository<BoardMembership, UUID> {
+public interface BoardMembershipRepository extends JpaRepository<BoardMembership, BoardMembershipId> {
 
     List<BoardMembership> findAllByBoardId(UUID boardId);
 
