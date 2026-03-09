@@ -1,12 +1,15 @@
 package event.to.ai.backend.board;
 
-import event.to.ai.backend.board.application.BoardApplicationService;
-import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.BoardApplicationService;
+import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
+import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -33,6 +36,9 @@ class BoardTest {
     private BoardRepositoryPort boardRepositoryPort;
 
     @Mock
+    private BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+
+    @Mock
     private UserRepositoryPort userRepositoryPort;
 
     @InjectMocks
@@ -45,8 +51,7 @@ class BoardTest {
                 .Given("an authenticated actor and create request", env -> {
                     UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000042");
                     CreateBoardRequest request = new CreateBoardRequest("  Sprint Board  ", "planning");
-                    User actor = new User("actor", "actor@example.com", "hash");
-                    actor.setId(actorUserId);
+                    User actor = user(actorUserId);
 
                     env.put("actorUserId", actorUserId);
                     env.put("request", request);
@@ -56,6 +61,8 @@ class BoardTest {
                         board.setId(UUID.randomUUID());
                         return board;
                     });
+                    when(boardMembershipRepositoryPort.save(any(BoardMembership.class)))
+                            .thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("creating board", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -76,6 +83,11 @@ class BoardTest {
                                         UUID.fromString("00000000-0000-0000-0000-000000000042").equals(board.getOwnerId())
                         ))
                 )
+                .And("saved membership should be owner role", env ->
+                        verify(boardMembershipRepositoryPort).save(argThat(membership ->
+                                membership.getRole() == BoardMembershipRole.OWNER
+                        ))
+                )
                 .Execute();
     }
 
@@ -86,12 +98,10 @@ class BoardTest {
                 .Given("an authenticated actor and blank title request", env -> {
                     UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000042");
                     CreateBoardRequest request = new CreateBoardRequest("   ", "planning");
-                    User actor = new User("actor", "actor@example.com", "hash");
-                    actor.setId(actorUserId);
 
                     env.put("actorUserId", actorUserId);
                     env.put("request", request);
-                    when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(actor));
+                    when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(user(actorUserId)));
                 })
                 .When("creating board", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -105,6 +115,7 @@ class BoardTest {
                     assertEquals("Board title cannot be blank", ex.getMessage());
                 })
                 .And("board should not be saved", env -> verify(boardRepositoryPort, never()).save(any(Board.class)))
+                .And("membership should not be saved", env -> verify(boardMembershipRepositoryPort, never()).save(any(BoardMembership.class)))
                 .Execute();
     }
 
@@ -112,23 +123,28 @@ class BoardTest {
     public void updateBoardShouldTrimTitleUpdateDescriptionAndKeepOwner() {
         Feature.New("Board")
                 .newScenario("Update board applies trimmed title and keeps existing owner")
-                .Given("an existing board with owner and update request", env -> {
+                .Given("an existing board with owner, membership, and update request", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000007");
                     UUID boardId = UUID.randomUUID();
                     Board board = new Board("Old Title", "Old Desc");
                     board.setId(boardId);
-                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000007"));
+                    board.setOwnerId(actorUserId);
 
                     UpdateBoardRequest request = new UpdateBoardRequest("  New Team Board  ", "New Desc");
 
+                    env.put("actorUserId", actorUserId);
                     env.put("boardId", boardId);
                     env.put("request", request);
+                    when(boardMembershipRepositoryPort.findByBoardIdAndUserId(boardId, actorUserId))
+                            .thenReturn(Optional.of(membership(board, user(actorUserId), BoardMembershipRole.OWNER)));
                     when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
                     when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("updating board", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
                     UpdateBoardRequest request = env.get("request", UpdateBoardRequest.class);
-                    BoardDTO result = boardApplicationService.updateBoard(boardId, request);
+                    BoardDTO result = boardApplicationService.updateBoard(actorUserId, boardId, request);
                     env.put("result", result);
                 })
                 .Then("result should contain updated title and description", env -> {
@@ -151,23 +167,28 @@ class BoardTest {
     public void updateBoardShouldOnlyUpdateDescriptionWhenTitleIsNull() {
         Feature.New("Board")
                 .newScenario("Update board keeps original title when title input is null")
-                .Given("an existing board and description-only update", env -> {
+                .Given("an existing board, membership, and description-only update", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000009");
                     UUID boardId = UUID.randomUUID();
                     Board board = new Board("Stable Title", "Old Desc");
                     board.setId(boardId);
-                    board.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000009"));
+                    board.setOwnerId(actorUserId);
 
                     UpdateBoardRequest request = new UpdateBoardRequest(null, "Only Desc Changed");
 
+                    env.put("actorUserId", actorUserId);
                     env.put("boardId", boardId);
                     env.put("request", request);
+                    when(boardMembershipRepositoryPort.findByBoardIdAndUserId(boardId, actorUserId))
+                            .thenReturn(Optional.of(membership(board, user(actorUserId), BoardMembershipRole.EDITOR)));
                     when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
                     when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("updating board", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
                     UpdateBoardRequest request = env.get("request", UpdateBoardRequest.class);
-                    BoardDTO result = boardApplicationService.updateBoard(boardId, request);
+                    BoardDTO result = boardApplicationService.updateBoard(actorUserId, boardId, request);
                     env.put("result", result);
                 })
                 .Then("result should keep original title and update description", env -> {
@@ -184,5 +205,15 @@ class BoardTest {
                         ))
                 )
                 .Execute();
+    }
+
+    private User user(UUID userId) {
+        User user = new User("user-" + userId, userId + "@example.com", "hash");
+        user.setId(userId);
+        return user;
+    }
+
+    private BoardMembership membership(Board board, User user, BoardMembershipRole role) {
+        return new BoardMembership(board, user, role);
     }
 }

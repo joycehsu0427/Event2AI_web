@@ -1,11 +1,14 @@
 package event.to.ai.backend.board.application;
 
-import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
+import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,13 +17,14 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import tw.teddysoft.ezspec.extension.junit5.EzScenario;
 import tw.teddysoft.ezspec.keyword.Feature;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -32,6 +36,9 @@ class BoardApplicationServiceTest {
     private BoardRepositoryPort boardRepositoryPort;
 
     @Mock
+    private BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+
+    @Mock
     private UserRepositoryPort userRepositoryPort;
 
     @InjectMocks
@@ -40,20 +47,23 @@ class BoardApplicationServiceTest {
     @EzScenario
     public void createBoardShouldUseAuthenticatedUserAsOwner() {
         Feature.New("Board Application Service")
-                .newScenario("Create board uses authenticated user as owner")
+                .newScenario("Create board uses authenticated user as owner and creates owner membership")
                 .Given("a valid actor and create-board request", env -> {
                     UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
                     CreateBoardRequest request = new CreateBoardRequest("  Team Board  ", "planning");
+                    User actor = user(actorUserId);
 
                     env.put("actorUserId", actorUserId);
                     env.put("request", request);
 
-                    when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(new User()));
+                    when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(actor));
                     when(boardRepositoryPort.save(any(Board.class))).thenAnswer(invocation -> {
                         Board board = invocation.getArgument(0);
                         board.setId(UUID.randomUUID());
                         return board;
                     });
+                    when(boardMembershipRepositoryPort.save(any(BoardMembership.class)))
+                            .thenAnswer(invocation -> invocation.getArgument(0));
                 })
                 .When("creating board", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -68,37 +78,53 @@ class BoardApplicationServiceTest {
                     assertEquals("planning", result.getDescription());
                     assertEquals(actorUserId, result.getOwnerUserId());
                 })
+                .And("owner membership should be persisted", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
+                    verify(boardMembershipRepositoryPort).save(argThat(membership ->
+                            membership.getRole() == BoardMembershipRole.OWNER
+                                    && membership.getBoard() != null
+                                    && actorUserId.equals(membership.getUser().getId())
+                    ));
+                })
                 .Execute();
     }
 
     @EzScenario
-    public void getAllMyBoardsShouldQueryByOwnerId() {
+    public void getAllMyBoardsShouldQueryByMembership() {
         Feature.New("Board Application Service")
-                .newScenario("Get all my boards returns all boards owned by the authenticated user")
-                .Given("a user with two owned boards", env -> {
+                .newScenario("Get all my boards returns all boards linked by membership")
+                .Given("a user with two board memberships", env -> {
                     UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+                    User actor = user(actorUserId);
+
                     Board firstBoard = new Board("Roadmap", "Q1");
                     firstBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000101"));
                     firstBoard.setOwnerId(actorUserId);
 
                     Board secondBoard = new Board("Retrospective", "Sprint 5");
                     secondBoard.setId(UUID.fromString("00000000-0000-0000-0000-000000000102"));
-                    secondBoard.setOwnerId(actorUserId);
+                    secondBoard.setOwnerId(UUID.fromString("00000000-0000-0000-0000-000000000777"));
 
                     env.put("actorUserId", actorUserId);
-                    when(boardRepositoryPort.findAllByOwnerId(actorUserId)).thenReturn(List.of(firstBoard, secondBoard));
+                    when(boardMembershipRepositoryPort.findAllByUserId(actorUserId)).thenReturn(List.of(
+                            membership(firstBoard, actor, BoardMembershipRole.OWNER),
+                            membership(secondBoard, actor, BoardMembershipRole.EDITOR)
+                    ));
                 })
                 .When("requesting all boards for that user", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
                     List<BoardDTO> result = boardApplicationService.getAllMyBoards(actorUserId);
                     env.put("result", result);
                 })
-                .Then("service should return both owned boards", env -> {
+                .Then("service should return both membership boards", env -> {
                     List<BoardDTO> result = env.get("result", List.class);
                     assertEquals(2, result.size());
                     assertEquals("Roadmap", result.get(0).getTitle());
                     assertEquals("Retrospective", result.get(1).getTitle());
                 })
+                .And("legacy owner query should not be used", env ->
+                        verify(boardRepositoryPort, never()).findAllByOwnerId(env.get("actorUserId", UUID.class))
+                )
                 .Execute();
     }
 
@@ -130,6 +156,9 @@ class BoardApplicationServiceTest {
                 .And("board should not be saved", env ->
                         verify(boardRepositoryPort, never()).save(any(Board.class))
                 )
+                .And("membership should not be saved", env ->
+                        verify(boardMembershipRepositoryPort, never()).save(any(BoardMembership.class))
+                )
                 .Execute();
     }
 
@@ -137,22 +166,29 @@ class BoardApplicationServiceTest {
     public void updateBoardShouldRejectBlankTitleAfterTrim() {
         Feature.New("Board Application Service")
                 .newScenario("Update board fails when title is blank after trim")
-                .Given("an existing board and blank title update request", env -> {
+                .Given("an existing board, membership, and blank title update request", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000123");
                     UUID boardId = UUID.randomUUID();
                     Board board = new Board("Old", "Desc");
                     board.setId(boardId);
+                    board.setOwnerId(actorUserId);
                     UpdateBoardRequest request = new UpdateBoardRequest("   ", null);
 
+                    env.put("actorUserId", actorUserId);
                     env.put("boardId", boardId);
                     env.put("request", request);
+
+                    when(boardMembershipRepositoryPort.findByBoardIdAndUserId(boardId, actorUserId))
+                            .thenReturn(Optional.of(membership(board, user(actorUserId), BoardMembershipRole.OWNER)));
                     when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(board));
                 })
                 .When("updating board", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
                     UpdateBoardRequest request = env.get("request", UpdateBoardRequest.class);
                     RuntimeException ex = assertThrows(
                             RuntimeException.class,
-                            () -> boardApplicationService.updateBoard(boardId, request)
+                            () -> boardApplicationService.updateBoard(actorUserId, boardId, request)
                     );
                     env.put("error", ex);
                 })
@@ -191,8 +227,18 @@ class BoardApplicationServiceTest {
                 .And("delete should not be called", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
                     verify(boardRepositoryPort, never()).deleteById(boardId);
+                    verify(boardMembershipRepositoryPort, never()).deleteAllByBoardId(boardId);
                 })
                 .Execute();
     }
-}
 
+    private User user(UUID userId) {
+        User user = new User("user-" + userId, userId + "@example.com", "hash");
+        user.setId(userId);
+        return user;
+    }
+
+    private BoardMembership membership(Board board, User user, BoardMembershipRole role) {
+        return new BoardMembership(board, user, role);
+    }
+}

@@ -2,10 +2,11 @@ package event.to.ai.backend.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.BoardMembershipRepository;
 import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
-import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
+import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.security.JwtService;
+import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +53,9 @@ class BoardApiIntegrationTest {
     private BoardRepository boardRepository;
 
     @Autowired
+    private BoardMembershipRepository boardMembershipRepository;
+
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @Autowired
@@ -59,6 +63,7 @@ class BoardApiIntegrationTest {
 
     @BeforeEach
     void cleanUp() {
+        boardMembershipRepository.deleteAll();
         boardRepository.deleteAll();
         userRepository.deleteAll();
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)

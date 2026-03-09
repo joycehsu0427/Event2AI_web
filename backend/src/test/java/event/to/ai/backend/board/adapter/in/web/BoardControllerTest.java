@@ -2,9 +2,9 @@ package event.to.ai.backend.board.adapter.in.web;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import event.to.ai.backend.auth.CurrentUserIdProvider;
-import event.to.ai.backend.board.application.BoardApplicationService;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
+import event.to.ai.backend.board.application.BoardApplicationService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -120,27 +120,33 @@ class BoardControllerTest {
     }
 
     @EzScenario
-    public void getBoardByIdShouldReturnNotFoundWhenServiceThrows() {
+    public void getBoardByIdShouldReturnBadRequestWhenServiceThrows() {
         Feature.New("Board Controller")
-                .newScenario("Get board by id returns 404 when board missing")
-                .Given("a board id not found by service", env -> {
+                .newScenario("Get board by id returns 400 when board lookup fails")
+                .Given("a board id rejected by the service", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000011");
                     UUID boardId = UUID.randomUUID();
+                    env.put("actorUserId", actorUserId);
                     env.put("boardId", boardId);
-                    when(boardApplicationService.getBoardById(boardId))
+                    when(currentUserIdProvider.getCurrentUserId()).thenReturn(actorUserId);
+                    when(boardApplicationService.getBoardById(actorUserId, boardId))
                             .thenThrow(new RuntimeException("Board not found with id: " + boardId));
                 })
                 .When("calling GET /api/boards/{id}", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
                     try {
                         mockMvc.perform(get("/api/boards/{id}", boardId))
-                                .andExpect(status().isNotFound());
+                                .andExpect(status().isBadRequest())
+                                .andExpect(content().string("Board not found with id: " + boardId));
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
                 })
-                .Then("controller should map exception to 404", env -> {
+                .Then("controller should call membership-aware service lookup", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
-                    verify(boardApplicationService).getBoardById(boardId);
+                    verify(currentUserIdProvider).getCurrentUserId();
+                    verify(boardApplicationService).getBoardById(actorUserId, boardId);
                 })
                 .Execute();
     }
