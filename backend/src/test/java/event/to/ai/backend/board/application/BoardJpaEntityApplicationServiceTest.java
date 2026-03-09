@@ -1,11 +1,15 @@
 package event.to.ai.backend.board.application;
 
-import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
+import event.to.ai.backend.board.application.port.out.BoardEventRepositoryPort;
+import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
+import event.to.ai.backend.board.domain.Board;
+import event.to.ai.backend.board.domain.BoardId;
+import event.to.ai.backend.board.domain.BoardTitle;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,8 +18,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import tw.teddysoft.ezspec.extension.junit5.EzScenario;
 import tw.teddysoft.ezspec.keyword.Feature;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -30,6 +34,9 @@ class BoardJpaEntityApplicationServiceTest {
 
     @Mock
     private BoardRepositoryPort boardRepositoryPort;
+
+    @Mock
+    private BoardEventRepositoryPort boardEventRepositoryPort;
 
     @Mock
     private UserRepositoryPort userRepositoryPort;
@@ -47,13 +54,7 @@ class BoardJpaEntityApplicationServiceTest {
 
                     env.put("actorUserId", actorUserId);
                     env.put("request", request);
-
                     when(userRepositoryPort.findById(actorUserId)).thenReturn(Optional.of(new User()));
-                    when(boardRepositoryPort.save(any(BoardJpaEntity.class))).thenAnswer(invocation -> {
-                        BoardJpaEntity boardJpaEntity = invocation.getArgument(0);
-                        boardJpaEntity.setId(UUID.randomUUID());
-                        return boardJpaEntity;
-                    });
                 })
                 .When("creating board", env -> {
                     UUID actorUserId = env.get("actorUserId", UUID.class);
@@ -68,6 +69,9 @@ class BoardJpaEntityApplicationServiceTest {
                     assertEquals("planning", result.getDescription());
                     assertEquals(actorUserId, result.getOwnerUserId());
                 })
+                .And("aggregate should be saved through event repository", env ->
+                        verify(boardEventRepositoryPort).save(any(Board.class))
+                )
                 .Execute();
     }
 
@@ -128,7 +132,7 @@ class BoardJpaEntityApplicationServiceTest {
                     assertEquals("User not found with id: 00000000-0000-0000-0000-000000000999", ex.getMessage());
                 })
                 .And("board should not be saved", env ->
-                        verify(boardRepositoryPort, never()).save(any(BoardJpaEntity.class))
+                        verify(boardEventRepositoryPort, never()).save(any(Board.class))
                 )
                 .Execute();
     }
@@ -139,13 +143,11 @@ class BoardJpaEntityApplicationServiceTest {
                 .newScenario("Update board fails when title is blank after trim")
                 .Given("an existing board and blank title update request", env -> {
                     UUID boardId = UUID.randomUUID();
-                    BoardJpaEntity boardJpaEntity = new BoardJpaEntity("Old", "Desc");
-                    boardJpaEntity.setId(boardId);
-                    UpdateBoardRequest request = new UpdateBoardRequest("   ", null);
+                    Board board = Board.create(BoardId.valueOf(boardId), BoardTitle.valueOf("Old"), "Desc", UUID.randomUUID());
 
                     env.put("boardId", boardId);
-                    env.put("request", request);
-                    when(boardRepositoryPort.findById(boardId)).thenReturn(Optional.of(boardJpaEntity));
+                    env.put("request", new UpdateBoardRequest("   ", null));
+                    when(boardEventRepositoryPort.findById(BoardId.valueOf(boardId))).thenReturn(Optional.of(board));
                 })
                 .When("updating board", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
@@ -161,7 +163,7 @@ class BoardJpaEntityApplicationServiceTest {
                     assertEquals("Board title cannot be blank", ex.getMessage());
                 })
                 .And("board should not be saved", env ->
-                        verify(boardRepositoryPort, never()).save(any(BoardJpaEntity.class))
+                        verify(boardEventRepositoryPort, never()).save(any(Board.class))
                 )
                 .Execute();
     }
@@ -173,7 +175,7 @@ class BoardJpaEntityApplicationServiceTest {
                 .Given("a non-existing board id", env -> {
                     UUID boardId = UUID.randomUUID();
                     env.put("boardId", boardId);
-                    when(boardRepositoryPort.existsById(boardId)).thenReturn(false);
+                    when(boardEventRepositoryPort.findById(BoardId.valueOf(boardId))).thenReturn(Optional.empty());
                 })
                 .When("deleting board", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
@@ -188,11 +190,9 @@ class BoardJpaEntityApplicationServiceTest {
                     RuntimeException ex = env.get("error", RuntimeException.class);
                     assertEquals("Board not found with id: " + boardId, ex.getMessage());
                 })
-                .And("delete should not be called", env -> {
-                    UUID boardId = env.get("boardId", UUID.class);
-                    verify(boardRepositoryPort, never()).deleteById(boardId);
-                })
+                .And("save should not be called", env ->
+                        verify(boardEventRepositoryPort, never()).save(any(Board.class))
+                )
                 .Execute();
     }
 }
-

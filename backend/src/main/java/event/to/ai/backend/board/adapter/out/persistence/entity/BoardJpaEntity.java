@@ -2,8 +2,6 @@ package event.to.ai.backend.board.adapter.out.persistence.entity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -16,9 +14,7 @@ import java.util.UUID;
 @Table(name = "boards")
 public class BoardJpaEntity {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    @Column(columnDefinition = "BINARY(16)")
+    @Id    @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(nullable = false, length = 200)

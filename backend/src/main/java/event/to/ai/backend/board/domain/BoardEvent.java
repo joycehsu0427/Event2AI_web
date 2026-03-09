@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.UUID;
 
 public sealed interface BoardEvent extends InternalDomainEvent
-        permits BoardEvent.BoardCreated, BoardEvent.BoardRenamed, BoardEvent.BoardDeleted {
+        permits BoardEvent.BoardCreated, BoardEvent.BoardRenamed, BoardEvent.BoardDescriptionChanged, BoardEvent.BoardDeleted {
 
     record BoardCreated(
             UUID id,
@@ -38,14 +38,26 @@ public sealed interface BoardEvent extends InternalDomainEvent
         }
     }
 
+    record BoardDescriptionChanged(
+            UUID id,
+            Instant occurredOn,
+            String source,
+            Map<String, String> metadata,
+            BoardId boardId,
+            String description
+    ) implements BoardEvent {
+        public BoardDescriptionChanged(BoardId boardId, String description) {
+            this(UUID.randomUUID(), Instant.now(), boardId.toString(), Map.of(), boardId, description);
+        }
+    }
+
     record BoardDeleted(
             UUID id,
             Instant occurredOn,
             String source,
             Map<String, String> metadata,
             BoardId boardId
-    ) implements BoardEvent, InternalDomainEvent.DestructionEvent{
-
+    ) implements BoardEvent, InternalDomainEvent.DestructionEvent {
         public BoardDeleted(BoardId boardId) {
             this(UUID.randomUUID(), Instant.now(), boardId.toString(), Map.of(), boardId);
         }
