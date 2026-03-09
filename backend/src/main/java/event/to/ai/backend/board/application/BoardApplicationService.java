@@ -47,8 +47,7 @@ public class BoardApplicationService {
 
     @Transactional
     public BoardDTO createBoard(UUID actorUserId, CreateBoardRequest request) {
-        userRepositoryPort.findById(actorUserId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + actorUserId));
+        requireExistingUser(actorUserId);
 
         String title = normalizeTitle(request.getTitle());
         String description = normalizeDescription(request.getDescription());
@@ -60,8 +59,7 @@ public class BoardApplicationService {
 
     @Transactional
     public BoardDTO updateBoard(UUID id, UpdateBoardRequest request) {
-        Board board = boardEventRepositoryPort.findById(BoardId.valueOf(id))
-                .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
+        Board board = loadBoardAggregate(id);
 
         if (request.getTitle() != null) {
             board.rename(BoardTitle.valueOf(normalizeTitle(request.getTitle())));
@@ -77,11 +75,20 @@ public class BoardApplicationService {
 
     @Transactional
     public void deleteBoard(UUID id) {
-        Board board = boardEventRepositoryPort.findById(BoardId.valueOf(id))
-                .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
+        Board board = loadBoardAggregate(id);
 
         board.delete();
         boardEventRepositoryPort.save(board);
+    }
+
+    private void requireExistingUser(UUID userId) {
+        userRepositoryPort.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+    }
+
+    private Board loadBoardAggregate(UUID boardId) {
+        return boardEventRepositoryPort.findById(BoardId.valueOf(boardId))
+                .orElseThrow(() -> new RuntimeException("Board not found with id: " + boardId));
     }
 
     private String normalizeTitle(String rawTitle) {
