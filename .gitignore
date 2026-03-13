@@ -18,7 +18,9 @@ Thumbs.db
 
 ### VS Code ###
 .vscode/
+playwright-test/
 
 ### Environment Variables ###
 .env
 *.env
+
