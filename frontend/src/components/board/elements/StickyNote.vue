@@ -7,25 +7,26 @@
     @dbltap="handleDblClick"
     v-show="!isEditing"
   />
-  <div v-if="isEditing" :style="textareaWrapperStyle">
-    <textarea
-      ref="textareaRef"
-      v-model="editedText"
-      :style="textareaStyle"
-      @blur="handleTextareaBlur"
-      @keydown.enter="handleEnterKey"
-      @keydown.esc="handleEscapeKey"
-    ></textarea>
-  </div>
+  <Teleport to="body">
+    <div v-if="isEditing" :style="textareaWrapperStyle">
+      <textarea
+        ref="textareaRef"
+        v-model="editedText"
+        :style="textareaStyle"
+        @blur="handleTextareaBlur"
+        @keydown.enter="handleEnterKey"
+        @keydown.esc="handleEscapeKey"
+      ></textarea>
+    </div>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick } from 'vue';
+import { computed, ref, nextTick, reactive } from 'vue';
 import { StickyNoteElement } from '@/interfaces/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import type { Text } from 'konva/lib/shapes/Text';
-import Konva from 'konva';
 
 const props = defineProps<{
   element: StickyNoteElement;
@@ -34,177 +35,120 @@ const props = defineProps<{
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 
-const vTextRef = ref<Text | null>(null);
+const vTextRef = ref<InstanceType<any> | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
 const isEditing = ref(false);
 const editedText = ref(props.element.text);
 
-const rectConfig = computed(() => {
-  console.log('StickyNote rectConfig - backgroundColor:', props.element.backgroundColor); // Add this line for debugging
-  return {
-    width: props.element.width,
-    height: props.element.height,
-    fill: props.element.backgroundColor,
-    stroke: props.element.stroke || '#333',
-    strokeWidth: props.element.strokeWidth || 1,
-    cornerRadius: 5,
-  };
-});
+// Stores the computed position/size when entering edit mode
+const editingPos = reactive({ left: '0px', top: '0px', width: '0px', height: '0px', fontSize: '14px' });
+
+const rectConfig = computed(() => ({
+  width: props.element.width,
+  height: props.element.height,
+  fill: props.element.backgroundColor,
+  stroke: props.element.stroke || '#333',
+  strokeWidth: props.element.strokeWidth || 1,
+  cornerRadius: 5,
+}));
 
 const textConfig = computed(() => ({
-  x: 5, // Padding from the left edge of the rect
-  y: 5, // Padding from the top edge of the rect
-  width: props.element.width - 10, // Adjust for padding
-  height: props.element.height - 10, // Adjust for padding
+  x: 5,
+  y: 5,
+  width: props.element.width - 10,
+  height: props.element.height - 10,
   text: props.element.text,
   fontSize: props.element.fontSize,
   fill: props.element.textColor,
   align: 'left',
   verticalAlign: 'top',
-  padding: 5, // Inner padding for the text
-  // Removed listening: false // Allow events to bubble up
+  padding: 5,
 }));
 
-let initialElementText = ''; // To store text before editing, for history
+let initialElementText = '';
 
 const handleDblClick = (e: any) => {
-  e.evt.stopPropagation(); // Prevent event from bubbling to parent Konva elements or stage
+  e.evt.stopPropagation();
 
-  console.log('StickyNote: dblclick fired');
-  console.log('StickyNote: vTextRef.value:', vTextRef.value);
   if (!vTextRef.value) {
     console.warn('StickyNote: vTextRef is null, cannot edit.');
     return;
   }
 
-  initialElementText = props.element.text; // Save current text for potential undo
+  // Calculate position BEFORE setting isEditing so vTextRef is still valid
+  const textNode = vTextRef.value.getNode();
+  const stage = textNode.getStage();
+  if (!stage) return;
 
+  const scale = stage.scaleX();
+  const stageRect = stage.container().getBoundingClientRect();
+  const textRect = textNode.getClientRect({ skipTransform: false });
+
+  editingPos.left = `${stageRect.left + textRect.x}px`;
+  editingPos.top = `${stageRect.top + textRect.y}px`;
+  editingPos.width = `${textRect.width}px`;
+  editingPos.height = `${textRect.height}px`;
+  editingPos.fontSize = `${props.element.fontSize * scale}px`;
+
+  initialElementText = props.element.text;
   isEditing.value = true;
   editedText.value = props.element.text;
-  boardStore.setEditingElement(props.element.id); // Notify store that this element is being edited
+  boardStore.setEditingElement(props.element.id);
 
   nextTick(() => {
-    if (textareaRef.value && vTextRef.value) {
-      const textNode = vTextRef.value.getNode();
-      const stage = textNode.getStage();
-      if (!stage) return;
-
-      const scale = stage.scaleX(); // Assuming uniform scale
-      const stageRect = stage.container().getBoundingClientRect();
-      const textRect = textNode.getClientRect({ skipTransform: false }); // Get bounds of the Konva text node
-
-      // Calculate the absolute position and size on the screen relative to the viewport
-      const x = stageRect.left + textRect.x * scale;
-      const y = stageRect.top + textRect.y * scale;
-      const width = textRect.width * scale;
-      const height = textRect.height * scale;
-
-      textareaRef.value.style.position = 'absolute';
-      textareaRef.value.style.left = `${x}px`;
-      textareaRef.value.style.top = `${y}px`;
-      textareaRef.value.style.width = `${width}px`;
-      textareaRef.value.style.height = `${height}px`;
-      textareaRef.value.style.fontSize = `${props.element.fontSize * scale}px`;
-      textareaRef.value.style.fontFamily = 'inherit'; // Inherit from body or set specifically
-      textareaRef.value.style.color = props.element.textColor;
-      textareaRef.value.style.background = props.element.backgroundColor; // Match sticky note background
-      textareaRef.value.style.border = '1px dashed #ccc';
-      textareaRef.value.style.padding = '5px';
-      textareaRef.value.style.margin = '0';
-      textareaRef.value.style.overflow = 'hidden';
-      textareaRef.value.style.resize = 'none';
-      textareaRef.value.style.lineHeight = textNode.lineHeight().toString();
-      textareaRef.value.style.boxSizing = 'border-box';
-      textareaRef.value.style.outline = 'none';
-
-      setTimeout(() => {
-        textareaRef.value?.focus();
-        console.log('StickyNote: document.activeElement after delayed focus:', document.activeElement);
-        setTimeout(() => {
-          textareaRef.value?.select();
-          console.log('StickyNote: document.activeElement after select:', document.activeElement);
-        }, 0);
-      }, 0);
-    }
+    textareaRef.value?.focus();
+    textareaRef.value?.select();
   });
 };
 
 const handleTextareaBlur = () => {
   if (isEditing.value) {
     isEditing.value = false;
-    boardStore.setEditingElement(null); // Notify store that editing has ended
+    boardStore.setEditingElement(null);
     if (editedText.value !== initialElementText) {
       boardStore.updateElement(props.element.id, { text: editedText.value });
-      historyStore.addState(); // Record state change
+      historyStore.addState();
     }
   }
 };
 
 const handleEnterKey = (e: KeyboardEvent) => {
-  if (e.key === 'Enter' && !e.shiftKey) { // Shift+Enter for new line
-    e.preventDefault(); // Prevent new line in textarea
-    textareaRef.value?.blur(); // Trigger blur to save changes
+  if (!e.shiftKey) {
+    e.preventDefault();
+    textareaRef.value?.blur();
   }
 };
 
 const handleEscapeKey = () => {
   isEditing.value = false;
-  editedText.value = initialElementText; // Revert text if escape is pressed
-  boardStore.setEditingElement(null); // Notify store that editing has ended
+  editedText.value = initialElementText;
+  boardStore.setEditingElement(null);
 };
 
-// Styles for the textarea wrapper to contain the absolutely positioned textarea
-const textareaWrapperStyle = computed(() => {
-  if (!vTextRef.value) return {};
-  const textNode = vTextRef.value.getNode();
-  const stage = textNode.getStage();
-  if (!stage) return {};
+const textareaWrapperStyle = computed(() => ({
+  position: 'fixed' as const,
+  left: editingPos.left,
+  top: editingPos.top,
+  width: editingPos.width,
+  height: editingPos.height,
+  zIndex: '9999',
+}));
 
-  const scale = stage.scaleX();
-  const stageRect = stage.container().getBoundingClientRect();
-  const textRect = textNode.getClientRect({ skipTransform: false });
-
-  // Use fixed to position relative to viewport
-  return {
-    position: 'fixed',
-    left: `${stageRect.left + textRect.x * scale}px`,
-    top: `${stageRect.top + textRect.y * scale}px`,
-    width: `${textRect.width * scale}px`,
-    height: `${textRect.height * scale}px`,
-    zIndex: 9999, // Ensure it's above the canvas
-    // pointerEvents: 'none', // Allow clicks to pass through to the textarea - REMOVED
-  };
-});
-
-const textareaStyle = computed(() => {
-  if (!vTextRef.value) return {};
-  const textNode = vTextRef.value.getNode();
-  const stage = textNode.getStage();
-  if (!stage) return {};
-
-  const scale = stage.scaleX();
-
-  return {
-    position: 'absolute',
-    left: '0',
-    top: '0',
-    width: '100%',
-    height: '100%',
-    fontSize: `${props.element.fontSize * scale}px`,
-    fontFamily: 'inherit',
-    color: props.element.textColor,
-    background: props.element.backgroundColor, // Match sticky note background
-    border: '1px dashed #ccc',
-    padding: '5px',
-    margin: '0',
-    overflow: 'hidden',
-    resize: 'none',
-    lineHeight: textNode.lineHeight().toString(),
-    boxSizing: 'border-box',
-    outline: 'none',
-    pointerEvents: 'auto', // Important: Make textarea interactive
-  };
-});
+const textareaStyle = computed(() => ({
+  width: '100%',
+  height: '100%',
+  fontSize: editingPos.fontSize,
+  fontFamily: 'inherit',
+  color: props.element.textColor,
+  background: props.element.backgroundColor,
+  border: '1px dashed #ccc',
+  padding: '5px',
+  margin: '0',
+  overflow: 'hidden',
+  resize: 'none' as const,
+  boxSizing: 'border-box' as const,
+  outline: 'none',
+}));
 </script>
 
 <style scoped>
