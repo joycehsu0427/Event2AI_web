@@ -22,3 +22,8 @@ Thumbs.db
 ### Environment Variables ###
 .env
 *.env
+
+### Playwright Artifacts ###
+playwright-test/
+frontend/test-results/
+frontend/playwright-report/

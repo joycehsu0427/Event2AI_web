@@ -1,67 +1,77 @@
 <template>
-      <v-group
-        ref="elementGroupRef"
-        :config="elementConfig"
-        :id="element.id"    @dragend="handleDragEnd"
+  <v-group
+    :config="elementConfig"
+    :id="element.id"
+    @dragend="handleDragEnd"
     @click="handleClick"
     @tap="handleClick"
   >
-    <!-- Render specific element type based on element.type -->
     <template v-if="element.type === ElementType.StickyNote">
-      <StickyNote :element="(element as StickyNoteElement)" />
+      <StickyNote :element="(element as StickyNoteElement)" @request-edit="handleRequestEdit" />
     </template>
     <template v-else-if="element.type === ElementType.Text">
-      <BoardText :element="(element as TextElement)" />
+      <BoardText :element="(element as TextElement)" @request-edit="handleRequestEdit" />
     </template>
   </v-group>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
+import { useHistoryStore } from '@/stores/historyStore';
 import {
-  BoardElement,
+  type BoardElement,
   ElementType,
-  StickyNoteElement,
-  TextElement,
+  type StickyNoteElement,
+  type TextElement,
 } from '@/interfaces/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
-import { Group } from 'konva/lib/Group';
+import type { ElementEditRequest } from './editing';
 
 const props = defineProps<{
   element: BoardElement;
 }>();
 
+const emit = defineEmits<{
+  (event: 'request-edit', payload: ElementEditRequest): void;
+}>();
+
 const boardStore = useBoardStore();
-const elementGroupRef = ref<Group | null>(null);
+const historyStore = useHistoryStore();
 
 const isThisElementBeingEdited = computed(() => boardStore.editingElementId === props.element.id);
 
-// Configuration for the Konva Group that wraps each element
 const elementConfig = computed(() => ({
   x: props.element.x,
   y: props.element.y,
   width: props.element.width,
   height: props.element.height,
   rotation: props.element.rotation || 0,
-  draggable: !isThisElementBeingEdited.value, // Make element non-draggable if it's being edited
+  draggable: !isThisElementBeingEdited.value,
 }));
 
 const handleClick = (e: any) => {
-  // Prevent event bubbling to the stage if an element is clicked
   e.cancelBubble = true;
-  // Select this element
   boardStore.selectElement(props.element.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey);
 };
 
 const handleDragEnd = (e: any) => {
-  // Update element's position in store after drag
+  const nextX = e.target.x();
+  const nextY = e.target.y();
+  const positionChanged = nextX !== props.element.x || nextY !== props.element.y;
+
   boardStore.updateElement(props.element.id, {
-    x: e.target.x(),
-    y: e.target.y(),
+    x: nextX,
+    y: nextY,
   });
+
+  if (positionChanged) {
+    historyStore.addState();
+  }
 };
 
-// No transformend handler here, as transformer is no longer in this component
+const handleRequestEdit = (payload: ElementEditRequest) => {
+  emit('request-edit', payload);
+};
 </script>

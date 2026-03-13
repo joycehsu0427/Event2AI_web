@@ -28,7 +28,7 @@
 import { computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, StickyNoteElement, TextElement } from '@/interfaces/elements';
+import { ElementType, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
