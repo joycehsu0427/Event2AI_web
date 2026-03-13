@@ -12,9 +12,10 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "boards")
-public class BoardJpaEntity {
+public class BoardReadModelEntity {
 
-    @Id    @Column(columnDefinition = "BINARY(16)")
+    @Id
+    @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
     @Column(nullable = false, length = 200)
@@ -32,23 +33,29 @@ public class BoardJpaEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public BoardJpaEntity() {
+    public BoardReadModelEntity() {
     }
 
-    public BoardJpaEntity(String title, String description) {
+    public BoardReadModelEntity(String title, String description) {
         this.title = title;
         this.description = description;
     }
 
     @PrePersist
     protected void onCreate() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+        if (updatedAt == null) {
+            updatedAt = createdAt;
+        }
     }
 
     @PreUpdate
     protected void onUpdate() {
-        updatedAt = LocalDateTime.now();
+        if (updatedAt == null) {
+            updatedAt = LocalDateTime.now();
+        }
     }
 
     public UUID getId() {

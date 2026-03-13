@@ -31,6 +31,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.12.7'
 	implementation 'tw.teddysoft.ucontract:uContract:2.0.0'                        // uContract
     implementation 'tw.teddysoft.ezddd:ezddd-core:4.1.0'
+    implementation 'tw.teddysoft.ezddd:ezcqrs:4.1.0'
     runtimeOnly 'com.mysql:mysql-connector-j'                                      // MySQL driver
 	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.12.7'
 	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.12.7'

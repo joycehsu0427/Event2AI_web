@@ -3,125 +3,116 @@ package event.to.ai.backend.board.application;
 import event.to.ai.backend.board.adapter.in.web.dto.BoardDTO;
 import event.to.ai.backend.board.adapter.in.web.dto.CreateBoardRequest;
 import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
-import event.to.ai.backend.board.application.port.out.BoardEventRepositoryPort;
-import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
-import event.to.ai.backend.board.domain.Board;
-import event.to.ai.backend.board.domain.BoardId;
-import event.to.ai.backend.board.domain.BoardTitle;
+import event.to.ai.backend.board.application.port.out.BoardReadModel;
+import event.to.ai.backend.board.application.usecase.command.ChangeBoardDescriptionUseCase;
+import event.to.ai.backend.board.application.usecase.command.CreateBoardUseCase;
+import event.to.ai.backend.board.application.usecase.command.DeleteBoardUseCase;
+import event.to.ai.backend.board.application.usecase.command.RenameBoardUseCase;
+import event.to.ai.backend.board.application.usecase.command.input.ChangeBoardDescriptionInput;
+import event.to.ai.backend.board.application.usecase.command.input.CreateBoardInput;
+import event.to.ai.backend.board.application.usecase.command.input.DeleteBoardInput;
+import event.to.ai.backend.board.application.usecase.command.input.RenameBoardInput;
+import event.to.ai.backend.board.application.usecase.command.output.BoardCommandOutput;
+import event.to.ai.backend.board.application.usecase.query.GetBoardByIdQuery;
+import event.to.ai.backend.board.application.usecase.query.GetMyBoardsQuery;
+import event.to.ai.backend.board.application.usecase.query.input.GetBoardByIdInput;
+import event.to.ai.backend.board.application.usecase.query.input.GetMyBoardsInput;
+import event.to.ai.backend.board.application.usecase.query.output.GetBoardByIdOutput;
+import event.to.ai.backend.board.application.usecase.query.output.GetMyBoardsOutput;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 public class BoardApplicationService {
 
-    private final BoardRepositoryPort boardRepositoryPort;
-    private final BoardEventRepositoryPort boardEventRepositoryPort;
-    private final UserRepositoryPort userRepositoryPort;
+    private final CreateBoardUseCase createBoardUseCase;
+    private final RenameBoardUseCase renameBoardUseCase;
+    private final ChangeBoardDescriptionUseCase changeBoardDescriptionUseCase;
+    private final DeleteBoardUseCase deleteBoardUseCase;
+    private final GetBoardByIdQuery getBoardByIdQuery;
+    private final GetMyBoardsQuery getMyBoardsQuery;
 
-    public BoardApplicationService(BoardRepositoryPort boardRepositoryPort,
-                                   BoardEventRepositoryPort boardEventRepositoryPort,
-                                   UserRepositoryPort userRepositoryPort) {
-        this.boardRepositoryPort = boardRepositoryPort;
-        this.boardEventRepositoryPort = boardEventRepositoryPort;
-        this.userRepositoryPort = userRepositoryPort;
+    public BoardApplicationService(CreateBoardUseCase createBoardUseCase,
+                                   RenameBoardUseCase renameBoardUseCase,
+                                   ChangeBoardDescriptionUseCase changeBoardDescriptionUseCase,
+                                   DeleteBoardUseCase deleteBoardUseCase,
+                                   GetBoardByIdQuery getBoardByIdQuery,
+                                   GetMyBoardsQuery getMyBoardsQuery) {
+        this.createBoardUseCase = createBoardUseCase;
+        this.renameBoardUseCase = renameBoardUseCase;
+        this.changeBoardDescriptionUseCase = changeBoardDescriptionUseCase;
+        this.deleteBoardUseCase = deleteBoardUseCase;
+        this.getBoardByIdQuery = getBoardByIdQuery;
+        this.getMyBoardsQuery = getMyBoardsQuery;
     }
 
     public List<BoardDTO> getAllMyBoards(UUID userId) {
-        return boardRepositoryPort.findAllByOwnerId(userId)
-                .stream()
-                .map(this::toDTO)
-                .collect(Collectors.toList());
+        GetMyBoardsInput input = new GetMyBoardsInput();
+        input.setActorUserId(userId);
+        GetMyBoardsOutput output = getMyBoardsQuery.execute(input);
+        return output.getBoards().stream().map(this::toDTO).toList();
     }
 
     public BoardDTO getBoardById(UUID id) {
-        BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("Board not found with id: " + id));
-        return toDTO(boardJpaEntity);
+        return getBoardById(id, null);
     }
 
-    @Transactional
+    public BoardDTO getBoardById(UUID id, UUID actorUserId) {
+        GetBoardByIdInput input = new GetBoardByIdInput();
+        input.setBoardId(id);
+        input.setActorUserId(actorUserId);
+
+        GetBoardByIdOutput output = getBoardByIdQuery.execute(input);
+        if (output.getBoard() == null) {
+            throw new RuntimeException("Board not found with id: " + id);
+        }
+        return toDTO(output.getBoard());
+    }
+
     public BoardDTO createBoard(UUID actorUserId, CreateBoardRequest request) {
-        requireExistingUser(actorUserId);
+        CreateBoardInput input = new CreateBoardInput();
+        input.setActorUserId(actorUserId);
+        input.setTitle(request.getTitle());
+        input.setDescription(request.getDescription());
 
-        String title = normalizeTitle(request.getTitle());
-        String description = normalizeDescription(request.getDescription());
-
-        Board board = Board.create(BoardId.create(), BoardTitle.valueOf(title), description, actorUserId);
-        boardEventRepositoryPort.save(board);
-        return toDTO(board);
+        BoardCommandOutput output = createBoardUseCase.execute(input);
+        return getBoardById(output.getBoardId(), actorUserId);
     }
 
-    @Transactional
     public BoardDTO updateBoard(UUID id, UpdateBoardRequest request) {
-        Board board = loadBoardAggregate(id);
-
         if (request.getTitle() != null) {
-            board.rename(BoardTitle.valueOf(normalizeTitle(request.getTitle())));
+            RenameBoardInput renameInput = new RenameBoardInput();
+            renameInput.setBoardId(id);
+            renameInput.setTitle(request.getTitle());
+            renameBoardUseCase.execute(renameInput);
         }
 
         if (request.getDescription() != null) {
-            board.changeDescription(normalizeDescription(request.getDescription()));
+            ChangeBoardDescriptionInput descriptionInput = new ChangeBoardDescriptionInput();
+            descriptionInput.setBoardId(id);
+            descriptionInput.setDescription(request.getDescription());
+            changeBoardDescriptionUseCase.execute(descriptionInput);
         }
 
-        boardEventRepositoryPort.save(board);
-        return toDTO(board);
+        return getBoardById(id);
     }
 
-    @Transactional
     public void deleteBoard(UUID id) {
-        Board board = loadBoardAggregate(id);
-
-        board.delete();
-        boardEventRepositoryPort.save(board);
+        DeleteBoardInput input = new DeleteBoardInput();
+        input.setBoardId(id);
+        deleteBoardUseCase.execute(input);
     }
 
-    private void requireExistingUser(UUID userId) {
-        userRepositoryPort.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
-    }
-
-    private Board loadBoardAggregate(UUID boardId) {
-        return boardEventRepositoryPort.findById(BoardId.valueOf(boardId))
-                .orElseThrow(() -> new RuntimeException("Board not found with id: " + boardId));
-    }
-
-    private String normalizeTitle(String rawTitle) {
-        String title = rawTitle.trim();
-        if (title.isEmpty()) {
-            throw new RuntimeException("Board title cannot be blank");
-        }
-        return title;
-    }
-
-    private String normalizeDescription(String description) {
-        return description == null ? "" : description;
-    }
-
-    private BoardDTO toDTO(BoardJpaEntity boardJpaEntity) {
+    private BoardDTO toDTO(BoardReadModel boardReadModel) {
         return new BoardDTO(
-                boardJpaEntity.getId(),
-                boardJpaEntity.getTitle(),
-                boardJpaEntity.getDescription(),
-                boardJpaEntity.getOwnerId(),
-                boardJpaEntity.getCreatedAt(),
-                boardJpaEntity.getUpdatedAt()
-        );
-    }
-
-    private BoardDTO toDTO(Board board) {
-        return new BoardDTO(
-                board.getId().id(),
-                board.getTitle().title(),
-                board.getDescription(),
-                board.getOwnerId(),
-                board.getCreatedAt(),
-                board.getUpdatedAt()
+                boardReadModel.id(),
+                boardReadModel.title(),
+                boardReadModel.description(),
+                boardReadModel.ownerId(),
+                boardReadModel.createdAt(),
+                boardReadModel.updatedAt()
         );
     }
 }

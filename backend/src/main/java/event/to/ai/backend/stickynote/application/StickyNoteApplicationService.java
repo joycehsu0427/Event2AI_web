@@ -1,12 +1,12 @@
 package event.to.ai.backend.stickynote.application;
 
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardReadModelEntity;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote;
-import event.to.ai.backend.stickynote.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.stickynote.application.port.out.BoardReadModelRepositoryPort;
 import event.to.ai.backend.stickynote.application.port.out.StickyNoteRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,13 +20,13 @@ import java.util.stream.Collectors;
 public class StickyNoteApplicationService {
 
     private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
-    private final BoardRepositoryPort boardRepositoryPort;
+    private final BoardReadModelRepositoryPort boardReadModelRepositoryPort;
 
     @Autowired
     public StickyNoteApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
-                                        BoardRepositoryPort boardRepositoryPort) {
+                                        BoardReadModelRepositoryPort boardReadModelRepositoryPort) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
-        this.boardRepositoryPort = boardRepositoryPort;
+        this.boardReadModelRepositoryPort = boardReadModelRepositoryPort;
     }
 
     public List<StickyNoteDTO> getAllStickyNotes(UUID actorUserId) {
@@ -65,15 +65,15 @@ public class StickyNoteApplicationService {
 
     @Transactional
     public StickyNoteDTO createStickyNote(UUID actorUserId, CreateStickyNoteRequest request) {
-        BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(request.getBoardId())
+        BoardReadModelEntity board = boardReadModelRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
-        if (!boardJpaEntity.getOwnerId().equals(actorUserId)) {
+        if (!board.getOwnerId().equals(actorUserId)) {
             throw new RuntimeException("Forbidden");
         }
 
         StickyNote stickyNote = new StickyNote();
-        stickyNote.setBoard(boardJpaEntity);
+        stickyNote.setBoard(board);
         stickyNote.setPos(new Point2D(request.getPosX(), request.getPosY()));
         stickyNote.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
         stickyNote.setDescription(request.getDescription());
@@ -94,12 +94,12 @@ public class StickyNoteApplicationService {
         }
 
         if (request.getBoardId() != null) {
-            BoardJpaEntity boardJpaEntity = boardRepositoryPort.findById(request.getBoardId())
+            BoardReadModelEntity board = boardReadModelRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
-            if (!boardJpaEntity.getOwnerId().equals(actorUserId)) {
+            if (!board.getOwnerId().equals(actorUserId)) {
                 throw new RuntimeException("Forbidden");
             }
-            stickyNote.setBoard(boardJpaEntity);
+            stickyNote.setBoard(board);
         }
 
         if (request.getPosX() != null && request.getPosY() != null) {

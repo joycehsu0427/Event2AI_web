@@ -2,7 +2,7 @@ package event.to.ai.backend.stickynote.adapter.out.persistence.entity;
 
 import java.util.UUID;
 
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardReadModelEntity;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
@@ -41,7 +41,7 @@ public class StickyNote {
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
-    private BoardJpaEntity boardJpaEntity;
+    private BoardReadModelEntity board;
 
     @Column(nullable = false)
     private String description;
@@ -85,12 +85,12 @@ public class StickyNote {
         this.geo = geo;
     }
 
-    public BoardJpaEntity getBoard() {
-        return boardJpaEntity;
+    public BoardReadModelEntity getBoard() {
+        return board;
     }
 
-    public void setBoard(BoardJpaEntity boardJpaEntity) {
-        this.boardJpaEntity = boardJpaEntity;
+    public void setBoard(BoardReadModelEntity board) {
+        this.board = board;
     }
 
     public String getDescription(){
@@ -122,7 +122,7 @@ public class StickyNote {
     public String toString() {
         return "StickyNote{" +
                 "id=" + id +
-                ", boardId=" + (boardJpaEntity == null ? null : boardJpaEntity.getId()) +
+                ", boardId=" + (board == null ? null : board.getId()) +
                 ", pos.x=" + pos.getX() +
                 ", pos.y=" + pos.getY() +
                 ", geo.x=" + geo.getX() +

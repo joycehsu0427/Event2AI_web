@@ -2,10 +2,12 @@ package event.to.ai.backend.integration;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardJpaEntity;
-import event.to.ai.backend.board.adapter.out.persistence.BoardRepository;
-import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
+import event.to.ai.backend.board.adapter.out.persistence.BoardEventStoreRepository;
+import event.to.ai.backend.board.adapter.out.persistence.BoardReadModelRepository;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardEventStoreEntity;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardReadModelEntity;
 import event.to.ai.backend.security.JwtService;
+import event.to.ai.backend.user.adapter.out.persistence.UserRepository;
 import event.to.ai.backend.user.adapter.out.persistence.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,7 @@ import tw.teddysoft.ezspec.keyword.Feature;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -33,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @ActiveProfiles("test")
-class BoardJpaEntityApiIntegrationTest {
+class BoardApiIntegrationTest {
 
     private MockMvc mockMvc;
 
@@ -49,7 +52,10 @@ class BoardJpaEntityApiIntegrationTest {
     private UserRepository userRepository;
 
     @Autowired
-    private BoardRepository boardRepository;
+    private BoardReadModelRepository boardRepository;
+
+    @Autowired
+    private BoardEventStoreRepository boardEventStoreRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -60,6 +66,7 @@ class BoardJpaEntityApiIntegrationTest {
     @BeforeEach
     void cleanUp() {
         boardRepository.deleteAll();
+        boardEventStoreRepository.deleteAll();
         userRepository.deleteAll();
         mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
                 .addFilters(springSecurityFilterChain)
@@ -128,9 +135,17 @@ class BoardJpaEntityApiIntegrationTest {
                 .Then("board should be persisted with user owner id", env -> {
                     UUID userId = env.get("userId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
-                    BoardJpaEntity persisted = boardRepository.findById(boardId).orElseThrow();
+                    BoardReadModelEntity persisted = boardRepository.findById(boardId).orElseThrow();
+                    BoardEventStoreEntity storedEvent = boardEventStoreRepository.findAll().stream().findFirst().orElseThrow();
                     assertEquals(userId, persisted.getOwnerId());
                     assertEquals("Team Board", persisted.getTitle());
+                    assertEquals(storedEvent.getEventId(), UUID.fromString(storedEvent.getEventId()).toString());
+                    assertEquals("BoardCreated", storedEvent.getEventType());
+                    assertEquals("application/json", storedEvent.getContentType());
+                    assertTrue(storedEvent.getEventBody().contains(boardId.toString()));
+                    assertTrue(storedEvent.getEventBody().contains("\"title\""));
+                    assertTrue(storedEvent.getEventBody().contains("Team Board"));
+                    assertFalse(storedEvent.getUserMetadata().isBlank());
                 })
                 .Execute();
     }
