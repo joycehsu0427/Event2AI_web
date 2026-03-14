@@ -1,6 +1,8 @@
 package event.to.ai.backend.stickynote.application;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.UpdateStickyNoteRequest;
@@ -20,12 +22,15 @@ import java.util.stream.Collectors;
 public class StickyNoteApplicationService {
 
     private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
+    private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
 
     @Autowired
     public StickyNoteApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
+                                        BoardMembershipRepositoryPort boardMembershipRepositoryPort,
                                         BoardRepositoryPort boardRepositoryPort) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
+        this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
     }
 
@@ -35,7 +40,9 @@ public class StickyNoteApplicationService {
 
     public List<StickyNoteDTO> getStickyNotesById(UUID actorUserId, UUID id) {
         return stickyNoteRepositoryPort.findById(id)
-                .filter(stickyNote -> isOwnedByActor(stickyNote, actorUserId))
+                .filter(stickyNote -> stickyNote.getBoard() != null &&
+                        boardMembershipRepositoryPort.existsByBoardIdAndUserId(
+                                stickyNote.getBoard().getId(), actorUserId))
                 .map(stickyNote -> List.of(convertToDTO(stickyNote)))
                 .orElseGet(List::of);
     }
@@ -45,22 +52,17 @@ public class StickyNoteApplicationService {
     }
 
     public List<StickyNoteDTO> getStickyNotesByBoardId(UUID actorUserId, UUID boardId) {
-        return filterAndConvert(stickyNoteRepositoryPort.findByBoardId(boardId), actorUserId);
-    }
-
-    public List<StickyNoteDTO> getStickyNotesByBoardIdAndColor(UUID actorUserId, UUID boardId, String color) {
-        return filterAndConvert(stickyNoteRepositoryPort.findByBoardIdAndColor(boardId, color), actorUserId);
-    }
-
-    private List<StickyNoteDTO> filterAndConvert(List<StickyNote> stickyNotes, UUID actorUserId) {
-        return stickyNotes.stream()
-                .filter(stickyNote -> isOwnedByActor(stickyNote, actorUserId))
+        requireReadPermission(boardId, actorUserId);
+        return stickyNoteRepositoryPort.findByBoardId(boardId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    private boolean isOwnedByActor(StickyNote stickyNote, UUID actorUserId) {
-        return stickyNote.getBoard() != null && actorUserId.equals(stickyNote.getBoard().getOwnerId());
+    public List<StickyNoteDTO> getStickyNotesByBoardIdAndColor(UUID actorUserId, UUID boardId, String color) {
+        requireReadPermission(boardId, actorUserId);
+        return stickyNoteRepositoryPort.findByBoardIdAndColor(boardId, color).stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
     }
 
     @Transactional
@@ -68,9 +70,7 @@ public class StickyNoteApplicationService {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
-        if (!board.getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(board.getId(), actorUserId);
 
         StickyNote stickyNote = new StickyNote();
         stickyNote.setBoard(board);
@@ -89,16 +89,12 @@ public class StickyNoteApplicationService {
         StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
-        if (!stickyNote.getBoard().getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(stickyNote.getBoard().getId(), actorUserId);
 
         if (request.getBoardId() != null) {
             Board board = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
-            if (!board.getOwnerId().equals(actorUserId)) {
-                throw new RuntimeException("Forbidden");
-            }
+            requireWritePermission(board.getId(), actorUserId);
             stickyNote.setBoard(board);
         }
 
@@ -127,11 +123,41 @@ public class StickyNoteApplicationService {
         StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
-        if (!stickyNote.getBoard().getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(stickyNote.getBoard().getId(), actorUserId);
 
         stickyNoteRepositoryPort.deleteById(id);
+    }
+
+    // 將 stickyNotes 內的所有 stickyNote 過濾掉 actorUserId 沒有權限的
+    // 再將其轉成 DTO 回傳給前端
+    private List<StickyNoteDTO> filterAndConvert(List<StickyNote> stickyNotes, UUID actorUserId) {
+        return stickyNotes.stream()
+                .filter(stickyNote -> stickyNote.getBoard() != null &&
+                        boardMembershipRepositoryPort.existsByBoardIdAndUserId(
+                                stickyNote.getBoard().getId(), actorUserId))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 查詢發 API 的 user 是否有權限
+    private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {
+        return boardMembershipRepositoryPort
+                .findByBoardIdAndUserId(boardId, actorUserId)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this board"))
+                .getRole();
+    }
+
+    // 負責管理「讀」
+    private void requireReadPermission(UUID boardId, UUID actorUserId) {
+        getMemberRole(boardId, actorUserId);
+    }
+
+    // 負責管理「寫」
+    private void requireWritePermission(UUID boardId, UUID actorUserId) {
+        BoardMembershipRole role = getMemberRole(boardId, actorUserId);
+        if (role == BoardMembershipRole.VIEWER) {
+            throw new RuntimeException("Viewers are not allowed to perform write operations");
+        }
     }
 
     private StickyNoteDTO convertToDTO(StickyNote stickyNote) {

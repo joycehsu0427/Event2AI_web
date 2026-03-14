@@ -1,6 +1,8 @@
 package event.to.ai.backend.textbox.application;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.textbox.adapter.in.web.dto.CreateTextBoxesRequest;
 import event.to.ai.backend.textbox.adapter.in.web.dto.TextBoxesDTO;
 import event.to.ai.backend.textbox.adapter.in.web.dto.UpdateTextBoxesRequest;
@@ -21,12 +23,15 @@ public class TextBoxApplicationService {
 
     private final TextBoxesRepositoryPort textBoxesRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
+    private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
 
     @Autowired
     public TextBoxApplicationService(TextBoxesRepositoryPort textBoxesRepositoryPort,
-                                     BoardRepositoryPort boardRepositoryPort) {
+                                     BoardRepositoryPort boardRepositoryPort,
+                                     BoardMembershipRepositoryPort boardMembershipRepositoryPort) {
         this.textBoxesRepositoryPort = textBoxesRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
+        this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
     }
 
     public List<TextBoxesDTO> getAllTextBoxes(UUID actorUserId) {
@@ -35,24 +40,18 @@ public class TextBoxApplicationService {
 
     public List<TextBoxesDTO> getTextBoxesById(UUID actorUserId, UUID id) {
         return textBoxesRepositoryPort.findById(id)
-                .filter(textBox -> isOwnedByActor(textBox, actorUserId))
+                .filter(textBox -> textBox.getBoard() != null &&
+                        boardMembershipRepositoryPort.existsByBoardIdAndUserId(
+                                textBox.getBoard().getId(), actorUserId))
                 .map(textBox -> List.of(convertToDTO(textBox)))
                 .orElseGet(List::of);
     }
 
     public List<TextBoxesDTO> getTextBoxesByBoardId(UUID actorUserId, UUID boardId) {
-        return filterAndConvert(textBoxesRepositoryPort.findByBoardId(boardId), actorUserId);
-    }
-
-    private List<TextBoxesDTO> filterAndConvert(List<TextBoxes> textBoxes, UUID actorUserId) {
-        return textBoxes.stream()
-                .filter(textBox -> isOwnedByActor(textBox, actorUserId))
+        requireReadPermission(boardId, actorUserId);
+        return textBoxesRepositoryPort.findByBoardId(boardId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
-    }
-
-    private boolean isOwnedByActor(TextBoxes textBoxes, UUID actorUserId) {
-        return textBoxes.getBoard() != null && actorUserId.equals(textBoxes.getBoard().getOwnerId());
     }
 
     @Transactional
@@ -60,9 +59,7 @@ public class TextBoxApplicationService {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
-        if (!board.getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(board.getId(), actorUserId);
 
         TextBoxes textBoxes = new TextBoxes();
         textBoxes.setBoard(board);
@@ -80,16 +77,12 @@ public class TextBoxApplicationService {
         TextBoxes textBoxes = textBoxesRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("TextBox not found with id: " + id));
 
-        if (!textBoxes.getBoard().getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(textBoxes.getBoard().getId(), actorUserId);
 
         if (request.getBoardId() != null) {
             Board board = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
-            if (!board.getOwnerId().equals(actorUserId)) {
-                throw new RuntimeException("Forbidden");
-            }
+            requireWritePermission(board.getId(), actorUserId);
             textBoxes.setBoard(board);
         }
 
@@ -115,11 +108,39 @@ public class TextBoxApplicationService {
         TextBoxes textBoxes = textBoxesRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("TextBox not found with id: " + id));
 
-        if (!textBoxes.getBoard().getOwnerId().equals(actorUserId)) {
-            throw new RuntimeException("Forbidden");
-        }
+        requireWritePermission(textBoxes.getBoard().getId(), actorUserId);
 
         textBoxesRepositoryPort.deleteById(id);
+    }
+
+    private List<TextBoxesDTO> filterAndConvert(List<TextBoxes> textBoxes, UUID actorUserId) {
+        return textBoxes.stream()
+                .filter(textBox -> textBox.getBoard() != null &&
+                        boardMembershipRepositoryPort.existsByBoardIdAndUserId(
+                                textBox.getBoard().getId(), actorUserId))
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // 查詢發 API 的 user 是否有權限
+    private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {
+        return boardMembershipRepositoryPort
+                .findByBoardIdAndUserId(boardId, actorUserId)
+                .orElseThrow(() -> new RuntimeException("User is not a member of this board"))
+                .getRole();
+    }
+
+    // 負責管理「讀」
+    private void requireReadPermission(UUID boardId, UUID actorUserId) {
+        getMemberRole(boardId, actorUserId);
+    }
+
+    // 負責管理「寫」
+    private void requireWritePermission(UUID boardId, UUID actorUserId) {
+        BoardMembershipRole role = getMemberRole(boardId, actorUserId);
+        if (role == BoardMembershipRole.VIEWER) {
+            throw new RuntimeException("Viewers are not allowed to perform write operations");
+        }
     }
 
     private TextBoxesDTO convertToDTO(TextBoxes textBoxes) {

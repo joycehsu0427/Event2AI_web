@@ -156,6 +156,7 @@ public class BoardApplicationService {
         boardRepositoryPort.deleteById(id);
     }
 
+    // 查詢發 API 的 user 是否有權限
     private BoardMembershipRole getMemberRole(UUID boardId, UUID userId) {
         return boardMembershipRepositoryPort
                 .findByBoardIdAndUserId(boardId, userId)
