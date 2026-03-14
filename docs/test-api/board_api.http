@@ -164,6 +164,17 @@ DELETE {{baseUrl}}/api/boards/board_member/{{boardId}}/{{memberUserId}}
 Authorization: Bearer {{memberToken}}
 
 
+### ===== Board Components =====
+
+### 取得 Board 所有元件（StickyNotes + TextBoxes）
+GET {{baseUrl}}/api/boards/{{boardId}}/components
+Authorization: Bearer {{ownerToken}}
+
+### 取得 Board 所有元件（Member）
+GET {{baseUrl}}/api/boards/{{boardId}}/components
+Authorization: Bearer {{memberToken}}
+
+
 ### ===== 刪除 Board =====
 
 ### 刪除 Board（非 Owner，預期回傳 403）

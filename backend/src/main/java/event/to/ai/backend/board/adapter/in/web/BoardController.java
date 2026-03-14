@@ -6,6 +6,8 @@ import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
 import event.to.ai.backend.board.application.BoardApplicationService;
+import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
+import event.to.ai.backend.textbox.application.TextBoxApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -30,13 +32,34 @@ import java.util.UUID;
 public class BoardController {
 
     private final BoardApplicationService boardApplicationService;
+    private final StickyNoteApplicationService stickyNoteApplicationService;
+    private final TextBoxApplicationService textBoxApplicationService;
     private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
     public BoardController(BoardApplicationService boardApplicationService,
+                           StickyNoteApplicationService stickyNoteApplicationService,
+                           TextBoxApplicationService textBoxApplicationService,
                            CurrentUserIdProvider currentUserIdProvider) {
         this.boardApplicationService = boardApplicationService;
+        this.stickyNoteApplicationService = stickyNoteApplicationService;
+        this.textBoxApplicationService = textBoxApplicationService;
         this.currentUserIdProvider = currentUserIdProvider;
+    }
+
+    @GetMapping("/{boardId}/components")
+    public ResponseEntity<?> getAllComponentsByBoardId(@PathVariable UUID boardId) {
+        try {
+            UUID currentUserId = currentUserIdProvider.getCurrentUserId();
+            BoardComponentsDTO components = new BoardComponentsDTO(
+                    boardId,
+                    stickyNoteApplicationService.getStickyNotesByBoardId(currentUserId, boardId),
+                    textBoxApplicationService.getTextBoxesByBoardId(currentUserId, boardId)
+            );
+            return ResponseEntity.ok(components);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
     }
 
     @GetMapping
