@@ -36,8 +36,8 @@ function validate(): boolean {
     errors.username = '請輸入使用者名稱'
     return false
   }
-  if (form.username.trim().length < 2) {
-    errors.username = '使用者名稱至少需要 2 個字元'
+  if (form.username.trim().length < 3) {
+    errors.username = '使用者名稱至少需要 3 個字元'
     return false
   }
   if (!form.email.trim()) {
