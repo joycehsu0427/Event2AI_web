@@ -1,13 +1,14 @@
 package event.to.ai.backend.board.adapter.in.web.dto;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.UUID;
 
 public class UpdateBoardMemberRoleRequest {
 
-    @NotNull(message = "User email is required")
+    @NotBlank(message = "User email is required")
     private String userEmail;
 
     @NotNull(message = "Role is required")

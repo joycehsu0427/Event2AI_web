@@ -31,6 +31,4 @@ public interface BoardMembershipRepository extends JpaRepository<BoardMembership
     void deleteByBoardIdAndUserId(UUID boardId, UUID userId);
 
     void deleteAllByBoardId(UUID boardId);
-
-    UUID user(User user);
 }

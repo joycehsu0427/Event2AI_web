@@ -2,9 +2,6 @@ package event.to.ai.backend.board.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.board.adapter.in.web.dto.*;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
-import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
 import event.to.ai.backend.board.application.BoardApplicationService;
 import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
 import event.to.ai.backend.textbox.application.TextBoxApplicationService;
@@ -22,7 +19,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -73,6 +69,9 @@ public class BoardController {
     public ResponseEntity<?> getAllBoardMembership(@PathVariable UUID boardId) {
         try {
             UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
+            if (!boardApplicationService.isBoardMember(currentUserId, boardId)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
+            }
             List<BoardMembershipDTO> boardMemberships = boardApplicationService.getBoardMembershipByBoardId(currentUserId, boardId);
             return ResponseEntity.ok(boardMemberships);
         } catch (RuntimeException e) {
@@ -105,11 +104,6 @@ public class BoardController {
     public ResponseEntity<?> createBoardMembership(@Valid @RequestBody AddBoardMemberRequest request) {
         try {
             UUID actorUserId = currentUserIdProvider.getCurrentUserId();
-            BoardDTO board = boardApplicationService.getBoardById(actorUserId, request.getBoardId());
-            // 若 userId != board.ownerId 則回傳 FORBIDDEN
-            if (!board.getOwnerUserId().equals(actorUserId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
             BoardMembershipDTO addBoardMembership = boardApplicationService.createBoardMembership(actorUserId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(addBoardMembership);
         } catch (RuntimeException e) {
@@ -121,12 +115,7 @@ public class BoardController {
     public ResponseEntity<?> updateBoardMemeberRole(@PathVariable UUID boardId, @Valid @RequestBody UpdateBoardMemberRoleRequest request) {
         try {
             UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
-            BoardDTO board = boardApplicationService.getBoardById(currentUserId, boardId);
-            // 若 userId != board.ownerId 或嘗試指派 OWNER 則回傳 FORBIDDEN
-            if (!board.getOwnerUserId().equals(currentUserId) || request.getRole() == BoardMembershipRole.OWNER) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            return ResponseEntity.ok(boardApplicationService.updateBoardMemeberRole(boardId, request));
+            return ResponseEntity.ok(boardApplicationService.updateBoardMemeberRole(currentUserId, boardId, request));
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
@@ -147,11 +136,7 @@ public class BoardController {
     public ResponseEntity<?> deleteBoardMembership(@PathVariable UUID boardId, @PathVariable UUID userId) {
         try {
             UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
-            BoardDTO board = boardApplicationService.getBoardById(currentUserId, boardId);
-            if (!board.getOwnerUserId().equals(currentUserId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            boardApplicationService.deleteBoardMembership(boardId, userId);
+            boardApplicationService.deleteBoardMembership(currentUserId, boardId, userId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -162,11 +147,7 @@ public class BoardController {
     public ResponseEntity<?> deleteBoard(@PathVariable UUID boardId) {
         try {
             UUID currentUserId = this.currentUserIdProvider.getCurrentUserId();
-            BoardDTO board = boardApplicationService.getBoardById(currentUserId, boardId);
-            if (!board.getOwnerUserId().equals(currentUserId)) {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
-            }
-            boardApplicationService.deleteBoard(boardId);
+            boardApplicationService.deleteBoard(currentUserId, boardId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
