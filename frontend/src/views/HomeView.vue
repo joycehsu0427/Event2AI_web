@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/authStore'
 import BoardCard from '@/components/board/BoardCard.vue'
 import BoardFormModal from '@/components/board/BoardFormModal.vue'
 import BoardDeleteModal from '@/components/board/BoardDeleteModal.vue'
+import BoardMemberModal from '@/components/board/BoardMemberModal.vue'
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const router = useRouter()
 const authStore = useAuthStore()
@@ -138,6 +139,14 @@ async function confirmDelete() {
   boards.value = boards.value.filter(b => b.id !== deleteTarget.value!.id)
   showDeleteModal.value = false
 }
+// ─── Board Members ─────────────────────────────────────────────────────────────
+const showMemberModal = ref(false)
+const memberTarget = ref<Board | null>(null)
+
+function openMemberModal(board: Board) {
+  memberTarget.value = board
+  showMemberModal.value = true
+}
 </script>
 
 <template>
@@ -212,6 +221,7 @@ async function confirmDelete() {
           v-for="board in filteredBoards"
           :key="board.id"
           :board="board"
+          @members="openMemberModal"
           @edit="openEditModal"
           @delete="openDeleteModal"
         />
@@ -231,6 +241,10 @@ async function confirmDelete() {
       v-model="showDeleteModal"
       :board-title="deleteTarget?.title ?? ''"
       @confirm="confirmDelete"
+    />
+    <BoardMemberModal
+      v-model="showMemberModal"
+      :board="memberTarget"
     />
   </div>
 </template>
