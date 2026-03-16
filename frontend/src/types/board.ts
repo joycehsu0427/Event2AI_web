@@ -5,6 +5,7 @@ export interface Board {
   color: string
   ownerUserId: string
   ownerName: string
+  currentUserRole?: BoardMemberRole
 }
 
 export type BoardMemberRole = 'VIEWER' | 'EDITOR' | 'OWNER'

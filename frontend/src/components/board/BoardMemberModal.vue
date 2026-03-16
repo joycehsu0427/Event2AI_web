@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import axios from 'axios'
 import type { Board } from '@/types/board'
 import type { BoardMember, BoardMemberRole } from '@/types/board'
@@ -24,6 +24,14 @@ const loading = ref(false)
 const members = ref<BoardMember[]>([])
 const loadingMembers = ref(false)
 const membersError = ref('')
+const updatingRoleUserId = ref<string | null>(null)
+const deletingUserId = ref<string | null>(null)
+
+const isCurrentUserOwner = computed(() =>
+  members.value.some(
+    (m) => m.userId === authStore.user?.id && m.role === 'OWNER'
+  )
+)
 
 watch(() => props.modelValue, async (open) => {
   if (open) {
@@ -123,6 +131,52 @@ async function submit() {
     loading.value = false
   }
 }
+
+async function updateMemberRole(member: BoardMember, newRole: Extract<BoardMemberRole, 'EDITOR' | 'VIEWER'>) {
+  if (!props.board || member.role === 'OWNER' || member.role === newRole) return
+
+  membersError.value = ''
+  successMsg.value = ''
+  updatingRoleUserId.value = member.userId
+
+  try {
+    await axios.put(`http://localhost:8080/api/boards/board_member/${props.board.id}`, {
+      userEmail: member.email,
+      role: newRole
+    }, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    member.role = newRole
+    successMsg.value = `已將 ${member.username} 權限更新為 ${newRole}`
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { message?: string } }; message?: string }
+    membersError.value = axiosErr?.response?.data?.message ?? axiosErr?.message ?? '更新成員權限失敗'
+  } finally {
+    updatingRoleUserId.value = null
+  }
+}
+
+async function deleteMember(member: BoardMember) {
+  if (!props.board || member.role === 'OWNER') return
+  if (!window.confirm(`確定要移除 ${member.username} 嗎？`)) return
+
+  membersError.value = ''
+  successMsg.value = ''
+  deletingUserId.value = member.userId
+
+  try {
+    await axios.delete(`http://localhost:8080/api/boards/board_member/${props.board.id}/${member.userId}`, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    successMsg.value = `已移除 ${member.username}`
+    await loadMembers()
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { message?: string } }; message?: string }
+    membersError.value = axiosErr?.response?.data?.message ?? axiosErr?.message ?? '刪除成員失敗'
+  } finally {
+    deletingUserId.value = null
+  }
+}
 </script>
 
 <template>
@@ -154,6 +208,7 @@ async function submit() {
 
         <!-- Body -->
         <div class="modal-body">
+          <template v-if="isCurrentUserOwner">
           <p class="section-label">新增成員</p>
 
           <label class="field-label">使用者 Email</label>
@@ -206,6 +261,7 @@ async function submit() {
             </svg>
             {{ successMsg }}
           </p>
+          </template>
 
           <p class="section-label section-label--list">成員列表</p>
 
@@ -219,13 +275,44 @@ async function submit() {
                   <th>userName</th>
                   <th>email</th>
                   <th>role</th>
+                  <th v-if="isCurrentUserOwner">操作</th>
                 </tr>
               </thead>
               <tbody>
                 <tr v-for="member in members" :key="`${member.userId}-${member.role}`">
                   <td>{{ member.username }}</td>
                   <td>{{ member.email }}</td>
-                  <td>{{ member.role }}</td>
+                  <td>
+                    <div v-if="member.role === 'OWNER'" class="role-owner">OWNER</div>
+                    <div v-else-if="isCurrentUserOwner" class="member-role-actions">
+                      <button
+                        class="member-role-btn"
+                        :class="{ active: member.role === 'VIEWER' }"
+                        :disabled="updatingRoleUserId === member.userId || deletingUserId === member.userId"
+                        @click="updateMemberRole(member, 'VIEWER')"
+                      >
+                        Viewer
+                      </button>
+                      <button
+                        class="member-role-btn"
+                        :class="{ active: member.role === 'EDITOR' }"
+                        :disabled="updatingRoleUserId === member.userId || deletingUserId === member.userId"
+                        @click="updateMemberRole(member, 'EDITOR')"
+                      >
+                        Editor
+                      </button>
+                    </div>
+                    <span v-else class="role-badge">{{ member.role }}</span>
+                  </td>
+                  <td v-if="isCurrentUserOwner">
+                    <button
+                      class="member-delete-btn"
+                      :disabled="member.role === 'OWNER' || deletingUserId === member.userId || updatingRoleUserId === member.userId"
+                      @click="deleteMember(member)"
+                    >
+                      {{ deletingUserId === member.userId ? '刪除中...' : '刪除' }}
+                    </button>
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -235,7 +322,7 @@ async function submit() {
         <!-- Footer -->
         <div class="modal-footer">
           <button class="btn-ghost" @click="close">關閉</button>
-          <button class="btn-primary" :disabled="loading" @click="submit">
+          <button v-if="isCurrentUserOwner" class="btn-primary" :disabled="loading" @click="submit">
             <svg v-if="loading" class="spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <path d="M21 12a9 9 0 1 1-6.22-8.56"/>
             </svg>
@@ -467,6 +554,75 @@ async function submit() {
   background: #fafafe;
   color: #5a5a72;
   font-weight: 700;
+}
+
+.member-role-actions {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.member-role-btn {
+  border: 1px solid #d6d6de;
+  background: #fff;
+  color: #5a5a72;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.member-role-btn.active {
+  border-color: #4f46e5;
+  color: #4f46e5;
+  background: #f5f4ff;
+}
+
+.member-role-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
+
+.role-owner {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #eef2ff;
+  color: #4338ca;
+}
+
+.role-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  background: #f5f5f7;
+  color: #5a5a72;
+}
+
+.member-delete-btn {
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  background: #fff;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.member-delete-btn:hover:not(:disabled) {
+  background: #fef2f2;
+}
+
+.member-delete-btn:disabled {
+  opacity: .6;
+  cursor: not-allowed;
 }
 
 /* ── Footer ───────────────────────────────────────────────────────────────────── */

@@ -30,6 +30,19 @@ function randomColor(): string {
 
 const boards = ref<Board[]>([]);
 
+// async function getBoardRole(boardId: string): Promise<import('@/types/board').BoardMemberRole | undefined> {
+//   try {
+//     const response = await axios.get(`http://localhost:8080/api/boards/board_member/${boardId}`, {
+//       headers: { Authorization: `Bearer ${token}` }
+//     })
+//     const members: Array<{ userId: string; role: import('@/types/board').BoardMemberRole }> = Array.isArray(response.data) ? response.data : []
+//     const me = members.find(m => m.userId === authStore.user?.id)
+//     return me?.role
+//   } catch {
+//     return undefined
+//   }
+// }
+
 async function getOwnerName(ownerUserId: string): Promise<string> {
   try {
     const response = await axios.get(`http://localhost:8080/api/users/${ownerUserId}`, {
@@ -53,6 +66,7 @@ onMounted(async () => {
     })
     await Promise.all(boards.value.map(async (board) => {
       board.ownerName = await getOwnerName(board.ownerUserId)
+      // board.currentUserRole = await getBoardRole(board.id)
     }))
   } catch (error) {
     console.error('API 發生錯誤', error)
