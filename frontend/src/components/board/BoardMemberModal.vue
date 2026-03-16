@@ -2,7 +2,7 @@
 import { ref, watch } from 'vue'
 import axios from 'axios'
 import type { Board } from '@/types/board'
-import type { BoardMemberRole } from '@/types/board'
+import type { BoardMember, BoardMemberRole } from '@/types/board'
 import { useAuthStore } from '@/stores/authStore'
 
 const props = defineProps<{
@@ -21,14 +21,23 @@ const role = ref<BoardMemberRole>('VIEWER')
 const error = ref('')
 const successMsg = ref('')
 const loading = ref(false)
+const members = ref<BoardMember[]>([])
+const loadingMembers = ref(false)
+const membersError = ref('')
 
-watch(() => props.modelValue, (open) => {
+watch(() => props.modelValue, async (open) => {
   if (open) {
     email.value = ''
     role.value = 'VIEWER'
     error.value = ''
     successMsg.value = ''
+    await loadMembers()
   }
+})
+
+watch(() => props.board?.id, async (boardId, previousBoardId) => {
+  if (!props.modelValue || !boardId || boardId === previousBoardId) return
+  await loadMembers()
 })
 
 function close() {
@@ -37,6 +46,48 @@ function close() {
 
 function closeOnOverlay(e: MouseEvent) {
   if ((e.target as HTMLElement).classList.contains('modal-overlay')) close()
+}
+
+async function loadMembers() {
+  membersError.value = ''
+  members.value = []
+
+  if (!props.board) return
+
+  loadingMembers.value = true
+  try {
+    const response = await axios.get(`http://localhost:8080/api/boards/board_member/${props.board.id}`, {
+      headers: { Authorization: `Bearer ${authStore.token}` }
+    })
+    const boardMembers = Array.isArray(response.data) ? response.data : []
+    members.value = await Promise.all(boardMembers.map(async (member) => {
+      try {
+        const userResponse = await axios.get(`http://localhost:8080/api/users/${member.userId}`, {
+          headers: { Authorization: `Bearer ${authStore.token}` }
+        })
+        return {
+          boardId: member.boardId,
+          userId: member.userId,
+          role: member.role,
+          username: userResponse.data?.username ?? '-',
+          email: userResponse.data?.email ?? '-'
+        }
+      } catch {
+        return {
+          boardId: member.boardId,
+          userId: member.userId,
+          role: member.role,
+          username: '-',
+          email: '-'
+        }
+      }
+    }))
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: { message?: string } }; message?: string }
+    membersError.value = axiosErr?.response?.data?.message ?? axiosErr?.message ?? '無法取得成員列表'
+  } finally {
+    loadingMembers.value = false
+  }
 }
 
 async function submit() {
@@ -55,7 +106,7 @@ async function submit() {
   try {
     await axios.post('http://localhost:8080/api/boards/board_member', {
       boardId: props.board.id,
-      userEmaail: trimmed,   // note: API spec has typo "userEmaail"
+      userEmail: trimmed,
       role: role.value
     }, {
       headers: { Authorization: `Bearer ${authStore.token}` }
@@ -63,6 +114,7 @@ async function submit() {
     successMsg.value = `已成功將 ${trimmed} 加入為 ${role.value}`
     email.value = ''
     role.value = 'VIEWER'
+    await loadMembers()
   } catch (err: unknown) {
     const axiosErr = err as { response?: { data?: { message?: string } }; message?: string }
     const msg = axiosErr?.response?.data?.message ?? axiosErr?.message ?? '新增失敗，請稍後再試'
@@ -154,6 +206,30 @@ async function submit() {
             </svg>
             {{ successMsg }}
           </p>
+
+          <p class="section-label section-label--list">成員列表</p>
+
+          <div v-if="loadingMembers" class="members-loading">載入中...</div>
+          <p v-else-if="membersError" class="feedback feedback--error">{{ membersError }}</p>
+          <div v-else-if="members.length === 0" class="members-empty">目前沒有成員資料</div>
+          <div v-else class="members-table-wrap">
+            <table class="members-table">
+              <thead>
+                <tr>
+                  <th>userName</th>
+                  <th>email</th>
+                  <th>role</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="member in members" :key="`${member.userId}-${member.role}`">
+                  <td>{{ member.username }}</td>
+                  <td>{{ member.email }}</td>
+                  <td>{{ member.role }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
 
         <!-- Footer -->
@@ -352,6 +428,45 @@ async function submit() {
   color: #16a34a;
   background: #f0fdf4;
   border: 1px solid #bbf7d0;
+}
+
+.section-label--list {
+  margin-top: 18px;
+}
+
+.members-loading,
+.members-empty {
+  font-size: 13px;
+  color: #5a5a72;
+}
+
+.members-table-wrap {
+  max-height: 220px;
+  overflow: auto;
+  border: 1px solid #e5e5ea;
+  border-radius: 8px;
+}
+
+.members-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.members-table th,
+.members-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid #f0f0f5;
+  white-space: nowrap;
+}
+
+.members-table th {
+  position: sticky;
+  top: 0;
+  background: #fafafe;
+  color: #5a5a72;
+  font-weight: 700;
 }
 
 /* ── Footer ───────────────────────────────────────────────────────────────────── */

@@ -7,9 +7,10 @@ export interface Board {
   ownerName: string
 }
 
-export type BoardMemberRole = 'VIEWER' | 'EDITOR'
+export type BoardMemberRole = 'VIEWER' | 'EDITOR' | 'OWNER'
 
 export interface BoardMember {
+  boardId: string
   userId: string
   username: string
   email: string
