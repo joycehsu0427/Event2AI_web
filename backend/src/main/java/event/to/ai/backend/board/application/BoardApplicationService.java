@@ -45,6 +45,10 @@ public class BoardApplicationService {
         return toDTO(board);
     }
 
+    public boolean isBoardMember(UUID userId, UUID boardId) {
+        return boardMembershipRepositoryPort.existsByBoardIdAndUserId(boardId, userId);
+    }
+
     public List<BoardMembershipDTO> getBoardMembershipByBoardId(UUID actorUserId, UUID boardId) {
         requireReadPermission(boardId, actorUserId);
         return boardMembershipRepositoryPort.findAllByBoardId(boardId)
@@ -75,6 +79,8 @@ public class BoardApplicationService {
 
     @Transactional
     public BoardMembershipDTO createBoardMembership(UUID actorUserId, AddBoardMemberRequest request) {
+        requireOwnerPermission(request.getBoardId(), actorUserId);
+
         userRepositoryPort.findById(actorUserId)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + actorUserId));
 
@@ -82,7 +88,7 @@ public class BoardApplicationService {
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
         var targetUser = userRepositoryPort.findByEmail(request.getUserEmail())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserEmail()));
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + request.getUserEmail()));
 
         if (request.getRole() == BoardMembershipRole.OWNER) {
             throw new RuntimeException("Cannot assign OWNER role");
@@ -120,7 +126,9 @@ public class BoardApplicationService {
     }
 
     @Transactional
-    public BoardMembershipDTO updateBoardMemeberRole(UUID boardId, UpdateBoardMemberRoleRequest request) {
+    public BoardMembershipDTO updateBoardMemeberRole(UUID actorUserId, UUID boardId, UpdateBoardMemberRoleRequest request) {
+        requireOwnerPermission(boardId, actorUserId);
+
         if (request.getRole() == BoardMembershipRole.OWNER) {
             throw new RuntimeException("Cannot assign OWNER role");
         }
@@ -135,7 +143,9 @@ public class BoardApplicationService {
     }
 
     @Transactional
-    public void deleteBoardMembership(UUID boardId, UUID userId) {
+    public void deleteBoardMembership(UUID actorUserId, UUID boardId, UUID userId) {
+        requireOwnerPermission(boardId, actorUserId);
+
         BoardMembership membership = boardMembershipRepositoryPort
                 .findByBoardIdAndUserId(boardId, userId)
                 .orElseThrow(() -> new RuntimeException("Board membership not found"));
@@ -144,13 +154,13 @@ public class BoardApplicationService {
             throw new RuntimeException("Cannot remove the OWNER from the board");
         }
 
-        var user = userRepositoryPort.findById(userId);
-
-        boardMembershipRepositoryPort.deleteByBoardIdAndUserId(boardId, user.get().getId());
+        boardMembershipRepositoryPort.deleteByBoardIdAndUserId(boardId, userId);
     }
 
     @Transactional
-    public void deleteBoard(UUID id) {
+    public void deleteBoard(UUID actorUserId, UUID id) {
+        requireOwnerPermission(id, actorUserId);
+
         if (!boardRepositoryPort.existsById(id)) {
             throw new RuntimeException("Board not found with id: " + id);
         }
@@ -176,6 +186,14 @@ public class BoardApplicationService {
         BoardMembershipRole role = getMemberRole(boardId, actorUserId);
         if (role == BoardMembershipRole.VIEWER) {
             throw new RuntimeException("Viewers are not allowed to perform write operations");
+        }
+    }
+
+    // 負責管理「擁有者」操作
+    private void requireOwnerPermission(UUID boardId, UUID actorUserId) {
+        BoardMembershipRole role = getMemberRole(boardId, actorUserId);
+        if (role != BoardMembershipRole.OWNER) {
+            throw new RuntimeException("Only the board owner can perform this action");
         }
     }
 
