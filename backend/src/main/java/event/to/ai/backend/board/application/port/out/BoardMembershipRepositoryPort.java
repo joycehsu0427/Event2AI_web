@@ -12,9 +12,13 @@ public interface BoardMembershipRepositoryPort {
 
     List<BoardMembership> findAllByUserId(UUID userId);
 
+    Optional<BoardMembership> findByBoardIdAndUserEmail(UUID boardId, String userEmail);
+
     Optional<BoardMembership> findByBoardIdAndUserId(UUID boardId, UUID userId);
 
     boolean existsByBoardIdAndUserId(UUID boardId, UUID userId);
+    
+    boolean existsByBoardIdAndUserEmail(UUID boardId, String userEmail);
 
     BoardMembership save(BoardMembership membership);
 

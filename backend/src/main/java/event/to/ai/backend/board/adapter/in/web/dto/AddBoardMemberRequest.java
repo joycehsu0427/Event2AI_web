@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public class AddBoardMemberRequest {
 
-    @NotNull(message = "User id is required")
-    private UUID userId;
+    @NotNull(message = "User email is required")
+    private String userEmail;
 
     @NotNull(message = "User id is required")
     private UUID boardId;
@@ -18,17 +18,17 @@ public class AddBoardMemberRequest {
     public AddBoardMemberRequest() {
     }
 
-    public AddBoardMemberRequest(UUID userId, BoardMembershipRole role) {
-        this.userId = userId;
+    public AddBoardMemberRequest(String userEmail, BoardMembershipRole role) {
+        this.userEmail = userEmail;
         this.role = role;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public UUID getBoardId() { return boardId; }

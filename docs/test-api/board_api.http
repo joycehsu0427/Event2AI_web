@@ -24,7 +24,7 @@ Content-Type: application/json
 }
 
 ### Owner 的 Access Token（從登入回應貼上）
-@ownerToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzI5NzQ1NTUsImV4cCI6MTc3Mjk3ODE1NX0.GR6kvJxkD7-mGpzDOCtE2T2EKbwXmvRBEtwQazOTZJg
+@ownerToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzM2NjUyNDYsImV4cCI6MTc3MzY2ODg0Nn0.6I4MOwD6a82iCcEZb0ykS62XdAxm3wYDOga-rEGAZio
 
 ### 註冊 Member（用於測試邀請成員）
 POST {{baseUrl}}/api/auth/register
@@ -49,6 +49,7 @@ Content-Type: application/json
 ### Member 的 Access Token 與 userId（從登入回應貼上）
 @memberToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIwNjAyZmYyNy0xYmZmLTQ0MjgtYTQ5Yy1mZjFiNjViYTA2ODciLCJpYXQiOjE3NzI5NzQ1NzMsImV4cCI6MTc3Mjk3ODE3M30.fpjnsfmwe2HMopk12ZryYZ_sIjrdMcTjOvOGrdUT2TA
 @memberUserId = 0602ff27-1bff-4428-a49c-ff1b65ba0687
+@memberUserEmail = demo_member@example.com
 
 
 ### ===== Board CRUD =====
@@ -65,7 +66,7 @@ Authorization: Bearer {{ownerToken}}
 }
 
 ### boardId（從建立 Board 回應貼上）
-@boardId = fc733174-54dd-437a-93b5-55da09fb6148
+@boardId = 223dae65-26aa-4ad9-ac9f-ef9e83bc72a3
 
 ### 取得所有我的 Boards（Owner）
 GET {{baseUrl}}/api/boards
@@ -127,7 +128,7 @@ Authorization: Bearer {{ownerToken}}
 
 {
   "boardId": "{{boardId}}",
-  "userId": "{{memberUserId}}",
+  "userEmail": "{{memberUserEmail}}",
   "role": "VIEWER"
 }
 
@@ -151,7 +152,7 @@ Content-Type: application/json
 Authorization: Bearer {{ownerToken}}
 
 {
-  "userId": "{{memberUserId}}",
+  "userEmail": "{{memberUserEmail}}",
   "role": "OWNER"
 }
 

@@ -39,8 +39,18 @@ public class BoardMembershipPersistenceAdapter implements BoardMembershipReposit
     }
 
     @Override
+    public Optional<BoardMembership> findByBoardIdAndUserEmail(UUID boardId, String userEmail) {
+        return boardMembershipRepository.findByBoardIdAndUser_Email(boardId, userEmail);
+    }
+
+    @Override
     public boolean existsByBoardIdAndUserId(UUID boardId, UUID userId) {
         return boardMembershipRepository.existsByBoardIdAndUserId(boardId, userId);
+    }
+
+    @Override
+    public boolean existsByBoardIdAndUserEmail(UUID boardId, String userEmail) {
+        return boardMembershipRepository.existsByBoardIdAndUser_Email(boardId, userEmail);
     }
 
     @Override

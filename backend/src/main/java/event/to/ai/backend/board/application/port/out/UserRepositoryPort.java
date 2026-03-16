@@ -8,4 +8,6 @@ import java.util.UUID;
 public interface UserRepositoryPort {
 
     Optional<User> findById(UUID id);
+
+    Optional<User> findByEmail(String email);
 }

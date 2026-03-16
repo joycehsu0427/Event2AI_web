@@ -7,8 +7,8 @@ import java.util.UUID;
 
 public class UpdateBoardMemberRoleRequest {
 
-    @NotNull(message = "User id is required")
-    private UUID userId;
+    @NotNull(message = "User email is required")
+    private String userEmail;
 
     @NotNull(message = "Role is required")
     private BoardMembershipRole role;
@@ -16,17 +16,17 @@ public class UpdateBoardMemberRoleRequest {
     public UpdateBoardMemberRoleRequest() {
     }
 
-    public UpdateBoardMemberRoleRequest(UUID userId, BoardMembershipRole role) {
-        this.userId = userId;
+    public UpdateBoardMemberRoleRequest(String userEmail, BoardMembershipRole role) {
+        this.userEmail = userEmail;
         this.role = role;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public String getUserEmail() {
+        return userEmail;
     }
 
-    public void setUserId(UUID userId) {
-        this.userId = userId;
+    public void setUserEmail(String userEmail) {
+        this.userEmail = userEmail;
     }
 
     public BoardMembershipRole getRole() {

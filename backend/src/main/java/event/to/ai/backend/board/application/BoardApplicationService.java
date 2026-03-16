@@ -81,14 +81,14 @@ public class BoardApplicationService {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
-        var targetUser = userRepositoryPort.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserId()));
+        var targetUser = userRepositoryPort.findByEmail(request.getUserEmail())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getUserEmail()));
 
         if (request.getRole() == BoardMembershipRole.OWNER) {
             throw new RuntimeException("Cannot assign OWNER role");
         }
 
-        if (boardMembershipRepositoryPort.existsByBoardIdAndUserId(request.getBoardId(), request.getUserId())) {
+        if (boardMembershipRepositoryPort.existsByBoardIdAndUserEmail(request.getBoardId(), request.getUserEmail())) {
             throw new RuntimeException("User is already a member of this board");
         }
 
@@ -126,7 +126,7 @@ public class BoardApplicationService {
         }
 
         BoardMembership membership = boardMembershipRepositoryPort
-                .findByBoardIdAndUserId(boardId, request.getUserId())
+                .findByBoardIdAndUserEmail(boardId, request.getUserEmail())
                 .orElseThrow(() -> new RuntimeException("Board membership not found"));
 
         membership.setRole(request.getRole());
@@ -144,7 +144,9 @@ public class BoardApplicationService {
             throw new RuntimeException("Cannot remove the OWNER from the board");
         }
 
-        boardMembershipRepositoryPort.deleteByBoardIdAndUserId(boardId, userId);
+        var user = userRepositoryPort.findById(userId);
+
+        boardMembershipRepositoryPort.deleteByBoardIdAndUserId(boardId, user.get().getId());
     }
 
     @Transactional

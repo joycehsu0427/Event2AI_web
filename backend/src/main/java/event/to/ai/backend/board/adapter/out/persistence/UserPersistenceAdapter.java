@@ -23,4 +23,7 @@ public class UserPersistenceAdapter implements UserRepositoryPort {
     public Optional<User> findById(UUID id) {
         return userRepository.findById(id);
     }
+
+    @Override
+    public Optional<User> findByEmail(String userEmail) { return userRepository.findByEmail(userEmail); }
 }
