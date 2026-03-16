@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Board } from '@/types/board'
+import type { Board, BoardMemberRole } from '@/types/board'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
 import BoardCard from '@/components/board/BoardCard.vue'
@@ -30,18 +30,22 @@ function randomColor(): string {
 
 const boards = ref<Board[]>([]);
 
-// async function getBoardRole(boardId: string): Promise<import('@/types/board').BoardMemberRole | undefined> {
-//   try {
-//     const response = await axios.get(`http://localhost:8080/api/boards/board_member/${boardId}`, {
-//       headers: { Authorization: `Bearer ${token}` }
-//     })
-//     const members: Array<{ userId: string; role: import('@/types/board').BoardMemberRole }> = Array.isArray(response.data) ? response.data : []
-//     const me = members.find(m => m.userId === authStore.user?.id)
-//     return me?.role
-//   } catch {
-//     return undefined
-//   }
-// }
+async function getBoardRole(boardId: string): Promise<BoardMemberRole | undefined> {
+  try {
+    const response = await axios.get(`http://localhost:8080/api/boards/board_member/${boardId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+    const members: Array<{ boardId: string; userId: string; role: BoardMemberRole }> = Array.isArray(response.data) ? response.data : []
+    const currentUserId = authStore.user?.id
+    if (!currentUserId) return undefined
+
+    const currentMember = members.find(member => member.userId === currentUserId)
+    return currentMember?.role
+  } catch (error) {
+    console.error('Failed to fetch current user role', error)
+    return undefined
+  }
+}
 
 async function getOwnerName(ownerUserId: string): Promise<string> {
   try {
@@ -66,7 +70,7 @@ onMounted(async () => {
     })
     await Promise.all(boards.value.map(async (board) => {
       board.ownerName = await getOwnerName(board.ownerUserId)
-      // board.currentUserRole = await getBoardRole(board.id)
+      board.currentUserRole = await getBoardRole(board.id)
     }))
   } catch (error) {
     console.error('API 發生錯誤', error)
@@ -104,7 +108,8 @@ async function submitCreate(payload: { title: string; description: string }) {
     description: response.data.description,
     color: randomColor(),
     ownerUserId: response.data.ownerUserId,
-    ownerName: await getOwnerName(response.data.ownerUserId)
+    ownerName: await getOwnerName(response.data.ownerUserId),
+    currentUserRole: 'OWNER'
   }
   boards.value.unshift(newBoard)
   showCreateModal.value = false
@@ -114,12 +119,14 @@ const showEditModal = ref(false)
 const editTarget = ref<Board | null>(null)
 
 function openEditModal(board: Board) {
+  if (board.currentUserRole === 'VIEWER') return
   editTarget.value = board
   showEditModal.value = true
 }
 
 async function submitEdit(payload: { title: string; description: string }) {
   if (!editTarget.value) return
+  if (editTarget.value.currentUserRole === 'VIEWER') return
 
   await axios.put(`http://localhost:8080/api/boards/${editTarget.value.id}`, {
     title: payload.title,
@@ -140,12 +147,14 @@ const showDeleteModal = ref(false)
 const deleteTarget = ref<Board | null>(null)
 
 function openDeleteModal(board: Board) {
+  if (board.currentUserRole === 'VIEWER') return
   deleteTarget.value = board
   showDeleteModal.value = true
 }
 
 async function confirmDelete() {
   if (!deleteTarget.value) return
+  if (deleteTarget.value.currentUserRole === 'VIEWER') return
 
   await axios.delete(`http://localhost:8080/api/boards/${deleteTarget.value.id}`, {
     headers: { Authorization: `Bearer ${token}` }
