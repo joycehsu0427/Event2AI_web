@@ -23,10 +23,9 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick, reactive } from 'vue';
-import { StickyNoteElement } from '@/interfaces/elements';
+import type { StickyNoteElement } from '@/interfaces/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import type { Text } from 'konva/lib/shapes/Text';
 
 const props = defineProps<{
   element: StickyNoteElement;

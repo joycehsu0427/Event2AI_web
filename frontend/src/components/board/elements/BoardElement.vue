@@ -20,10 +20,10 @@
 import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import {
-  BoardElement,
+  type BoardElement,
   ElementType,
-  StickyNoteElement,
-  TextElement,
+  type StickyNoteElement,
+  type TextElement,
 } from '@/interfaces/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
