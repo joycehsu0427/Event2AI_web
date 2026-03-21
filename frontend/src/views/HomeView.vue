@@ -170,6 +170,10 @@ function openMemberModal(board: Board) {
   memberTarget.value = board
   showMemberModal.value = true
 }
+// ─── Open Board ────────────────────────────────────────────────────────────────
+function openBoard(boardId: string) {
+  router.push({ name: 'board', params: { boardId } })
+}
 </script>
 
 <template>
@@ -240,7 +244,7 @@ function openMemberModal(board: Board) {
 
       <!-- Board grid -->
       <div v-else class="board-grid">
-        <BoardCard
+        <BoardCard @click="openBoard(board.id)"
           v-for="board in filteredBoards"
           :key="board.id"
           :board="board"

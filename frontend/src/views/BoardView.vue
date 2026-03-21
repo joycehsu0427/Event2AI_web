@@ -6,17 +6,34 @@
 </template>
 
 <script setup lang="ts">
+import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
+import axios from 'axios';
 
+const route = useRoute();
+const boardId = route.params.boardId as string;
+const token = localStorage.getItem('token');
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 
+async function fetchBoardData(boardId: string) {
+  try {
+    const res = await axios.get(`http://localhost:8080/api/boards/${boardId}/components`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log('Fetched board data:', res.data);
+  } catch (error) {
+    console.error('Error fetching board data:', error);
+  }
+}
+
 onMounted(() => {
+  fetchBoardData(boardId);
   // Load board state from local storage
   const savedState = loadStateFromLocalStorage();
   if (savedState) {

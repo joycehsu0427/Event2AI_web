@@ -13,7 +13,7 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
-      path: '/board',
+      path: '/board/:boardId',
       name: 'board',
       component: BoardView,
       meta: { requiresAuth: true },
