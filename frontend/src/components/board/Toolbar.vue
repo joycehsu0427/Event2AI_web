@@ -29,13 +29,41 @@ import { computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
+import { useRoute } from 'vue-router';
+import axios from 'axios';
 
+const route = useRoute();
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
+const token = localStorage.getItem('token');
+const boardId = route.params.boardId as string;
 
 const stickyNoteColors = ['#ffeb3b', '#c1e1c1', '#add8e6', '#ffb6c1', '#d3d3d3']; // Yellow, Green, Blue, Pink, Grey
 
+async function addStickyNoteApi() {
+  console.log(boardId);
+  console.log(token);
+  try {
+    const res = await axios.post(`http://localhost:8080/api/sticky-notes`, {
+      boardId: boardId,
+      posX: 50,
+      posY: 50,
+      geoX: 150,
+      geoY: 150,
+      description: 'New Sticky Note',
+      color: boardStore.getDefaultStickyNoteColor, // TODO: wait for change
+      tag: 'sticky-note'
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    console.log(res);
+  } catch (error) {
+    console.log('Error adding sticky note:', error);
+  }
+}
+
 const addStickyNote = () => {
+  addStickyNoteApi();
   const newStickyNote: Omit<StickyNoteElement, 'id'> = {
     type: ElementType.StickyNote,
     x: 50, // Default position

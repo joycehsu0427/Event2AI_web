@@ -6,7 +6,7 @@ import type { CanvasTransform, BoardState } from '@/interfaces/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 
-interface BoardStoreState {
+export interface BoardStoreState {
   elements: BoardElement[];
   selectedElementIds: string[];
   canvasTransform: CanvasTransform;

@@ -9,6 +9,8 @@
 import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
+import type { BoardStoreState } from '@/stores/boardStore';
+import type {ElementType, StickyNoteElement, TextElement} from '@/interfaces/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
@@ -26,6 +28,15 @@ async function fetchBoardData(boardId: string) {
     const res = await axios.get(`http://localhost:8080/api/boards/${boardId}/components`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    // TODO: res.data should be put into elements
+    const state: BoardStoreState = {
+      elements: [],
+      selectedElementIds: [],
+      canvasTransform: { x: 0, y: 0, scale: 1 },
+      editingElementId: null,
+      defaultStickyNoteColor: '#ffeb3b'
+    };
+    boardStore.loadBoardState(state);
     console.log('Fetched board data:', res.data);
   } catch (error) {
     console.error('Error fetching board data:', error);

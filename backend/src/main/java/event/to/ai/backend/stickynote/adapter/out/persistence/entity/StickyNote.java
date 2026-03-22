@@ -4,17 +4,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
-import jakarta.persistence.AttributeOverride;
-import jakarta.persistence.AttributeOverrides;
-import jakarta.persistence.Column;
-import jakarta.persistence.Embedded;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 
 @Entity
 @Table(name = "sticky_notes")
@@ -66,6 +56,12 @@ public class StickyNote {
 
     public StickyNote(Point2D pos) {
         this.pos = pos;
+    }
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
     }
 
     // Getters and Setters
