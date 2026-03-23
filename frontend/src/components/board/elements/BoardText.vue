@@ -1,4 +1,5 @@
 <template>
+  <v-rect :config="rectConfig" />
   <v-text
     :config="textConfig"
     :visible="!isEditing"
@@ -40,11 +41,18 @@ const editedText = ref(props.element.text);
 
 const editingPos = reactive({ left: '0px', top: '0px', width: '0px', height: '0px', fontSize: '14px' });
 
+const rectConfig = computed(() => ({
+  width: props.element.width,
+  height: props.element.height,
+  fill: 'transparent',
+  // Background rect for stable transformer handles and hit detection
+}));
+
 const textConfig = computed(() => ({
-  x: 5,
-  y: 5,
-  width: props.element.width - 10,
-  height: props.element.height - 10,
+  x: 0,
+  y: 0,
+  width: props.element.width,
+  height: props.element.height,
   text: props.element.text,
   fontSize: props.element.fontSize,
   fontFamily: props.element.fontFamily,

@@ -70,27 +70,34 @@ watch(() => boardStore.getEditingElementId, (editingElementId) => {
 });
 
 // --- Transformer Logic ---
-watch(() => boardStore.selectedElementIds, (newSelection) => {
+const updateTransformerNodes = () => {
   const transformer = transformerRef.value?.getNode();
   const stage = stageRef.value?.getStage();
   if (!transformer || !stage) return;
 
-  if (newSelection.length > 0) {
-    const selectedNodes: KonvaNode[] = [];
-    newSelection.forEach(id => {
-      // Find the Konva group node for the selected element
-      // Using .find() with a selector like '#id' is more reliable
-      const node = stage.find(`#${id}`)[0]; // Assuming BoardElement's root v-group has id
-      if (node) {
-        selectedNodes.push(node);
-      }
-    });
-    transformer.nodes(selectedNodes);
-  } else {
-    transformer.nodes([]); // Deselect all
-  }
+  const selectedNodes: KonvaNode[] = [];
+  boardStore.selectedElementIds.forEach(id => {
+    // Find the Konva group node for the selected element
+    // Using .find() with a selector like '#id' is more reliable
+    const node = stage.find(`#${id}`)[0]; // Assuming BoardElement's root v-group has id
+    if (node) {
+      selectedNodes.push(node);
+    }
+  });
+  transformer.nodes(selectedNodes);
   transformer.getLayer()?.batchDraw();
+};
+
+watch(() => boardStore.selectedElementIds, () => {
+  updateTransformerNodes();
 }, { immediate: true });
+
+// Ensure transformer is updated when elements change (e.g., after text editing)
+watch(() => boardStore.elements, () => {
+  nextTick(() => {
+    updateTransformerNodes();
+  });
+}, { deep: true });
 
 const handleTransformEnd = (e: any) => {
   const node = e.target;
