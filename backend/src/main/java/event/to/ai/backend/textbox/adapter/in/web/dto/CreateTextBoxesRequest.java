@@ -34,12 +34,18 @@ public class CreateTextBoxesRequest {
     @NotBlank(message = "Tag is required")
     private String tag;
 
+    @NotBlank(message = "FontColor is required")
+    private String fontColor;
+
+    @NotBlank(message = "FontSize is required")
+    private String fontSize;
+
     // Constructors
     public CreateTextBoxesRequest() {
     }
 
     public CreateTextBoxesRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
-                                  String description, String color, String tag) {
+                                  String description, String color, String tag, String fontColor, String fontSize) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
@@ -48,6 +54,8 @@ public class CreateTextBoxesRequest {
         this.description = description;
 //        this.color = color;
         this.tag = tag;
+        this.fontColor = fontColor;
+        this.fontSize = fontSize;
     }
 
     public UUID getBoardId() {
@@ -113,5 +121,21 @@ public class CreateTextBoxesRequest {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public String getFontColor() {
+        return fontColor;
+    }
+
+    public void setFontColor(String fontColor) {
+        this.fontColor = fontColor;
+    }
+
+    public String getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(String fontSize) {
+        this.fontSize = fontSize;
     }
 }

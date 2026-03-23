@@ -24,12 +24,16 @@ public class UpdateTextBoxesRequest {
     @Size(max = 30, message = "tag must not exceed 30 characters.")
     private String tag;
 
+    private String fontColor;
+
+    private String fontSize;
+
     // Constructors
     public UpdateTextBoxesRequest() {
     }
 
     public UpdateTextBoxesRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
-                                  String description, String color, String tag) {
+                                  String description, String color, String tag, String fontColor, String fontSize) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
@@ -38,6 +42,8 @@ public class UpdateTextBoxesRequest {
         this.description = description;
 //        this.color = color;
         this.tag = tag;
+        this.fontColor = fontColor;
+        this.fontSize = fontSize;
     }
 
     public UUID getBoardId() {
@@ -103,5 +109,21 @@ public class UpdateTextBoxesRequest {
 
     public void setTag(String tag) {
         this.tag = tag;
+    }
+
+    public String getFontColor() {
+        return fontColor;
+    }
+
+    public void setFontColor(String fontColor) {
+        this.fontColor = fontColor;
+    }
+
+    public String getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(String fontSize) {
+        this.fontSize = fontSize;
     }
 }

@@ -67,6 +67,8 @@ public class TextBoxApplicationService {
         textBoxes.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
         textBoxes.setDescription(request.getDescription());
         textBoxes.setTag(request.getTag());
+        textBoxes.setFontColor(request.getFontColor());
+        textBoxes.setFontSize(request.getFontSize());
 
         TextBoxes saved = textBoxesRepositoryPort.save(textBoxes);
         return convertToDTO(saved);
@@ -97,6 +99,12 @@ public class TextBoxApplicationService {
         }
         if (request.getTag() != null) {
             textBoxes.setTag(request.getTag());
+        }
+        if (request.getFontColor() != null) {
+            textBoxes.setFontColor(request.getFontColor());
+        }
+        if (request.getFontSize() != null) {
+            textBoxes.setFontSize(request.getFontSize());
         }
 
         TextBoxes updated = textBoxesRepositoryPort.save(textBoxes);
@@ -153,7 +161,9 @@ public class TextBoxApplicationService {
                 textBoxes.getGeo().getY(),
                 textBoxes.getDescription(),
                 null,
-                textBoxes.getTag()
+                textBoxes.getTag(),
+                textBoxes.getFontColor(),
+                textBoxes.getFontSize()
         );
     }
 }

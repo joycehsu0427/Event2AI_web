@@ -79,6 +79,8 @@ public class StickyNoteApplicationService {
         stickyNote.setDescription(request.getDescription());
         stickyNote.setColor(request.getColor());
         stickyNote.setTag(request.getTag());
+        stickyNote.setFontColor(request.getFontColor());
+        stickyNote.setFontSize(request.getFontSize());
 
         StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(savedNote);
@@ -112,6 +114,12 @@ public class StickyNoteApplicationService {
         }
         if (request.getTag() != null) {
             stickyNote.setTag(request.getTag());
+        }
+        if (request.getFontColor() != null) {
+            stickyNote.setFontColor(request.getFontColor());
+        }
+        if (request.getFontSize() != null) {
+            stickyNote.setFontSize(request.getFontSize());
         }
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
@@ -170,7 +178,9 @@ public class StickyNoteApplicationService {
                 stickyNote.getGeo().getY(),
                 stickyNote.getDescription(),
                 stickyNote.getColor(),
-                stickyNote.getTag()
+                stickyNote.getTag(),
+                stickyNote.getFontColor(),
+                stickyNote.getFontSize()
         );
     }
 }
