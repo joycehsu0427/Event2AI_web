@@ -31,6 +31,7 @@ import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
+import { f } from 'vue-router/dist/index-Cu9B0wDz.mjs';
 
 const route = useRoute();
 const boardStore = useBoardStore();
@@ -51,12 +52,13 @@ async function addStickyNoteApi() {
       geoX: 150,
       geoY: 150,
       description: 'New Sticky Note',
-      color: boardStore.getDefaultStickyNoteColor, // TODO: wait for change
-      tag: 'sticky-note'
+      color: boardStore.getDefaultStickyNoteColor,
+      tag: 'sticky-note',
+      fontColor: '#000000',
+      fontSize: 20
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    console.log(res);
   } catch (error) {
     console.log('Error adding sticky note:', error);
   }
@@ -80,7 +82,31 @@ const addStickyNote = () => {
   historyStore.addState(); // Record state change
 };
 
+async function addTextElementApi() {
+  console.log(boardId);
+  console.log(token);
+  try {
+    const res = await axios.post(`http://localhost:8080/api/text_boxes`, {
+      boardId: boardId,
+      posX: 250,
+      posY: 50,
+      geoX: 200,
+      geoY: 40,
+      description: 'New Text',
+      color: boardStore.getDefaultStickyNoteColor,
+      tag: 'text-box',
+      fontColor: '#000000',
+      fontSize: 24
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+  } catch (error) {
+    console.log('Error adding text element:', error);
+  }
+}
+
 const addTextElement = () => {
+  addTextElementApi();
   const newTextElement: Omit<TextElement, 'id'> = {
     type: ElementType.Text,
     x: 250, // Default position

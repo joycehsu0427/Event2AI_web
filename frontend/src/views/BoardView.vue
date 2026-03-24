@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import type { BoardStoreState } from '@/stores/boardStore';
-import type {ElementType, StickyNoteElement, TextElement} from '@/interfaces/elements';
+import { ElementType, type BoardElement } from '@/interfaces/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
@@ -28,9 +28,37 @@ async function fetchBoardData(boardId: string) {
     const res = await axios.get(`http://localhost:8080/api/boards/${boardId}/components`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    // TODO: res.data should be put into elements
+
+    const stickyNoteElements: BoardElement[] = (res.data?.stickyNotes ?? []).map((note: any) => ({
+      id: note.id,
+      type: ElementType.StickyNote,
+      x: note.posX,
+      y: note.posY,
+      width: note.geoX,
+      height: note.geoY,
+      text: note.description,
+      fontSize: Number(note.fontSize) || 20,
+      textColor: note.fontColor || '#000000',
+      backgroundColor: note.color || '#ffeb3b',
+      draggable: true,
+    }));
+
+    const textElements: BoardElement[] = (res.data?.textBoxes ?? []).map((text: any) => ({
+      id: text.id,
+      type: ElementType.Text,
+      x: text.posX,
+      y: text.posY,
+      width: text.geoX,
+      height: text.geoY,
+      text: text.description,
+      fontSize: Number(text.fontSize) || 24,
+      fontFamily: 'Arial',
+      textColor: text.fontColor || '#000000',
+      draggable: true,
+    }));
+
     const state: BoardStoreState = {
-      elements: [],
+      elements: [...stickyNoteElements, ...textElements],
       selectedElementIds: [],
       canvasTransform: { x: 0, y: 0, scale: 1 },
       editingElementId: null,

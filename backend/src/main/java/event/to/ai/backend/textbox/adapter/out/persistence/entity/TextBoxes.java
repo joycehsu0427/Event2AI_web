@@ -63,6 +63,12 @@ public class TextBoxes {
         this.pos = pos;
     }
 
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
     // Getters and Setters
     public UUID getId() {
         return id;
