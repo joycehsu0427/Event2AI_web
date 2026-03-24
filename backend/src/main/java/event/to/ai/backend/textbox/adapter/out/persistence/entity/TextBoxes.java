@@ -43,6 +43,12 @@ public class TextBoxes {
     @Column(nullable=false)
     private String tag;
 
+    @Column(name = "font_color")
+    private String fontColor;
+
+    @Column(name = "font_size")
+    private String fontSize;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -114,6 +120,22 @@ public class TextBoxes {
         this.tag = tag;
     }
 
+    public String getFontColor() {
+        return fontColor;
+    }
+
+    public void setFontColor(String fontColor) {
+        this.fontColor = fontColor;
+    }
+
+    public String getFontSize() {
+        return fontSize;
+    }
+
+    public void setFontSize(String fontSize) {
+        this.fontSize = fontSize;
+    }
+
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
@@ -139,6 +161,8 @@ public class TextBoxes {
                 ", pos.y=" + pos.getY() +
                 ", geo.x=" + geo.getX() +
                 ", geo.y=" + geo.getY() +
+                ", fontColor=" + fontColor +
+                ", fontSize=" + fontSize +
 //                ", color=" + color +
                 '}';
     }
