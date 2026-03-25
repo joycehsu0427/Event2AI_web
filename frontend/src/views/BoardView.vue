@@ -65,7 +65,6 @@ async function fetchBoardData(boardId: string) {
       defaultStickyNoteColor: '#ffeb3b'
     };
     boardStore.loadBoardState(state);
-    console.log('Fetched board data:', res.data);
   } catch (error) {
     console.error('Error fetching board data:', error);
   }

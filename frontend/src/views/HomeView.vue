@@ -4,10 +4,10 @@ import { useRouter } from 'vue-router'
 import type { Board, BoardMemberRole } from '@/types/board'
 import axios from 'axios'
 import { useAuthStore } from '@/stores/authStore'
-import BoardCard from '@/components/board/BoardCard.vue'
-import BoardFormModal from '@/components/board/BoardFormModal.vue'
-import BoardDeleteModal from '@/components/board/BoardDeleteModal.vue'
-import BoardMemberModal from '@/components/board/BoardMemberModal.vue'
+import BoardCard from '@/components/menu/BoardCard.vue'
+import BoardFormModal from '@/components/menu/BoardFormModal.vue'
+import BoardDeleteModal from '@/components/menu/BoardDeleteModal.vue'
+import BoardMemberModal from '@/components/menu/BoardMemberModal.vue'
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const router = useRouter()
 const authStore = useAuthStore()

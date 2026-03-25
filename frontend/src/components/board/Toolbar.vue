@@ -31,7 +31,6 @@ import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
-import { f } from 'vue-router/dist/index-Cu9B0wDz.mjs';
 
 const route = useRoute();
 const boardStore = useBoardStore();
@@ -42,8 +41,6 @@ const boardId = route.params.boardId as string;
 const stickyNoteColors = ['#ffeb3b', '#c1e1c1', '#add8e6', '#ffb6c1', '#d3d3d3']; // Yellow, Green, Blue, Pink, Grey
 
 async function addStickyNoteApi() {
-  console.log(boardId);
-  console.log(token);
   try {
     const res = await axios.post(`http://localhost:8080/api/sticky-notes`, {
       boardId: boardId,
@@ -59,13 +56,17 @@ async function addStickyNoteApi() {
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    return res.data.id;
   } catch (error) {
     console.log('Error adding sticky note:', error);
+    return null;
   }
 }
 
-const addStickyNote = () => {
-  addStickyNoteApi();
+const addStickyNote = async () => {
+  const createdId = await addStickyNoteApi();
+  if (!createdId) return;
+
   const newStickyNote: Omit<StickyNoteElement, 'id'> = {
     type: ElementType.StickyNote,
     x: 50, // Default position
@@ -78,13 +79,11 @@ const addStickyNote = () => {
     backgroundColor: boardStore.getDefaultStickyNoteColor, // Use default color from store
     draggable: true,
   };
-  boardStore.addElement(newStickyNote);
+  boardStore.addElement(newStickyNote, createdId);
   historyStore.addState(); // Record state change
 };
 
 async function addTextElementApi() {
-  console.log(boardId);
-  console.log(token);
   try {
     const res = await axios.post(`http://localhost:8080/api/text_boxes`, {
       boardId: boardId,
@@ -100,13 +99,17 @@ async function addTextElementApi() {
     }, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    return res.data.id;
   } catch (error) {
     console.log('Error adding text element:', error);
+    return null;
   }
 }
 
-const addTextElement = () => {
-  addTextElementApi();
+const addTextElement = async () => {
+  const createdId = await addTextElementApi();
+  if (!createdId) return;
+
   const newTextElement: Omit<TextElement, 'id'> = {
     type: ElementType.Text,
     x: 250, // Default position
@@ -119,7 +122,7 @@ const addTextElement = () => {
     textColor: '#000000',
     draggable: true,
   };
-  boardStore.addElement(newTextElement);
+  boardStore.addElement(newTextElement, createdId);
   historyStore.addState(); // Record state change
 };
 

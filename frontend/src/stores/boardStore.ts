@@ -1,10 +1,12 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
+import axios from 'axios';
 import type { BoardElement } from '@/interfaces/elements';
 import { ElementType } from '@/interfaces/elements'; // Import ElementType as a value
 import type { CanvasTransform, BoardState } from '@/interfaces/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
+import router from '@/router';
 
 export interface BoardStoreState {
   elements: BoardElement[];
@@ -33,8 +35,61 @@ export const useBoardStore = defineStore('board', {
     getEditingElementId: (state) => state.editingElementId, // New getter
   },
   actions: {
-    addElement(element: Omit<BoardElement, 'id'>) {
-      const newElement: BoardElement = { ...element, id: uuidv4() };
+    getCurrentBoardId(): string | null {
+      const routeBoardId = router.currentRoute.value.params.boardId;
+      return typeof routeBoardId === 'string' && routeBoardId.trim() !== ''
+        ? routeBoardId
+        : null;
+    },
+
+    async syncElementUpdateToBackend(element: BoardElement) {
+      const boardId = this.getCurrentBoardId();
+      const token = localStorage.getItem('token');
+      
+      if (element.type === ElementType.Text) {
+        const payload = {
+          boardId,
+          posX: element.x,
+          posY: element.y,
+          geoX: element.width,
+          geoY: element.height,
+          description: element.text,
+          fontColor: element.textColor,
+          fontSize: String(element.fontSize),
+        };
+        try {
+          await axios.put(`http://localhost:8080/api/text_boxes/${element.id}`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error(`Failed to update text box ${element.id}:`, error);
+        }
+      }
+
+      if (element.type === ElementType.StickyNote) {
+        const payload = {
+          boardId,
+          posX: element.x,
+          posY: element.y,
+          geoX: element.width,
+          geoY: element.height,
+          description: element.text,
+          color: element.backgroundColor,
+          fontColor: element.textColor,
+          fontSize: String(element.fontSize),
+        };
+        try {
+          await axios.put(`http://localhost:8080/api/sticky-notes/${element.id}`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error(`Failed to update sticky note ${element.id}:`, error);
+        }
+      }
+    },
+
+    addElement(element: Omit<BoardElement, 'id'>, id?: string) {
+      const newElement = { ...element, id: id ?? uuidv4() } as BoardElement;
       this.elements.push(newElement);
       this.selectedElementIds = [newElement.id]; // Select the newly added element
     },
@@ -42,7 +97,12 @@ export const useBoardStore = defineStore('board', {
     updateElement(id: string, updates: Partial<BoardElement>) {
       const index = this.elements.findIndex((el) => el.id === id);
       if (index !== -1) {
-        this.elements[index] = { ...this.elements[index], ...updates };
+        const currentElement = this.elements[index];
+        if (!currentElement) return;
+
+        const updatedElement = { ...currentElement, ...updates } as BoardElement;
+        this.elements[index] = updatedElement;
+        void this.syncElementUpdateToBackend(updatedElement);
       }
     },
 
