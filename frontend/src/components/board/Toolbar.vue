@@ -126,9 +126,46 @@ const addTextElement = async () => {
   historyStore.addState(); // Record state change
 };
 
-const deleteSelectedElements = () => {
-  boardStore.deleteElements(boardStore.selectedElementIds);
-  historyStore.addState(); // Record state change
+const deleteSelectedElements = async () => {
+  const idsToDelete = [...boardStore.selectedElementIds];
+  const deleteResults = await Promise.allSettled(
+    idsToDelete.map(async (id) => {
+      const element = boardStore.getElementById(id);
+      if (!element) return { id, success: false };
+
+      if (element.type === ElementType.StickyNote) {
+        await axios.delete(`http://localhost:8080/api/sticky-notes/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        return { id, success: true };
+      }
+
+      if (element.type === ElementType.Text) {
+        await axios.delete(`http://localhost:8080/api/text_boxes/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        return { id, success: true };
+      }
+
+      return { id, success: false };
+    })
+  );
+
+  const successfulIds = deleteResults
+    .filter((result): result is PromiseFulfilledResult<{ id: string; success: boolean }> => result.status === 'fulfilled')
+    .filter((result) => result.value.success)
+    .map((result) => result.value.id);
+
+  if (successfulIds.length > 0) {
+    boardStore.deleteElements(successfulIds);
+    historyStore.addState(); // Record state change
+  }
+
+  deleteResults
+    .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+    .forEach((result) => {
+      console.error('Error deleting selected element:', result.reason);
+    });
 };
 
 const selectDefaultColor = (color: string) => {
