@@ -27,11 +27,16 @@ const membersError = ref('')
 const updatingRoleUserId = ref<string | null>(null)
 const deletingUserId = ref<string | null>(null)
 
-const isCurrentUserOwner = computed(() =>
-  members.value.some(
-    (m) => m.userId === authStore.user?.id && m.role === 'OWNER'
+const isCurrentUserOwner = computed(() => {
+  if (props.board?.currentUserRole === 'OWNER') return true
+
+  const currentUserId = authStore.user?.id
+  if (!currentUserId) return false
+
+  return members.value.some(
+    (m) => String(m.userId) === String(currentUserId) && m.role === 'OWNER'
   )
-)
+})
 
 watch(() => props.modelValue, async (open) => {
   if (open) {

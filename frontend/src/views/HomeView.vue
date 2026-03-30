@@ -39,7 +39,7 @@ async function getBoardRole(boardId: string): Promise<BoardMemberRole | undefine
     const currentUserId = authStore.user?.id
     if (!currentUserId) return undefined
 
-    const currentMember = members.find(member => member.userId === currentUserId)
+    const currentMember = members.find(member => String(member.userId) === String(currentUserId))
     return currentMember?.role
   } catch (error) {
     console.error('Failed to fetch current user role', error)
