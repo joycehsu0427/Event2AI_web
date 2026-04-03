@@ -6,6 +6,7 @@ public class StickyNoteDTO {
 
     private UUID id;
     private UUID boardId;
+    private UUID frameID;
     private Double posX;
     private Double posY;
     private Double geoX;
@@ -50,6 +51,14 @@ public class StickyNoteDTO {
 
     public void setBoardId(UUID boardId) {
         this.boardId = boardId;
+    }
+
+    public UUID getFrameID() {
+        return frameID;
+    }
+
+    public void setFrameID(UUID frameID) {
+        this.frameID = frameID;
     }
 
     public Double getPosX() {

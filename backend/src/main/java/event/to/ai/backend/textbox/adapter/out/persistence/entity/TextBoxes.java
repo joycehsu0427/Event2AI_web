@@ -34,6 +34,9 @@ public class TextBoxes {
     @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
     private Board board;
 
+    @Column(name = "frame_id", columnDefinition = "BINARY(16)")
+    private UUID frameID;
+
     @Column(nullable = false)
     private String description;
 
@@ -102,6 +105,14 @@ public class TextBoxes {
         this.board = board;
     }
 
+    public UUID getFrameID() {
+        return frameID;
+    }
+
+    public void setFrameID(UUID frameID) {
+        this.frameID = frameID;
+    }
+
     public String getDescription(){
         return description;
     }
@@ -163,6 +174,7 @@ public class TextBoxes {
         return "textBoxes{" +
                 "id=" + id +
                 ", boardId=" + (board == null ? null : board.getId()) +
+                ", frameID=" + frameID +
                 ", pos.x=" + pos.getX() +
                 ", pos.y=" + pos.getY() +
                 ", geo.x=" + geo.getX() +
