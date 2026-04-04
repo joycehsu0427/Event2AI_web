@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
+@Component("analysisBoardPersistenceAdapter")
 public class BoardPersistenceAdapter implements BoardRepositoryPort {
 
     private final BoardRepository boardRepository;
