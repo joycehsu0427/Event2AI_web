@@ -12,11 +12,13 @@ public class BoardComponentsDTO {
     private UUID boardId;
     private List<StickyNoteDTO> stickyNotes;
     private List<TextBoxesDTO> textBoxes;
+    private List<FrameDTO> frames;
 
-    public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes, List<FrameDTO> framesByBoardId) {
+    public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes, List<FrameDTO> frames) {
         this.boardId = boardId;
         this.stickyNotes = stickyNotes;
         this.textBoxes = textBoxes;
+        this.frames = frames;
     }
 
     public UUID getBoardId() {
@@ -30,4 +32,6 @@ public class BoardComponentsDTO {
     public List<TextBoxesDTO> getTextBoxes() {
         return textBoxes;
     }
+
+    public List<FrameDTO> getFrames() {return frames;}
 }

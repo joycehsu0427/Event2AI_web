@@ -24,7 +24,7 @@ Content-Type: application/json
 }
 
 ### Owner 的 Access Token（從登入回應貼上）
-@ownerToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzM2NzA3OTQsImV4cCI6MTc3MzY3NDM5NH0.whJ44JGUDyvzir_4XoT-hXHlPRH-r2svWCiYeRZ_iHQ
+@ownerToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzU0MDUyNzAsImV4cCI6MTc3NTQwODg3MH0.hOK6RBagF8pXAed7QImj85_EZW_64OpLm7BdIY-sF7w
 
 ### 註冊 Member（用於測試邀請成員）
 POST {{baseUrl}}/api/auth/register
@@ -167,7 +167,7 @@ Authorization: Bearer {{memberToken}}
 
 ### ===== Board Components =====
 
-### 取得 Board 所有元件（StickyNotes + TextBoxes）
+### 取得 Board 所有元件（StickyNotes + TextBoxes + Frames）
 GET {{baseUrl}}/api/boards/{{boardId}}/components
 Authorization: Bearer {{ownerToken}}
 
