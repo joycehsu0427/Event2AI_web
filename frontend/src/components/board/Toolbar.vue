@@ -128,8 +128,22 @@ const addTextElement = async () => {
 };
 
 async function addFrameApi() {
-  // TODO: implement backend API for frame creation
-  return null;
+  try {
+    const res = await axios.post(`http://localhost:8080/api/frames`, {
+      boardId: boardId,
+      posX: 450,
+      posY: 80,
+      width: 360,
+      height: 240,
+      title: 'New Frame'
+    }, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    return res.data.id;
+  } catch (error) {
+    console.log('Error adding frame element:', error);
+    return null;
+  }
 }
 
 const addFrameElement = async () => {

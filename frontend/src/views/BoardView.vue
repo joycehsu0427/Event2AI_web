@@ -87,11 +87,11 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);
 
   // Poll board data in the background using the shared timer store.
-  // timerStore.start(async () => {
-  //   const canvasTransform = boardStore.canvasTransform;
-  //   await fetchBoardData(boardId);
-  //   boardStore.setCanvasTransform(canvasTransform);
-  // }, POLLING_INTERVAL_MS);
+  timerStore.start(async () => {
+    const canvasTransform = boardStore.canvasTransform;
+    await fetchBoardData(boardId);
+    boardStore.setCanvasTransform(canvasTransform);
+  }, POLLING_INTERVAL_MS);
 });
 
 onUnmounted(() => {
