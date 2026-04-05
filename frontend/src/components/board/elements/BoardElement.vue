@@ -13,6 +13,9 @@
     <template v-else-if="element.type === ElementType.Text">
       <BoardText :element="(element as TextElement)" />
     </template>
+    <template v-else-if="element.type === ElementType.Frame">
+      <Frame :element="(element as FrameElement)" />
+    </template>
   </v-group>
 </template>
 
@@ -22,11 +25,13 @@ import { useBoardStore } from '@/stores/boardStore';
 import {
   type BoardElement,
   ElementType,
+  type FrameElement,
   type StickyNoteElement,
   type TextElement,
 } from '@/interfaces/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
+import Frame from './Frame.vue';
 import { Group } from 'konva/lib/Group';
 
 const props = defineProps<{

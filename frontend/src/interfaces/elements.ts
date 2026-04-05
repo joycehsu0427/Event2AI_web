@@ -1,6 +1,7 @@
 export enum ElementType {
   StickyNote = 'stickyNote',
   Text = 'text',
+  Frame = 'frame',
   // Add more types as needed (e.g., Rectangle, Circle, Image)
 }
 
@@ -38,5 +39,10 @@ export interface TextElement extends BaseElement {
   // ... potentially more text-specific properties
 }
 
+export interface FrameElement extends BaseElement {
+  type: ElementType.Frame;
+  title: string;
+}
+
 // Union type for all possible elements
-export type BoardElement = StickyNoteElement | TextElement;
+export type BoardElement = StickyNoteElement | TextElement | FrameElement;

@@ -5,7 +5,7 @@ import type { User } from '@/types/user'
 
 export const useAuthStore = defineStore('auth', () => {
   // ─── State ────────────────────────────────────────────────────────────────
-  const user = ref<User | null>(null)
+  const user = ref<User | null>(JSON.parse(localStorage.getItem('user') || 'null'))
   const token = ref<string | null>(localStorage.getItem('token'))
   const isLoading = ref(false)
   const error = ref<string | null>(null)
@@ -27,6 +27,7 @@ export const useAuthStore = defineStore('auth', () => {
       token.value = response.data.accessToken
       user.value = response.data.user ?? null
       localStorage.setItem('token', response.data.accessToken)
+      localStorage.setItem('user', JSON.stringify(response.data.user))
     } catch (err) {
       // Rethrow so the view can display the right message
       const e = err as { response?: { data?: { message?: string } }; message?: string }
@@ -63,6 +64,7 @@ export const useAuthStore = defineStore('auth', () => {
     token.value = null
     user.value = null
     localStorage.removeItem('token')
+    localStorage.removeItem('user')
   }
 
   async function restoreSession(): Promise<void> {

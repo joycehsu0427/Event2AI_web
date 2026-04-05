@@ -3,6 +3,7 @@
     <!-- Tools for adding elements -->
     <button @click="addStickyNote" title="Add Sticky Note">Sticky</button>
     <button @click="addTextElement" title="Add Text">Text</button>
+    <button @click="addFrameElement" title="Add Frame">Frame</button>
 
     <!-- Color options for Sticky Notes -->
     <div class="color-palette">
@@ -28,7 +29,7 @@
 import { computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
+import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 import { useRoute } from 'vue-router';
 import axios from 'axios';
 
@@ -126,6 +127,31 @@ const addTextElement = async () => {
   historyStore.addState(); // Record state change
 };
 
+async function addFrameApi() {
+  // TODO: implement backend API for frame creation
+  return null;
+}
+
+const addFrameElement = async () => {
+  const createdId = await addFrameApi();
+
+  const newFrameElement: Omit<FrameElement, 'id'> = {
+    type: ElementType.Frame,
+    x: 450,
+    y: 80,
+    width: 360,
+    height: 240,
+    title: 'New Frame',
+    fill: '#ffffff',
+    stroke: '#5f6b7a',
+    strokeWidth: 2,
+    draggable: true,
+  };
+
+  boardStore.addElement(newFrameElement, createdId ?? undefined);
+  historyStore.addState(); // Record state change
+};
+
 const deleteSelectedElements = async () => {
   const idsToDelete = [...boardStore.selectedElementIds];
   const deleteResults = await Promise.allSettled(
@@ -144,6 +170,11 @@ const deleteSelectedElements = async () => {
         await axios.delete(`http://localhost:8080/api/text_boxes/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
+        return { id, success: true };
+      }
+
+      if (element.type === ElementType.Frame) {
+        // TODO: implement backend API for frame deletion
         return { id, success: true };
       }
 
