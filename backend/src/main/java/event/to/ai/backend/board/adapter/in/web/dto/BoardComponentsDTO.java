@@ -1,5 +1,6 @@
 package event.to.ai.backend.board.adapter.in.web.dto;
 
+import event.to.ai.backend.frame.adapter.in.web.dto.FrameDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.textbox.adapter.in.web.dto.TextBoxesDTO;
 
@@ -12,7 +13,7 @@ public class BoardComponentsDTO {
     private List<StickyNoteDTO> stickyNotes;
     private List<TextBoxesDTO> textBoxes;
 
-    public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes) {
+    public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes, List<FrameDTO> framesByBoardId) {
         this.boardId = boardId;
         this.stickyNotes = stickyNotes;
         this.textBoxes = textBoxes;

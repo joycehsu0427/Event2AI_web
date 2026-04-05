@@ -3,6 +3,7 @@ package event.to.ai.backend.board.adapter.in.web;
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.board.adapter.in.web.dto.*;
 import event.to.ai.backend.board.application.BoardApplicationService;
+import event.to.ai.backend.frame.application.FrameApllicationService;
 import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
 import event.to.ai.backend.textbox.application.TextBoxApplicationService;
 import jakarta.validation.Valid;
@@ -30,16 +31,19 @@ public class BoardController {
     private final BoardApplicationService boardApplicationService;
     private final StickyNoteApplicationService stickyNoteApplicationService;
     private final TextBoxApplicationService textBoxApplicationService;
+    private final FrameApllicationService frameApllicationService;
     private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
     public BoardController(BoardApplicationService boardApplicationService,
                            StickyNoteApplicationService stickyNoteApplicationService,
                            TextBoxApplicationService textBoxApplicationService,
+                           FrameApllicationService frameApllicationService,
                            CurrentUserIdProvider currentUserIdProvider) {
         this.boardApplicationService = boardApplicationService;
         this.stickyNoteApplicationService = stickyNoteApplicationService;
         this.textBoxApplicationService = textBoxApplicationService;
+        this.frameApllicationService = frameApllicationService;
         this.currentUserIdProvider = currentUserIdProvider;
     }
 
@@ -50,7 +54,8 @@ public class BoardController {
             BoardComponentsDTO components = new BoardComponentsDTO(
                     boardId,
                     stickyNoteApplicationService.getStickyNotesByBoardId(currentUserId, boardId),
-                    textBoxApplicationService.getTextBoxesByBoardId(currentUserId, boardId)
+                    textBoxApplicationService.getTextBoxesByBoardId(currentUserId, boardId),
+                    frameApllicationService.getFramesByBoardId(currentUserId, boardId)
             );
             return ResponseEntity.ok(components);
         } catch (RuntimeException e) {
