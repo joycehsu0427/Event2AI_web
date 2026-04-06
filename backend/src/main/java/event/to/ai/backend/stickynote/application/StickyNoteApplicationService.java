@@ -82,6 +82,10 @@ public class StickyNoteApplicationService {
         stickyNote.setFontColor(request.getFontColor());
         stickyNote.setFontSize(request.getFontSize());
 
+        if (request.getFrameID() != null) {
+            stickyNote.setFrameID(request.getFrameID());
+        }
+
         StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(savedNote);
     }
@@ -120,6 +124,9 @@ public class StickyNoteApplicationService {
         }
         if (request.getFontSize() != null) {
             stickyNote.setFontSize(request.getFontSize());
+        }
+        if (request.getFrameID() != null) {
+            stickyNote.setFrameID(request.getFrameID());
         }
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
@@ -169,7 +176,7 @@ public class StickyNoteApplicationService {
     }
 
     private StickyNoteDTO convertToDTO(StickyNote stickyNote) {
-        return new StickyNoteDTO(
+        StickyNoteDTO dto = new StickyNoteDTO(
                 stickyNote.getId(),
                 stickyNote.getBoard().getId(),
                 stickyNote.getPos().getX(),
@@ -182,5 +189,7 @@ public class StickyNoteApplicationService {
                 stickyNote.getFontColor(),
                 stickyNote.getFontSize()
         );
+        dto.setFrameID(stickyNote.getFrameID());
+        return dto;
     }
 }

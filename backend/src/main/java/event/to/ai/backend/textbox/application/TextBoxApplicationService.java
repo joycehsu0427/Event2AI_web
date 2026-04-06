@@ -69,6 +69,9 @@ public class TextBoxApplicationService {
         textBoxes.setTag(request.getTag());
         textBoxes.setFontColor(request.getFontColor());
         textBoxes.setFontSize(request.getFontSize());
+        if (request.getFrameID() != null) {
+            textBoxes.setFrameID(request.getFrameID());
+        }
 
         TextBoxes saved = textBoxesRepositoryPort.save(textBoxes);
         return convertToDTO(saved);
@@ -105,6 +108,9 @@ public class TextBoxApplicationService {
         }
         if (request.getFontSize() != null) {
             textBoxes.setFontSize(request.getFontSize());
+        }
+        if (request.getFrameID() != null) {
+            textBoxes.setFrameID(request.getFrameID());
         }
 
         TextBoxes updated = textBoxesRepositoryPort.save(textBoxes);
@@ -152,7 +158,7 @@ public class TextBoxApplicationService {
     }
 
     private TextBoxesDTO convertToDTO(TextBoxes textBoxes) {
-        return new TextBoxesDTO(
+        TextBoxesDTO dto = new TextBoxesDTO(
                 textBoxes.getId(),
                 textBoxes.getBoard().getId(),
                 textBoxes.getPos().getX(),
@@ -165,5 +171,7 @@ public class TextBoxApplicationService {
                 textBoxes.getFontColor(),
                 textBoxes.getFontSize()
         );
+        dto.setFrameID(textBoxes.getFrameID());
+        return dto;
     }
 }
