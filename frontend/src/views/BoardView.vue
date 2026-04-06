@@ -60,10 +60,23 @@ async function fetchBoardData(boardId: string) {
       draggable: true,
     }));
 
+    const frameElements: BoardElement[] = (res.data?.frames ?? []).map((frame: any) => ({
+      id: frame.id,
+      type: ElementType.Frame,
+      x: frame.posX,
+      y: frame.posY,
+      width: frame.width,
+      height: frame.height,
+      title: frame.title,
+      draggable: true,
+    }));
+
+    const canvasTransform = boardStore.canvasTransform;
+
     const state: BoardStoreState = {
-      elements: [...stickyNoteElements, ...textElements],
+      elements: [...stickyNoteElements, ...textElements, ...frameElements],
       selectedElementIds: [],
-      canvasTransform: { x: 0, y: 0, scale: 1 },
+      canvasTransform: canvasTransform,
       editingElementId: null,
       defaultStickyNoteColor: '#ffeb3b'
     };
@@ -88,9 +101,9 @@ onMounted(() => {
 
   // Poll board data in the background using the shared timer store.
   timerStore.start(async () => {
-    const canvasTransform = boardStore.canvasTransform;
+    // const canvasTransform = boardStore.canvasTransform;
     await fetchBoardData(boardId);
-    boardStore.setCanvasTransform(canvasTransform);
+    // boardStore.setCanvasTransform(canvasTransform);
   }, POLLING_INTERVAL_MS);
 });
 

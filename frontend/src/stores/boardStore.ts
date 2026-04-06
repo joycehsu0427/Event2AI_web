@@ -66,7 +66,7 @@ export const useBoardStore = defineStore('board', {
         }
       }
 
-      if (element.type === ElementType.StickyNote) {
+      else if (element.type === ElementType.StickyNote) {
         const payload = {
           boardId,
           posX: element.x,
@@ -84,6 +84,24 @@ export const useBoardStore = defineStore('board', {
           });
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
+        }
+      }
+
+      else if (element.type === ElementType.Frame) {
+        const payload = {
+          boardId,
+          posX: element.x,
+          posY: element.y,
+          width: element.width,
+          height: element.height,
+          title: element.title
+        };
+        try {
+          await axios.put(`http://localhost:8080/api/frames/${element.id}`, payload, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        } catch (error) {
+          console.error(`Failed to update frame ${element.id}:`, error);
         }
       }
     },
