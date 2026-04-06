@@ -4,11 +4,12 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.security.Principal;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
-public class AuthUserPrincipal implements UserDetails {
+public class AuthUserPrincipal implements UserDetails, Principal {
 
     private final UUID id;
     private final String username;
@@ -22,6 +23,11 @@ public class AuthUserPrincipal implements UserDetails {
 
     public UUID getId() {
         return id;
+    }
+
+    @Override
+    public String getName() {
+        return username;
     }
 
     @Override
