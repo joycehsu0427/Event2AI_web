@@ -1,7 +1,7 @@
 <template>
   <div class="board-view">
     <Toolbar class="board-toolbar" />
-    <MiroBoard class="miro-board-container" />
+    <MiroBoard class="miro-board-container" @contextmenu.prevent="() => {}"/>
   </div>
 </template>
 
