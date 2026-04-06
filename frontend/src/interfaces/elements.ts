@@ -28,6 +28,7 @@ export interface StickyNoteElement extends BaseElement {
   fontSize: number;
   textColor: string;
   backgroundColor: string;
+  frameId?: string | null;
 }
 
 export interface TextElement extends BaseElement {

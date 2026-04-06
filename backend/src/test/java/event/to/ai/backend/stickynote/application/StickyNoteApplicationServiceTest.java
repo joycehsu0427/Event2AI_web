@@ -134,6 +134,9 @@ class StickyNoteApplicationServiceTest {
                             null,
                             null,
                             null,
+                            null,
+                            null,
+                            null,
                             null
                     );
 
