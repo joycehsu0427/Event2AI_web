@@ -34,9 +34,10 @@ public class UpdateStickyNoteRequest {
     public UpdateStickyNoteRequest() {
     }
 
-    public UpdateStickyNoteRequest(UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
+    public UpdateStickyNoteRequest(UUID boardId, UUID frameID, Double posX, Double posY, Double geoX, Double geoY,
                                    String description, String color, String tag, String fontColor, String fontSize) {
         this.boardId = boardId;
+        this.frameID = frameID;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;

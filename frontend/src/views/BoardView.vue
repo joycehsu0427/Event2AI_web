@@ -31,6 +31,7 @@ async function fetchBoardData(boardId: string) {
     const res = await axios.get(`http://localhost:8080/api/boards/${boardId}/components`, {
       headers: { Authorization: `Bearer ${token}` }
     });
+    console.log(res.data);
 
     const stickyNoteElements: BoardElement[] = (res.data?.stickyNotes ?? []).map((note: any) => ({
       id: note.id,
@@ -39,6 +40,7 @@ async function fetchBoardData(boardId: string) {
       y: note.posY,
       width: note.geoX,
       height: note.geoY,
+      frameId: note.frameID || null,
       text: note.description,
       fontSize: Number(note.fontSize) || 20,
       textColor: note.fontColor || '#000000',

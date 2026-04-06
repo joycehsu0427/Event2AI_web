@@ -74,6 +74,7 @@ public class StickyNoteApplicationService {
 
         StickyNote stickyNote = new StickyNote();
         stickyNote.setBoard(board);
+        stickyNote.setFrameID(request.getFrameID());
         stickyNote.setPos(new Point2D(request.getPosX(), request.getPosY()));
         stickyNote.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
         stickyNote.setDescription(request.getDescription());
@@ -121,6 +122,8 @@ public class StickyNoteApplicationService {
         if (request.getFontSize() != null) {
             stickyNote.setFontSize(request.getFontSize());
         }
+
+        stickyNote.setFrameID(request.getFrameID());
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(updatedNote);
@@ -172,6 +175,7 @@ public class StickyNoteApplicationService {
         return new StickyNoteDTO(
                 stickyNote.getId(),
                 stickyNote.getBoard().getId(),
+                stickyNote.getFrameID(),
                 stickyNote.getPos().getX(),
                 stickyNote.getPos().getY(),
                 stickyNote.getGeo().getX(),

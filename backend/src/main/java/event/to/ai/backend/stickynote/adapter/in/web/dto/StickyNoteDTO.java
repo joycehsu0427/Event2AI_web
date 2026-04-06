@@ -21,10 +21,11 @@ public class StickyNoteDTO {
     public StickyNoteDTO() {
     }
 
-    public StickyNoteDTO(UUID id, UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
+    public StickyNoteDTO(UUID id, UUID boardId,UUID frameID, Double posX, Double posY, Double geoX, Double geoY,
                         String description, String color, String tag, String fontColor, String fontSize) {
         this.id = id;
         this.boardId = boardId;
+        this.frameID = frameID;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;

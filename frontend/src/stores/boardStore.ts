@@ -73,15 +73,17 @@ export const useBoardStore = defineStore('board', {
           posY: element.y,
           geoX: element.width,
           geoY: element.height,
+          frameID: element.frameId,
           description: element.text,
           color: element.backgroundColor,
           fontColor: element.textColor,
           fontSize: String(element.fontSize),
         };
         try {
-          await axios.put(`http://localhost:8080/api/sticky-notes/${element.id}`, payload, {
+          const res = await axios.put(`http://localhost:8080/api/sticky-notes/${element.id}`, payload, {
             headers: { Authorization: `Bearer ${token}` },
           });
+          console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
         }
