@@ -8,7 +8,7 @@ public class UpdateStickyNoteRequest {
 
     private UUID boardId;
 
-    private UUID frameID;
+    private String frameID;
 
     private Double posX;
 
@@ -34,7 +34,7 @@ public class UpdateStickyNoteRequest {
     public UpdateStickyNoteRequest() {
     }
 
-    public UpdateStickyNoteRequest(UUID boardId, UUID frameID, Double posX, Double posY, Double geoX, Double geoY,
+    public UpdateStickyNoteRequest(UUID boardId, String frameID, Double posX, Double posY, Double geoX, Double geoY,
                                    String description, String color, String tag, String fontColor, String fontSize) {
         this.boardId = boardId;
         this.frameID = frameID;
@@ -57,11 +57,11 @@ public class UpdateStickyNoteRequest {
         this.boardId = boardId;
     }
 
-    public UUID getFrameID() {
+    public String getFrameID() {
         return frameID;
     }
 
-    public void setFrameID(UUID frameID) {
+    public void setFrameID(String frameID) {
         this.frameID = frameID;
     }
 
