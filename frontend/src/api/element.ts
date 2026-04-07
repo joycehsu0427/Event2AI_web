@@ -85,4 +85,11 @@ export const elementApi = {
 		});
 		return response.data;
 	},
+
+    async deleteFrame(elementId: string) {
+		const response = await apiClient.delete(`/frames/${elementId}`, {
+			headers: buildAuthHeaders(),
+		});
+		return response.data;
+	},
 };

@@ -177,7 +177,7 @@ const deleteSelectedElements = async () => {
       }
 
       if (element.type === ElementType.Frame) {
-        // TODO: implement backend API for frame deletion
+        await elementApi.deleteFrame(id);
         return { id, success: true };
       }
 
