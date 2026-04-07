@@ -137,7 +137,7 @@ public class StickyNoteApplicationService {
                 try {
                     stickyNote.setFrameID(UUID.fromString(request.getFrameID()));
                 } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Invalid FrameID format: " + frameIdStr);
+                    throw new IllegalArgumentException("Invalid FrameID format: " + request.getFrameID());
                 }
             }
         }
