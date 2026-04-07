@@ -133,7 +133,13 @@ public class StickyNoteApplicationService {
                 stickyNote.setFrameID(null);
             }
             // 若 FrameId == UUID 代表要更新為新的 parents
-            else stickyNote.setFrameID(UUID.fromString(request.getFrameID()));
+            else {
+                try {
+                    stickyNote.setFrameID(UUID.fromString(request.getFrameID()));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid FrameID format: " + frameIdStr);
+                }
+            }
         }
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
