@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
-import axios from 'axios'
+import { boardApi, userApi } from '@/api'
 import type { Board } from '@/types/board'
 import type { BoardMember, BoardMemberRole } from '@/types/board'
 import { useAuthStore } from '@/stores/authStore'
@@ -69,21 +69,17 @@ async function loadMembers() {
 
   loadingMembers.value = true
   try {
-    const response = await axios.get(`http://localhost:8080/api/boards/board_member/${props.board.id}`, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
-    const boardMembers = Array.isArray(response.data) ? response.data : []
+    const data = await boardApi.getMembers(props.board.id)
+    const boardMembers = Array.isArray(data) ? data : []
     members.value = await Promise.all(boardMembers.map(async (member) => {
       try {
-        const userResponse = await axios.get(`http://localhost:8080/api/users/${member.userId}`, {
-          headers: { Authorization: `Bearer ${authStore.token}` }
-        })
+        const userData = await userApi.getById(member.userId)
         return {
           boardId: member.boardId,
           userId: member.userId,
           role: member.role,
-          username: userResponse.data?.username ?? '-',
-          email: userResponse.data?.email ?? '-'
+          username: userData?.username ?? '-',
+          email: userData?.email ?? '-'
         }
       } catch {
         return {
@@ -117,12 +113,9 @@ async function submit() {
   loading.value = true
 
   try {
-    await axios.post('http://localhost:8080/api/boards/board_member', {
-      boardId: props.board.id,
+    await boardApi.addMember(props.board.id, {
       userEmail: trimmed,
       role: role.value
-    }, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
     })
     successMsg.value = `已成功將 ${trimmed} 加入為 ${role.value}`
     email.value = ''
@@ -145,11 +138,9 @@ async function updateMemberRole(member: BoardMember, newRole: Extract<BoardMembe
   updatingRoleUserId.value = member.userId
 
   try {
-    await axios.put(`http://localhost:8080/api/boards/board_member/${props.board.id}`, {
+    await boardApi.updateMember(props.board.id, {
       userEmail: member.email,
       role: newRole
-    }, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
     })
     member.role = newRole
     successMsg.value = `已將 ${member.username} 權限更新為 ${newRole}`
@@ -170,9 +161,7 @@ async function deleteMember(member: BoardMember) {
   deletingUserId.value = member.userId
 
   try {
-    await axios.delete(`http://localhost:8080/api/boards/board_member/${props.board.id}/${member.userId}`, {
-      headers: { Authorization: `Bearer ${authStore.token}` }
-    })
+    await boardApi.removeMember(props.board.id, member.userId)
     successMsg.value = `已移除 ${member.username}`
     await loadMembers()
   } catch (err: unknown) {

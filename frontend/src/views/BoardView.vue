@@ -16,11 +16,10 @@ import { useTimerStore } from '@/stores/timerStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
-import axios from 'axios';
+import { boardApi } from '@/api';
 
 const route = useRoute();
 const boardId = route.params.boardId as string;
-const token = localStorage.getItem('token');
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
@@ -28,12 +27,10 @@ const POLLING_INTERVAL_MS = 5000;
 
 async function fetchBoardData(boardId: string) {
   try {
-    const res = await axios.get(`http://localhost:8080/api/boards/${boardId}/components`, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    console.log(res.data);
+    const data = await boardApi.getComponents(boardId);
+    // console.log(res.data);
 
-    const stickyNoteElements: BoardElement[] = (res.data?.stickyNotes ?? []).map((note: any) => ({
+    const stickyNoteElements: BoardElement[] = (data?.stickyNotes ?? []).map((note: any) => ({
       id: note.id,
       type: ElementType.StickyNote,
       x: note.posX,
@@ -48,7 +45,7 @@ async function fetchBoardData(boardId: string) {
       draggable: true,
     }));
 
-    const textElements: BoardElement[] = (res.data?.textBoxes ?? []).map((text: any) => ({
+    const textElements: BoardElement[] = (data?.textBoxes ?? []).map((text: any) => ({
       id: text.id,
       type: ElementType.Text,
       x: text.posX,
@@ -62,7 +59,7 @@ async function fetchBoardData(boardId: string) {
       draggable: true,
     }));
 
-    const frameElements: BoardElement[] = (res.data?.frames ?? []).map((frame: any) => ({
+    const frameElements: BoardElement[] = (data?.frames ?? []).map((frame: any) => ({
       id: frame.id,
       type: ElementType.Frame,
       x: frame.posX,
@@ -103,9 +100,7 @@ onMounted(() => {
 
   // Poll board data in the background using the shared timer store.
   timerStore.start(async () => {
-    // const canvasTransform = boardStore.canvasTransform;
     await fetchBoardData(boardId);
-    // boardStore.setCanvasTransform(canvasTransform);
   }, POLLING_INTERVAL_MS);
 });
 

@@ -11,7 +11,7 @@
     >
       <v-layer ref="elementsLayerRef">
         <!-- Elements will be rendered here -->
-        <template v-for="element in boardStore.getElements" :key="element.id">
+        <template v-for="element in renderedElements" :key="element.id">
           <BoardElement :element="element" @transformend="handleTransformEnd" />
         </template>
         <!-- Konva Transformer for selected elements -->
@@ -37,6 +37,7 @@ import type { Node as KonvaNode } from 'konva/lib/Node';
 import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
+import { ElementType } from '@/interfaces/elements';
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
@@ -54,6 +55,18 @@ const stageConfig = reactive({
   y: computed(() => boardStore.canvasTransform.y),
   scaleX: computed(() => boardStore.canvasTransform.scale),
   scaleY: computed(() => boardStore.canvasTransform.scale),
+});
+
+const renderedElements = computed(() => {
+  const layerPriority = {
+    [ElementType.Frame]: 0,
+    [ElementType.Text]: 1,
+    [ElementType.StickyNote]: 2,
+  } as const;
+
+  return [...boardStore.getElements].sort(
+    (a, b) => layerPriority[a.type] - layerPriority[b.type]
+  );
 });
 
 // Watch for changes in board elements to record history

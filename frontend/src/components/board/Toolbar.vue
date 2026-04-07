@@ -31,19 +31,18 @@ import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 import { useRoute } from 'vue-router';
-import axios from 'axios';
+import { elementApi } from '@/api';
 
 const route = useRoute();
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
-const token = localStorage.getItem('token');
 const boardId = route.params.boardId as string;
 
 const stickyNoteColors = ['#ffeb3b', '#c1e1c1', '#add8e6', '#ffb6c1', '#d3d3d3']; // Yellow, Green, Blue, Pink, Grey
 
 async function addStickyNoteApi() {
   try {
-    const res = await axios.post(`http://localhost:8080/api/sticky-notes`, {
+    const data = await elementApi.createStickyNote({
       boardId: boardId,
       posX: 50,
       posY: 50,
@@ -54,10 +53,8 @@ async function addStickyNoteApi() {
       tag: 'sticky-note',
       fontColor: '#000000',
       fontSize: 20
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
-    return res.data.id;
+    return data.id;
   } catch (error) {
     console.log('Error adding sticky note:', error);
     return null;
@@ -86,7 +83,7 @@ const addStickyNote = async () => {
 
 async function addTextElementApi() {
   try {
-    const res = await axios.post(`http://localhost:8080/api/text_boxes`, {
+    const data = await elementApi.createTextBox({
       boardId: boardId,
       posX: 250,
       posY: 50,
@@ -97,10 +94,8 @@ async function addTextElementApi() {
       tag: 'text-box',
       fontColor: '#000000',
       fontSize: 24
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
-    return res.data.id;
+    return data.id;
   } catch (error) {
     console.log('Error adding text element:', error);
     return null;
@@ -129,17 +124,15 @@ const addTextElement = async () => {
 
 async function addFrameApi() {
   try {
-    const res = await axios.post(`http://localhost:8080/api/frames`, {
+    const data = await elementApi.createFrame({
       boardId: boardId,
       posX: 450,
       posY: 80,
       width: 360,
       height: 240,
       title: 'New Frame'
-    }, {
-      headers: { Authorization: `Bearer ${token}` }
     });
-    return res.data.id;
+    return data.id;
   } catch (error) {
     console.log('Error adding frame element:', error);
     return null;
@@ -174,16 +167,12 @@ const deleteSelectedElements = async () => {
       if (!element) return { id, success: false };
 
       if (element.type === ElementType.StickyNote) {
-        await axios.delete(`http://localhost:8080/api/sticky-notes/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await elementApi.deleteStickyNote(id);
         return { id, success: true };
       }
 
       if (element.type === ElementType.Text) {
-        await axios.delete(`http://localhost:8080/api/text_boxes/${id}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        await elementApi.deleteTextBox(id);
         return { id, success: true };
       }
 

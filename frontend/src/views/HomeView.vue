@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import type { Board, BoardMemberRole } from '@/types/board'
-import axios from 'axios'
+import { boardApi, userApi } from '@/api'
 import { useAuthStore } from '@/stores/authStore'
 import BoardCard from '@/components/menu/BoardCard.vue'
 import BoardFormModal from '@/components/menu/BoardFormModal.vue'
@@ -11,7 +11,6 @@ import BoardMemberModal from '@/components/menu/BoardMemberModal.vue'
 // ─── Auth ─────────────────────────────────────────────────────────────────────
 const router = useRouter()
 const authStore = useAuthStore()
-const token = authStore.token
 
 function handleLogout() {
   authStore.logout()
@@ -32,10 +31,8 @@ const boards = ref<Board[]>([]);
 
 async function getBoardRole(boardId: string): Promise<BoardMemberRole | undefined> {
   try {
-    const response = await axios.get(`http://localhost:8080/api/boards/board_member/${boardId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    const members: Array<{ boardId: string; userId: string; role: BoardMemberRole }> = Array.isArray(response.data) ? response.data : []
+    const data = await boardApi.getMembers(boardId)
+    const members: Array<{ boardId: string; userId: string; role: BoardMemberRole }> = Array.isArray(data) ? data : []
     const currentUserId = authStore.user?.id
     if (!currentUserId) return undefined
 
@@ -49,10 +46,8 @@ async function getBoardRole(boardId: string): Promise<BoardMemberRole | undefine
 
 async function getOwnerName(ownerUserId: string): Promise<string> {
   try {
-    const response = await axios.get(`http://localhost:8080/api/users/${ownerUserId}`, {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    return response.data.username
+    const data = await userApi.getById(ownerUserId)
+    return data.username
   } catch (error) {
     console.error('Failed to fetch owner name', error)
     return 'Unknown'
@@ -61,10 +56,8 @@ async function getOwnerName(ownerUserId: string): Promise<string> {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:8080/api/boards', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-    boards.value = response.data
+    const data = await boardApi.list()
+    boards.value = data
     boards.value.forEach(board => {
       board.color = randomColor()
     })
@@ -95,20 +88,18 @@ function openCreateModal() {
 }
 
 async function submitCreate(payload: { title: string; description: string }) {
-  const response = await axios.post('http://localhost:8080/api/boards', {
+  const data = await boardApi.create({
     title: payload.title,
     description: payload.description
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
   })
 
   const newBoard: Board = {
-    id: response.data.id,
-    title: response.data.title,
-    description: response.data.description,
+    id: data.id,
+    title: data.title,
+    description: data.description,
     color: randomColor(),
-    ownerUserId: response.data.ownerUserId,
-    ownerName: await getOwnerName(response.data.ownerUserId),
+    ownerUserId: data.ownerUserId,
+    ownerName: await getOwnerName(data.ownerUserId),
     currentUserRole: 'OWNER'
   }
   boards.value.unshift(newBoard)
@@ -128,11 +119,9 @@ async function submitEdit(payload: { title: string; description: string }) {
   if (!editTarget.value) return
   if (editTarget.value.currentUserRole === 'VIEWER') return
 
-  await axios.put(`http://localhost:8080/api/boards/${editTarget.value.id}`, {
+  await boardApi.update(editTarget.value.id, {
     title: payload.title,
     description: payload.description
-  }, {
-    headers: { Authorization: `Bearer ${token}` }
   })
 
   const target = boards.value.find(b => b.id === editTarget.value!.id)
@@ -156,9 +145,7 @@ async function confirmDelete() {
   if (!deleteTarget.value) return
   if (deleteTarget.value.currentUserRole === 'VIEWER') return
 
-  await axios.delete(`http://localhost:8080/api/boards/${deleteTarget.value.id}`, {
-    headers: { Authorization: `Bearer ${token}` }
-  })
+  await boardApi.remove(deleteTarget.value.id)
   boards.value = boards.value.filter(b => b.id !== deleteTarget.value!.id)
   showDeleteModal.value = false
 }
