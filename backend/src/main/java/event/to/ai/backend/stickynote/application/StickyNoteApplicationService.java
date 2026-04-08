@@ -10,11 +10,14 @@ import event.to.ai.backend.stickynote.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote;
 import event.to.ai.backend.stickynote.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.stickynote.application.port.out.StickyNoteRepositoryPort;
+import event.to.ai.backend.websocket.BoardRealtimeEventType;
+import event.to.ai.backend.websocket.BoardRealtimePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,14 +27,17 @@ public class StickyNoteApplicationService {
     private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
+    private final BoardRealtimePublisher boardRealtimePublisher;
 
     @Autowired
     public StickyNoteApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
                                         BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                        BoardRepositoryPort boardRepositoryPort) {
+                                        BoardRepositoryPort boardRepositoryPort,
+                                        BoardRealtimePublisher boardRealtimePublisher) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
+        this.boardRealtimePublisher = boardRealtimePublisher;
     }
 
     public List<StickyNoteDTO> getAllStickyNotes(UUID actorUserId) {
@@ -83,12 +89,10 @@ public class StickyNoteApplicationService {
         stickyNote.setFontColor(request.getFontColor());
         stickyNote.setFontSize(request.getFontSize());
 
-        if (request.getFrameID() != null) {
-            stickyNote.setFrameID(request.getFrameID());
-        }
-
         StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
-        return convertToDTO(savedNote);
+        StickyNoteDTO dto = convertToDTO(savedNote);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_CREATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -143,7 +147,9 @@ public class StickyNoteApplicationService {
         }
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
-        return convertToDTO(updatedNote);
+        StickyNoteDTO dto = convertToDTO(updatedNote);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_UPDATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -151,9 +157,11 @@ public class StickyNoteApplicationService {
         StickyNote stickyNote = stickyNoteRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("StickyNote not found with id: " + id));
 
-        requireWritePermission(stickyNote.getBoard().getId(), actorUserId);
+        UUID boardId = stickyNote.getBoard().getId();
+        requireWritePermission(boardId, actorUserId);
 
         stickyNoteRepositoryPort.deleteById(id);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_DELETED, boardId, Map.of("id", id));
     }
 
     // 將 stickyNotes 內的所有 stickyNote 過濾掉 actorUserId 沒有權限的
