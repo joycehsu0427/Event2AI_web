@@ -12,7 +12,7 @@ public class UpdateConnectorRequest {
 
     private UUID boardId;
 
-    private UUID frameId;
+    private String frameId;
 
     private ConnectorTargetType fromTargetType;
 
@@ -66,11 +66,11 @@ public class UpdateConnectorRequest {
         this.boardId = boardId;
     }
 
-    public UUID getFrameId() {
+    public String getFrameId() {
         return frameId;
     }
 
-    public void setFrameId(UUID frameId) {
+    public void setFrameId(String frameId) {
         this.frameId = frameId;
     }
 

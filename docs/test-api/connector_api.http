@@ -1,0 +1,151 @@
+@baseUrl = http://localhost:8080
+
+### 登入
+# @name login
+POST {{baseUrl}}/api/auth/login
+Content-Type: application/json
+
+{
+  "username": "demo_user",
+  "password": "demoPass123"
+}
+
+### 從登入回應擷取 token
+@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOjE3NzI1Mzk5MzQsImV4cCI6MTc3MjU0MzUzNH0.0JOEUg4alsF0IuQKxqa5IOPmWC1SSjVlgQdEY95Wous
+@boardId = a4221021-1cdc-4135-959a-71550254b226
+@connectorId = 00000000-0000-0000-0000-000000000000
+@fromTargetId = 00000000-0000-0000-0000-000000000001
+@toTargetId = 00000000-0000-0000-0000-000000000002
+
+### ===== Connector CRUD =====
+
+### 取得所有 Connectors（需要 JWT）
+GET {{baseUrl}}/api/connectors
+Authorization: Bearer {{accessToken}}
+
+### 依 connectorId 取得 Connector（需要 JWT）
+GET {{baseUrl}}/api/connectors?connectorId={{connectorId}}
+Authorization: Bearer {{accessToken}}
+
+### 依 boardId 取得 Connectors（需要 JWT）
+GET {{baseUrl}}/api/connectors?boardId={{boardId}}
+Authorization: Bearer {{accessToken}}
+
+### 建立 Connector：STICKY_NOTE → STICKY_NOTE，直線（需要 JWT）
+# @name createConnector
+POST {{baseUrl}}/api/connectors
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "boardId": "{{boardId}}",
+  "frameId": null,
+  "fromTargetType": "STICKY_NOTE",
+  "fromTargetId": "{{fromTargetId}}",
+  "fromSide": "RIGHT",
+  "fromOffset": 0.5,
+  "fromX": 100.0,
+  "fromY": 150.0,
+  "toTargetType": "STICKY_NOTE",
+  "toTargetId": "{{toTargetId}}",
+  "toSide": "LEFT",
+  "toOffset": 0.5,
+  "toX": 300.0,
+  "toY": 150.0,
+  "lineType": "STRAIGHT",
+  "label": "relates to",
+  "strokeColor": "#000000",
+  "strokeWidth": 2.0,
+  "dashed": false,
+  "startArrow": "NONE",
+  "endArrow": "TRIANGLE",
+  "zIndex": 1
+}
+
+### 建立 Connector：DOMAIN_ENTITY → DOMAIN_ENTITY，折線（需要 JWT）
+POST {{baseUrl}}/api/connectors
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "boardId": "{{boardId}}",
+  "frameId": null,
+  "fromTargetType": "DOMAIN_ENTITY",
+  "fromTargetId": "{{fromTargetId}}",
+  "fromSide": "BOTTOM",
+  "fromOffset": 0.5,
+  "fromX": 200.0,
+  "fromY": 300.0,
+  "toTargetType": "DOMAIN_ENTITY",
+  "toTargetId": "{{toTargetId}}",
+  "toSide": "TOP",
+  "toOffset": 0.5,
+  "toX": 200.0,
+  "toY": 500.0,
+  "lineType": "ORTHOGONAL",
+  "label": "",
+  "strokeColor": "#3399ff",
+  "strokeWidth": 1.5,
+  "dashed": true,
+  "startArrow": "NONE",
+  "endArrow": "NONE",
+  "zIndex": 2
+}
+
+### 建立 Connector：FREE_POINT → FREE_POINT（需要 JWT）
+POST {{baseUrl}}/api/connectors
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "boardId": "{{boardId}}",
+  "frameId": null,
+  "fromTargetType": "FREE_POINT",
+  "fromTargetId": null,
+  "fromSide": null,
+  "fromOffset": null,
+  "fromX": 50.0,
+  "fromY": 50.0,
+  "toTargetType": "FREE_POINT",
+  "toTargetId": null,
+  "toSide": null,
+  "toOffset": null,
+  "toX": 400.0,
+  "toY": 400.0,
+  "lineType": "STRAIGHT",
+  "label": null,
+  "strokeColor": "#ff0000",
+  "strokeWidth": 1.0,
+  "dashed": false,
+  "startArrow": "TRIANGLE",
+  "endArrow": "TRIANGLE",
+  "zIndex": 3
+}
+
+### 更新 Connector：修改 label 與 strokeColor（需要 JWT，所有欄位皆可選填）
+PUT {{baseUrl}}/api/connectors/{{connectorId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "label": "updated label",
+  "strokeColor": "#ff6600",
+  "strokeWidth": 3.0,
+  "dashed": true,
+  "endArrow": "NONE"
+}
+
+### 更新 Connector：修改 lineType 為 ORTHOGONAL（需要 JWT）
+PUT {{baseUrl}}/api/connectors/{{connectorId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "lineType": "ORTHOGONAL",
+  "fromSide": "TOP",
+  "toSide": "BOTTOM"
+}
+
+### 刪除 Connector（需要 JWT）
+DELETE {{baseUrl}}/api/connectors/{{connectorId}}
+Authorization: Bearer {{accessToken}}
