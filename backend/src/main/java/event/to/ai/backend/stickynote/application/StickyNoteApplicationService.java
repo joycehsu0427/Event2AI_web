@@ -74,7 +74,7 @@ public class StickyNoteApplicationService {
 
         StickyNote stickyNote = new StickyNote();
         stickyNote.setBoard(board);
-        stickyNote.setFrameID(request.getFrameID());
+        stickyNote.setFrameId(request.getFrameId());
         stickyNote.setPos(new Point2D(request.getPosX(), request.getPosY()));
         stickyNote.setGeo(new Point2D(request.getGeoX(), request.getGeoY()));
         stickyNote.setDescription(request.getDescription());
@@ -83,8 +83,8 @@ public class StickyNoteApplicationService {
         stickyNote.setFontColor(request.getFontColor());
         stickyNote.setFontSize(request.getFontSize());
 
-        if (request.getFrameID() != null) {
-            stickyNote.setFrameID(request.getFrameID());
+        if (request.getFrameId() != null) {
+            stickyNote.setFrameId(request.getFrameId());
         }
 
         StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
@@ -126,18 +126,18 @@ public class StickyNoteApplicationService {
         if (request.getFontSize() != null) {
             stickyNote.setFontSize(request.getFontSize());
         }
-        // FrameID != null 代表要更新
-        if (request.getFrameID() != null) {
+        // FrameId != null 代表要更新
+        if (request.getFrameId() != null) {
             // 若 FrameId == "null" 代表要將 FrameId 設為空，表示其沒有 parents
-            if(request.getFrameID().equals("null")){
-                stickyNote.setFrameID(null);
+            if(request.getFrameId().equals("null")){
+                stickyNote.setFrameId(null);
             }
             // 若 FrameId == UUID 代表要更新為新的 parents
             else {
                 try {
-                    stickyNote.setFrameID(UUID.fromString(request.getFrameID()));
+                    stickyNote.setFrameId(UUID.fromString(request.getFrameId()));
                 } catch (IllegalArgumentException e) {
-                    throw new IllegalArgumentException("Invalid FrameID format: " + request.getFrameID());
+                    throw new IllegalArgumentException("Invalid FrameId format: " + request.getFrameId());
                 }
             }
         }
@@ -192,7 +192,7 @@ public class StickyNoteApplicationService {
         StickyNoteDTO dto = new StickyNoteDTO(
                 stickyNote.getId(),
                 stickyNote.getBoard().getId(),
-                stickyNote.getFrameID(),
+                stickyNote.getFrameId(),
                 stickyNote.getPos().getX(),
                 stickyNote.getPos().getY(),
                 stickyNote.getGeo().getX(),
@@ -203,7 +203,7 @@ public class StickyNoteApplicationService {
                 stickyNote.getFontColor(),
                 stickyNote.getFontSize()
         );
-        dto.setFrameID(stickyNote.getFrameID());
+        dto.setFrameId(stickyNote.getFrameId());
         return dto;
     }
 }

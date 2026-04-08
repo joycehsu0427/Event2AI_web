@@ -35,7 +35,7 @@ public class StickyNote {
     private Board board;
 
     @Column(name = "frame_id", columnDefinition = "BINARY(16)")
-    private UUID frameID;
+    private UUID frameId;
 
     @Column(nullable = false)
     private String description;
@@ -105,12 +105,12 @@ public class StickyNote {
         this.board = board;
     }
 
-    public UUID getFrameID() {
-        return frameID;
+    public UUID getFrameId() {
+        return frameId;
     }
 
-    public void setFrameID(UUID frameID) {
-        this.frameID = frameID;
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public String getDescription(){
@@ -175,7 +175,7 @@ public class StickyNote {
         return "StickyNote{" +
                 "id=" + id +
                 ", boardId=" + (board == null ? null : board.getId()) +
-                ", frameID=" + frameID +
+                ", frameId=" + frameId +
                 ", pos.x=" + pos.getX() +
                 ", pos.y=" + pos.getY() +
                 ", geo.x=" + geo.getX() +
