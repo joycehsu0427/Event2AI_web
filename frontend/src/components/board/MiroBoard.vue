@@ -11,14 +11,18 @@
     >
       <v-layer ref="elementsLayerRef">
         <!-- Elements will be rendered here -->
-        <template v-for="element in boardStore.getElements" :key="element.id">
+        <template v-for="element in renderedElements" :key="element.id">
           <BoardElement :element="element" @transformend="handleTransformEnd" />
         </template>
         <!-- Konva Transformer for selected elements -->
         <v-transformer ref="transformerRef" />
+
+        <!-- Marquee Selection Rectangle -->
+        <v-rect
+          v-if="isSelecting"
+          :config="selectionRectConfig"
+        />
       </v-layer>
-      <!-- A separate layer for selection/transformers to be on top -->
-      <!-- <v-layer ref="selectionLayerRef"></v-layer> -->
     </v-stage>
   </div>
 </template>
@@ -33,6 +37,7 @@ import type { Node as KonvaNode } from 'konva/lib/Node';
 import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
+import { ElementType } from '@/interfaces/elements';
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
@@ -50,6 +55,18 @@ const stageConfig = reactive({
   y: computed(() => boardStore.canvasTransform.y),
   scaleX: computed(() => boardStore.canvasTransform.scale),
   scaleY: computed(() => boardStore.canvasTransform.scale),
+});
+
+const renderedElements = computed(() => {
+  const layerPriority = {
+    [ElementType.Frame]: 0,
+    [ElementType.Text]: 1,
+    [ElementType.StickyNote]: 2,
+  } as const;
+
+  return [...boardStore.getElements].sort(
+    (a, b) => layerPriority[a.type] - layerPriority[b.type]
+  );
 });
 
 // Watch for changes in board elements to record history
@@ -70,34 +87,27 @@ watch(() => boardStore.getEditingElementId, (editingElementId) => {
 });
 
 // --- Transformer Logic ---
-const updateTransformerNodes = () => {
+watch(() => boardStore.selectedElementIds, (newSelection) => {
   const transformer = transformerRef.value?.getNode();
   const stage = stageRef.value?.getStage();
   if (!transformer || !stage) return;
 
-  const selectedNodes: KonvaNode[] = [];
-  boardStore.selectedElementIds.forEach(id => {
-    // Find the Konva group node for the selected element
-    // Using .find() with a selector like '#id' is more reliable
-    const node = stage.find(`#${id}`)[0]; // Assuming BoardElement's root v-group has id
-    if (node) {
-      selectedNodes.push(node);
-    }
-  });
-  transformer.nodes(selectedNodes);
+  if (newSelection.length > 0) {
+    const selectedNodes: KonvaNode[] = [];
+    newSelection.forEach(id => {
+      // Find the Konva group node for the selected element
+      // Using .find() with a selector like '#id' is more reliable
+      const node = stage.find(`#${id}`)[0]; // Assuming BoardElement's root v-group has id
+      if (node) {
+        selectedNodes.push(node);
+      }
+    });
+    transformer.nodes(selectedNodes);
+  } else {
+    transformer.nodes([]); // Deselect all
+  }
   transformer.getLayer()?.batchDraw();
-};
-
-watch(() => boardStore.selectedElementIds, () => {
-  updateTransformerNodes();
 }, { immediate: true });
-
-// Ensure transformer is updated when elements change (e.g., after text editing)
-watch(() => boardStore.elements, () => {
-  nextTick(() => {
-    updateTransformerNodes();
-  });
-}, { deep: true });
 
 const handleTransformEnd = (e: any) => {
   const node = e.target;
@@ -143,49 +153,128 @@ onUnmounted(() => {
 const isPanning = ref(false); // Flag to track if right-click panning is active
 const lastPointerPosition = reactive({ x: 0, y: 0 });
 
+// --- Selection functionality ---
+const isSelecting = ref(false);
+const selectionStart = reactive({ x: 0, y: 0 });
+const selectionRectConfig = reactive({
+  x: 0,
+  y: 0,
+  width: 0,
+  height: 0,
+  fill: 'rgba(0, 162, 255, 0.1)',
+  stroke: 'rgba(0, 162, 255, 0.5)',
+  strokeWidth: 1,
+  dash: [5, 5],
+});
+
 const handleStageMouseDown = (e: KonvaMouseEvent) => {
   // If editing an HTML element, don't interact with the canvas
   if (boardStore.getEditingElementId) return;
 
+  const stage = e.target.getStage();
+  if (!stage) return;
+
   // Check if clicking on the stage itself, not an element
-  if (e.target === e.target.getStage()) {
+  if (e.target === stage) {
     // Right-click for pan
     if (e.evt.button === 2) { // Right mouse button
+      e.evt.preventDefault();
       isPanning.value = true;
       lastPointerPosition.x = e.evt.clientX;
       lastPointerPosition.y = e.evt.clientY;
     }
-    // Left-click for marquee selection (to be implemented)
+    // Left-click for marquee selection
     else if (e.evt.button === 0) { // Left mouse button
-      boardStore.selectElement(null); // Deselect elements when clicking on empty canvas with left-click
-      // Start marquee selection logic here
+      boardStore.selectElement(null); // Deselect elements
+      
+      const pointer = stage.getPointerPosition();
+      if (pointer) {
+        isSelecting.value = true;
+        // Transform screen coordinates to stage coordinates
+        const stageX = (pointer.x - stage.x()) / stage.scaleX();
+        const stageY = (pointer.y - stage.y()) / stage.scaleY();
+        selectionStart.x = stageX;
+        selectionStart.y = stageY;
+        
+        selectionRectConfig.x = stageX;
+        selectionRectConfig.y = stageY;
+        selectionRectConfig.width = 0;
+        selectionRectConfig.height = 0;
+      }
     }
-  } else {
-    // If clicking on an element, prevent pan (for now)
-    // isPanning.value = false; // Ensure pan is not active if clicking an element
-    // Do nothing specific here, let element handle its own click
   }
 };
 
 const handleStageMouseUp = () => {
   isPanning.value = false;
-  // End marquee selection logic here if it was active
+  isSelecting.value = false;
 };
 
 const handleStageMouseMove = (e: KonvaMouseEvent) => {
-  if (boardStore.getEditingElementId) return; // Don't move canvas while editing HTML
-  if (!isPanning.value) return; // Only pan if isPanning flag is true
+  if (boardStore.getEditingElementId) return;
 
-  const dx = e.evt.clientX - lastPointerPosition.x;
-  const dy = e.evt.clientY - lastPointerPosition.y;
+  const stage = e.target.getStage();
+  if (!stage) return;
 
-  const newX = boardStore.canvasTransform.x + dx;
-  const newY = boardStore.canvasTransform.y + dy;
+  // Handle Pan
+  if (isPanning.value) {
+    const dx = e.evt.clientX - lastPointerPosition.x;
+    const dy = e.evt.clientY - lastPointerPosition.y;
 
-  boardStore.setCanvasTransform({ x: newX, y: newY });
+    const newX = boardStore.canvasTransform.x + dx;
+    const newY = boardStore.canvasTransform.y + dy;
 
-  lastPointerPosition.x = e.evt.clientX;
-  lastPointerPosition.y = e.evt.clientY;
+    boardStore.setCanvasTransform({ x: newX, y: newY });
+
+    lastPointerPosition.x = e.evt.clientX;
+    lastPointerPosition.y = e.evt.clientY;
+    return;
+  }
+
+  // Handle Selection
+  if (isSelecting.value) {
+    const pointer = stage.getPointerPosition();
+    if (!pointer) return;
+
+    const stageX = (pointer.x - stage.x()) / stage.scaleX();
+    const stageY = (pointer.y - stage.y()) / stage.scaleY();
+
+    selectionRectConfig.x = Math.min(stageX, selectionStart.x);
+    selectionRectConfig.y = Math.min(stageY, selectionStart.y);
+    selectionRectConfig.width = Math.abs(stageX - selectionStart.x);
+    selectionRectConfig.height = Math.abs(stageY - selectionStart.y);
+
+    // Collision detection
+    const box = {
+      x: selectionRectConfig.x,
+      y: selectionRectConfig.y,
+      width: selectionRectConfig.width,
+      height: selectionRectConfig.height,
+    };
+
+    const selectedIds: string[] = [];
+    boardStore.getElements.forEach((el) => {
+      // Simple box collision
+      const elBox = {
+        x: el.x,
+        y: el.y,
+        width: el.width || 0,
+        height: el.height || 0,
+      };
+
+      if (
+        box.x < elBox.x + elBox.width &&
+        box.x + box.width > elBox.x &&
+        box.y < elBox.y + elBox.height &&
+        box.y + box.height > elBox.y
+      ) {
+        selectedIds.push(el.id);
+      }
+    });
+    
+    // Batch update selected elements in store
+    boardStore.selectedElementIds = selectedIds;
+  }
 };
 
 // --- Zoom functionality ---

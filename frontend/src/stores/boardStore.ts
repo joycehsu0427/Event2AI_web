@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import axios from 'axios';
 import type { BoardElement } from '@/interfaces/elements';
 import { ElementType } from '@/interfaces/elements'; // Import ElementType as a value
 import type { CanvasTransform, BoardState } from '@/interfaces/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
+import { elementApi } from '@/api';
 
 export interface BoardStoreState {
   elements: BoardElement[];
@@ -42,9 +42,8 @@ export const useBoardStore = defineStore('board', {
         : null;
     },
 
-    async syncElementUpdateToBackend(element: BoardElement) {
+    async syncElementUpdateToBackend(element: BoardElement, updates?: Partial<BoardElement>) {
       const boardId = this.getCurrentBoardId();
-      const token = localStorage.getItem('token');
       
       if (element.type === ElementType.Text) {
         const payload = {
@@ -58,32 +57,35 @@ export const useBoardStore = defineStore('board', {
           fontSize: String(element.fontSize),
         };
         try {
-          await axios.put(`http://localhost:8080/api/text_boxes/${element.id}`, payload, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await elementApi.updateTextBox(element.id, payload);
         } catch (error) {
           console.error(`Failed to update text box ${element.id}:`, error);
         }
       }
 
       else if (element.type === ElementType.StickyNote) {
+        const hasFrameIdUpdate = Boolean(
+          updates && Object.prototype.hasOwnProperty.call(updates, 'frameId')
+        );
+        const frameIDPayload = hasFrameIdUpdate
+          ? (element.frameId === null ? "null" : element.frameId)
+          : null;
+
         const payload = {
           boardId,
           posX: element.x,
           posY: element.y,
           geoX: element.width,
           geoY: element.height,
-          frameID: element.frameId,
+          frameID: frameIDPayload,
           description: element.text,
           color: element.backgroundColor,
           fontColor: element.textColor,
           fontSize: String(element.fontSize),
         };
         try {
-          const res = await axios.put(`http://localhost:8080/api/sticky-notes/${element.id}`, payload, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          console.log("Updated sticky note", res.data);
+          await elementApi.updateStickyNote(element.id, payload);
+          // console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
         }
@@ -99,9 +101,7 @@ export const useBoardStore = defineStore('board', {
           title: element.title
         };
         try {
-          await axios.put(`http://localhost:8080/api/frames/${element.id}`, payload, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
+          await elementApi.updateFrame(element.id, payload);
         } catch (error) {
           console.error(`Failed to update frame ${element.id}:`, error);
         }
@@ -122,7 +122,7 @@ export const useBoardStore = defineStore('board', {
 
         const updatedElement = { ...currentElement, ...updates } as BoardElement;
         this.elements[index] = updatedElement;
-        void this.syncElementUpdateToBackend(updatedElement);
+        void this.syncElementUpdateToBackend(updatedElement, updates);
       }
     },
 

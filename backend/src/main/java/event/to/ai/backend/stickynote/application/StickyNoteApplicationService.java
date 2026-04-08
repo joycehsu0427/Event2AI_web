@@ -126,11 +126,21 @@ public class StickyNoteApplicationService {
         if (request.getFontSize() != null) {
             stickyNote.setFontSize(request.getFontSize());
         }
+        // FrameID != null 代表要更新
         if (request.getFrameID() != null) {
-            stickyNote.setFrameID(request.getFrameID());
+            // 若 FrameId == "null" 代表要將 FrameId 設為空，表示其沒有 parents
+            if(request.getFrameID().equals("null")){
+                stickyNote.setFrameID(null);
+            }
+            // 若 FrameId == UUID 代表要更新為新的 parents
+            else {
+                try {
+                    stickyNote.setFrameID(UUID.fromString(request.getFrameID()));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid FrameID format: " + request.getFrameID());
+                }
+            }
         }
-
-        stickyNote.setFrameID(request.getFrameID());
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
         return convertToDTO(updatedNote);

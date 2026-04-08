@@ -1,8 +1,11 @@
 <template>
-      <v-group
-        ref="elementGroupRef"
-        :config="elementConfig"
-        :id="element.id"    @dragend="handleDragEnd"
+  <v-group
+    ref="elementGroupRef"
+    :config="elementConfig"
+    :id="element.id"
+    @dragstart="handleDragStart"
+    @dragmove="handleDragMove"
+    @dragend="handleDragEnd"
     @click="handleClick"
     @tap="handleClick"
   >
@@ -33,6 +36,7 @@ import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
 import Frame from './Frame.vue';
 import { Group } from 'konva/lib/Group';
+import type { Node as KonvaNode } from 'konva/lib/Node';
 
 const props = defineProps<{
   element: BoardElement;
@@ -40,6 +44,12 @@ const props = defineProps<{
 
 const boardStore = useBoardStore();
 const elementGroupRef = ref<Group | null>(null);
+
+const frameDragState = ref<{
+  frameStartX: number;
+  frameStartY: number;
+  stickyStartPositions: Map<string, { x: number; y: number }>;
+} | null>(null);
 
 const isThisElementBeingEdited = computed(() => boardStore.editingElementId === props.element.id);
 
@@ -60,11 +70,73 @@ const handleClick = (e: any) => {
   boardStore.selectElement(props.element.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey);
 };
 
+const handleDragStart = (e: any) => {
+  if (props.element.type !== ElementType.Frame) {
+    return;
+  }
+
+  const stickyStartPositions = new Map<string, { x: number; y: number }>();
+  boardStore.getElements.forEach((el) => {
+    if (el.type === ElementType.StickyNote && el.frameId === props.element.id) {
+      stickyStartPositions.set(el.id, { x: el.x, y: el.y });
+    }
+  });
+
+  frameDragState.value = {
+    frameStartX: e.target.x(),
+    frameStartY: e.target.y(),
+    stickyStartPositions,
+  };
+};
+
+const handleDragMove = (e: any) => {
+  if (props.element.type !== ElementType.Frame || !frameDragState.value) {
+    return;
+  }
+
+  const stage = e.target.getStage();
+  if (!stage) {
+    return;
+  }
+
+  const dx = e.target.x() - frameDragState.value.frameStartX;
+  const dy = e.target.y() - frameDragState.value.frameStartY;
+
+  frameDragState.value.stickyStartPositions.forEach((startPos, stickyId) => {
+    const stickyNode = stage.find(`#${stickyId}`)[0] as KonvaNode | undefined;
+    if (!stickyNode) {
+      return;
+    }
+
+    stickyNode.x(startPos.x + dx);
+    stickyNode.y(startPos.y + dy);
+  });
+
+  e.target.getLayer()?.batchDraw();
+};
+
 const handleDragEnd = (e: any) => {
+  const newX = e.target.x();
+  const newY = e.target.y();
+
+  if (props.element.type === ElementType.Frame && frameDragState.value) {
+    const dx = newX - frameDragState.value.frameStartX;
+    const dy = newY - frameDragState.value.frameStartY;
+
+    frameDragState.value.stickyStartPositions.forEach((startPos, stickyId) => {
+      boardStore.updateElement(stickyId, {
+        x: startPos.x + dx,
+        y: startPos.y + dy,
+      });
+    });
+
+    frameDragState.value = null;
+  }
+
   // Update element's position in store after drag
   boardStore.updateElement(props.element.id, {
-    x: e.target.x(),
-    y: e.target.y(),
+    x: newX,
+    y: newY,
   });
 };
 

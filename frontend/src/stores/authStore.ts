@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import axios from 'axios'
-import type { User } from '@/types/user'
+import { authApi } from '@/api'
+import type { User } from '@/types/User'
 
 export const useAuthStore = defineStore('auth', () => {
   // ─── State ────────────────────────────────────────────────────────────────
@@ -19,15 +19,12 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/login', {
-        username: username,
-        password: password
-      })
+      const data = await authApi.login(username, password)
       // 儲存 token 與 user
-      token.value = response.data.accessToken
-      user.value = response.data.user ?? null
-      localStorage.setItem('token', response.data.accessToken)
-      localStorage.setItem('user', JSON.stringify(response.data.user))
+      token.value = data.accessToken
+      user.value = (data.user as User | null) ?? null
+      localStorage.setItem('token', data.accessToken)
+      localStorage.setItem('user', JSON.stringify(data.user))
     } catch (err) {
       // Rethrow so the view can display the right message
       const e = err as { response?: { data?: { message?: string } }; message?: string }
@@ -46,11 +43,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     error.value = null
     try {
-      const response = await axios.post('http://localhost:8080/api/auth/register', {
-        username: username,
-        email: email,
-        password: password
-      })
+      await authApi.register(username, email, password)
     } catch (err) {
       const e = err as { response?: { data?: { message?: string } }; message?: string }
       error.value = e?.response?.data?.message ?? e.message ?? '註冊失敗，請再試一次'
@@ -71,10 +64,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (!token.value) return
     try {
       // ── TODO: replace with real API call ────────────────────────────────
-      // const response = await axios.get('/api/auth/me', {
+      // const response = await authApi.me(token.value)
       //   headers: { Authorization: `Bearer ${token.value}` },
       // })
-      // user.value = response.data
+      // user.value = response
       // ─────────────────────────────────────────────────────────────────────
     } catch {
       logout()
