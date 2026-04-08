@@ -27,14 +27,17 @@ public class StickyNoteApplicationService {
     private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
+    private final BoardRealtimePublisher boardRealtimePublisher; ;
 
     @Autowired
     public StickyNoteApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
                                         BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                        BoardRepositoryPort boardRepositoryPort) {
+                                        BoardRepositoryPort boardRepositoryPort,
+                                        BoardRealtimePublisher boardRealtimePublisher) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
+        this.boardRealtimePublisher = boardRealtimePublisher;
     }
 
     public List<StickyNoteDTO> getAllStickyNotes(UUID actorUserId) {
