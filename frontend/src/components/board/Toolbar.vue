@@ -12,7 +12,7 @@
              class="color-swatch"
              :style="{ backgroundColor: color }"
              @click="addStickyNote(color)"
-             title="Pick color and add note"
+             :title="getNameByHex(color)"
         ></div>
       </div>
     </div>

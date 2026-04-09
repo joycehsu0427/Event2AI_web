@@ -38,6 +38,14 @@ export const getNameByHex = (hex: string): string => {
 export const STICKY_NOTE_COLOR_NAMES = EVENT_STORMING_COLORS.map(c => c.name);
 
 /**
+ * Utility to get Role (Semantic Label) by HEX color
+ */
+export const getRoleByHex = (hex: string): string => {
+  const color = EVENT_STORMING_COLORS.find(c => c.hex.toLowerCase() === hex.toLowerCase());
+  return color ? color.role : '';
+};
+
+/**
  * List of available color hex codes (for UI selection)
  */
 export const STICKY_NOTE_COLOR_PALETTE = EVENT_STORMING_COLORS.map(c => c.hex);

@@ -31,7 +31,7 @@
            class="mini-color-swatch"
            :style="{ backgroundColor: color }"
            @click="boardStore.updateSelectedElementsColor(color)"
-           title="Change sticky note color"
+           :title="getNameByHex(color)"
       ></div>
     </div>
   </div>
@@ -48,7 +48,7 @@ import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
 import { ElementType } from '@/interfaces/elements';
-import { STICKY_NOTE_COLOR_PALETTE } from '@/constants/colors';
+import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
