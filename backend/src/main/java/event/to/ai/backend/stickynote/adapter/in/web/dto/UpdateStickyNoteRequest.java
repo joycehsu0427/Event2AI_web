@@ -8,7 +8,7 @@ public class UpdateStickyNoteRequest {
 
     private UUID boardId;
 
-    private String frameID;
+    private String frameId;
 
     private Double posX;
 
@@ -34,10 +34,10 @@ public class UpdateStickyNoteRequest {
     public UpdateStickyNoteRequest() {
     }
 
-    public UpdateStickyNoteRequest(UUID boardId, String frameID, Double posX, Double posY, Double geoX, Double geoY,
+    public UpdateStickyNoteRequest(UUID boardId, String frameId, Double posX, Double posY, Double geoX, Double geoY,
                                    String description, String color, String tag, String fontColor, String fontSize) {
         this.boardId = boardId;
-        this.frameID = frameID;
+        this.frameId = frameId;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;
@@ -57,12 +57,12 @@ public class UpdateStickyNoteRequest {
         this.boardId = boardId;
     }
 
-    public String getFrameID() {
-        return frameID;
+    public String getFrameId() {
+        return frameId;
     }
 
-    public void setFrameID(String frameID) {
-        this.frameID = frameID;
+    public void setFrameId(String frameId) {
+        this.frameId = frameId;
     }
 
     // Getters and Setters

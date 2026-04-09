@@ -2,12 +2,16 @@ package event.to.ai.backend.websocket.interceptor;
 
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.security.AuthUserPrincipal;
+import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.security.Principal;
@@ -19,11 +23,15 @@ import java.util.regex.Pattern;
 public class BoardSubscriptionAuthorizationChannelInterceptor implements ChannelInterceptor {
 
     private static final Pattern BOARD_TOPIC_PATTERN = Pattern.compile("^/topic/boards/([^/]+)(?:/events)?$");
+    private static final Logger log = LoggerFactory.getLogger(BoardSubscriptionAuthorizationChannelInterceptor.class);
 
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+    private final UserRepositoryPort userRepositoryPort;
 
-    public BoardSubscriptionAuthorizationChannelInterceptor(BoardMembershipRepositoryPort boardMembershipRepositoryPort) {
+    public BoardSubscriptionAuthorizationChannelInterceptor(BoardMembershipRepositoryPort boardMembershipRepositoryPort,
+                                                           UserRepositoryPort userRepositoryPort) {
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
+        this.userRepositoryPort = userRepositoryPort;
     }
 
     @Override
@@ -45,13 +53,44 @@ public class BoardSubscriptionAuthorizationChannelInterceptor implements Channel
 
         UUID boardId = extractBoardId(destination);
         Principal principal = accessor.getUser();
-        if (!(principal instanceof AuthUserPrincipal authUserPrincipal)) {
+        log.info("STOMP SUBSCRIBE attempt destination={}, principalClass={}, principalName={}",
+                destination,
+                principal == null ? null : principal.getClass().getName(),
+                principal == null ? null : principal.getName());
+
+        UUID userId = resolveUserId(principal);
+        boolean isMember = boardMembershipRepositoryPort.existsByBoardIdAndUserId(boardId, userId);
+        log.info("STOMP SUBSCRIBE authorization boardId={}, userId={}, isMember={}", boardId, userId, isMember);
+
+        if (!isMember) {
+            throw new AccessDeniedException("User is not a member of board: " + boardId);
+        }
+    }
+
+    private UUID resolveUserId(Principal principal) {
+        if (principal == null) {
             throw new AccessDeniedException("Unauthenticated STOMP subscriber");
         }
 
-        if (!boardMembershipRepositoryPort.existsByBoardIdAndUserId(boardId, authUserPrincipal.getId())) {
-            throw new AccessDeniedException("User is not a member of board: " + boardId);
+        if (principal instanceof AuthUserPrincipal authUserPrincipal) {
+            return authUserPrincipal.getId();
         }
+
+        if (principal instanceof Authentication authentication) {
+            Object authenticationPrincipal = authentication.getPrincipal();
+            if (authenticationPrincipal instanceof AuthUserPrincipal authUserPrincipal) {
+                return authUserPrincipal.getId();
+            }
+        }
+
+        String username = principal.getName();
+        if (username == null || username.isBlank()) {
+            throw new AccessDeniedException("Unauthenticated STOMP subscriber");
+        }
+
+        return userRepositoryPort.findByUsername(username)
+                .map(user -> user.getId())
+                .orElseThrow(() -> new AccessDeniedException("Unauthenticated STOMP subscriber"));
     }
 
     private UUID extractBoardId(String destination) {

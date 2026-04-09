@@ -6,7 +6,7 @@ public class StickyNoteDTO {
 
     private UUID id;
     private UUID boardId;
-    private UUID frameID;
+    private UUID frameId;
     private Double posX;
     private Double posY;
     private Double geoX;
@@ -21,11 +21,11 @@ public class StickyNoteDTO {
     public StickyNoteDTO() {
     }
 
-    public StickyNoteDTO(UUID id, UUID boardId,UUID frameID, Double posX, Double posY, Double geoX, Double geoY,
+    public StickyNoteDTO(UUID id, UUID boardId, UUID frameId, Double posX, Double posY, Double geoX, Double geoY,
                         String description, String color, String tag, String fontColor, String fontSize) {
         this.id = id;
         this.boardId = boardId;
-        this.frameID = frameID;
+        this.frameId = frameId;
         this.posX = posX;
         this.posY = posY;
         this.geoX = geoX;
@@ -54,12 +54,12 @@ public class StickyNoteDTO {
         this.boardId = boardId;
     }
 
-    public UUID getFrameID() {
-        return frameID;
+    public UUID getFrameId() {
+        return frameId;
     }
 
-    public void setFrameID(UUID frameID) {
-        this.frameID = frameID;
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public Double getPosX() {

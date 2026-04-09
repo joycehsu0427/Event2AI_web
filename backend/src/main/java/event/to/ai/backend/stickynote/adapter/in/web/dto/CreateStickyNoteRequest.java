@@ -11,7 +11,7 @@ public class CreateStickyNoteRequest {
     @NotNull(message = "Board ID is required")
     private UUID boardId;
 
-    private UUID frameID;
+    private UUID frameId;
 
     @NotNull(message = "Position X is required")
     private Double posX;
@@ -68,12 +68,12 @@ public class CreateStickyNoteRequest {
         this.boardId = boardId;
     }
 
-    public UUID getFrameID() {
-        return frameID;
+    public UUID getFrameId() {
+        return frameId;
     }
 
-    public void setFrameID(UUID frameID) {
-        this.frameID = frameID;
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     // Getters and Setters

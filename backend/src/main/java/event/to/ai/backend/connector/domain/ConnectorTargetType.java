@@ -4,5 +4,6 @@ public enum ConnectorTargetType {
     STICKY_NOTE,
     TEXT_BOX,
     FRAME,
+    DOMAIN_ENTITY,
     FREE_POINT
 }

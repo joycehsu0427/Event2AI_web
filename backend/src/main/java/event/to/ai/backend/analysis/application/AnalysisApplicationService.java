@@ -96,7 +96,7 @@ public class AnalysisApplicationService {
 
     private StickyNote toDomainStickyNote(
             event.to.ai.backend.stickynote.adapter.out.persistence.entity.StickyNote note) {
-        String frameId = note.getFrameID() != null ? note.getFrameID().toString() : null;
+        String frameId = note.getFrameId() != null ? note.getFrameId().toString() : null;
         return new StickyNote(
                 note.getId().toString(),
                 note.getDescription(),

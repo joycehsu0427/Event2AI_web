@@ -68,7 +68,7 @@ export const useBoardStore = defineStore('board', {
         const hasFrameIdUpdate = Boolean(
           updates && Object.prototype.hasOwnProperty.call(updates, 'frameId')
         );
-        const frameIDPayload = hasFrameIdUpdate
+        const frameIdPayload = hasFrameIdUpdate
           ? (element.frameId === null ? "null" : element.frameId)
           : null;
 
@@ -78,7 +78,7 @@ export const useBoardStore = defineStore('board', {
           posY: element.y,
           geoX: element.width,
           geoY: element.height,
-          frameID: frameIDPayload,
+          frameId: frameIdPayload,
           description: element.text,
           color: getNameByHex(element.backgroundColor), // Convert Hex to name for backend
           fontColor: element.textColor,
