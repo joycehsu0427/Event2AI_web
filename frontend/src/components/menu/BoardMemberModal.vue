@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, computed } from 'vue'
 import { boardApi, userApi } from '@/api'
-import type { Board } from '@/types/board'
-import type { BoardMember, BoardMemberRole } from '@/types/board'
+import type { Board } from '@/types/api/board'
+import type { BoardMember, BoardMemberRole } from '@/types/api/board'
 import { useAuthStore } from '@/stores/authStore'
 
 const props = defineProps<{

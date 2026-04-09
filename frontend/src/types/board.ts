@@ -1,20 +1,13 @@
-export interface Board {
-  id: string
-  title: string
-  description: string
-  color: string
-  ownerUserId: string
-  ownerName: string
-  currentUserRole?: BoardMemberRole
+import type { BoardElement } from './elements';
+
+export interface CanvasTransform {
+  x: number;
+  y: number;
+  scale: number;
 }
 
-export type BoardMemberRole = 'VIEWER' | 'EDITOR' | 'OWNER'
-
-export interface BoardMember {
-  boardId: string
-  userId: string
-  username: string
-  email: string
-  role: BoardMemberRole
+export interface BoardState {
+  elements: BoardElement[];
+  canvasTransform: CanvasTransform;
+  // Add other global board settings if necessary
 }
-

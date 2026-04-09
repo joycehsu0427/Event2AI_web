@@ -47,7 +47,7 @@ import type { Node as KonvaNode } from 'konva/lib/Node';
 import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
-import { ElementType } from '@/interfaces/elements';
+import { ElementType } from '@/types/elements';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const boardStore = useBoardStore();

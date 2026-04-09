@@ -35,7 +35,7 @@
 import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
+import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
 import { elementApi, commonApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';

@@ -1,6 +1,6 @@
 import { defineStore } from 'pinia';
 import { useBoardStore } from './boardStore';
-import type { BoardState } from '@/interfaces/board';
+import type { BoardState } from '@/types/board';
 
 interface HistoryStoreState {
   history: BoardState[];
