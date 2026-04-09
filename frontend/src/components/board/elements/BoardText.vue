@@ -11,7 +11,7 @@
     <div v-if="isEditing" :style="textareaWrapperStyle">
       <textarea
         ref="textareaRef"
-        v-model="editedText"
+        v-model="draftValue"
         :style="textareaStyle"
         @blur="handleTextareaBlur"
         @keydown.enter="handleEnterKey"
@@ -22,10 +22,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, nextTick, reactive } from 'vue';
+import { computed, ref, nextTick } from 'vue';
 import type { TextElement } from '@/interfaces/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
+import { useBoardElementEditor } from './boardElementContext';
 
 const props = defineProps<{
   element: TextElement;
@@ -33,13 +34,20 @@ const props = defineProps<{
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
+const editor = useBoardElementEditor();
+const {
+  isEditing,
+  draftValue,
+  textareaWrapperStyle,
+  textareaStyle,
+  startEditing,
+  commitEditing,
+  cancelEditing,
+  handleEnterKey: handleEditorEnterKey,
+} = editor;
 
 const vTextRef = ref<InstanceType<any> | null>(null);
 const textareaRef = ref<HTMLTextAreaElement | null>(null);
-const isEditing = ref(false);
-const editedText = ref(props.element.text);
-
-const editingPos = reactive({ left: '0px', top: '0px', width: '0px', height: '0px', fontSize: '14px' });
 
 const rectConfig = computed(() => ({
   width: props.element.width,
@@ -61,8 +69,6 @@ const textConfig = computed(() => ({
   verticalAlign: 'top',
 }));
 
-let initialElementText = '';
-
 const handleDblClick = (e: any) => {
   e.evt.stopPropagation();
 
@@ -76,20 +82,17 @@ const handleDblClick = (e: any) => {
   const stage = textNode.getStage();
   if (!stage) return;
 
-  const scale = stage.scaleX();
-  const stageRect = stage.container().getBoundingClientRect();
-  const textRect = textNode.getClientRect({ skipTransform: false });
-
-  editingPos.left = `${stageRect.left + textRect.x}px`;
-  editingPos.top = `${stageRect.top + textRect.y}px`;
-  editingPos.width = `${textRect.width}px`;
-  editingPos.height = `${textRect.height}px`;
-  editingPos.fontSize = `${props.element.fontSize * scale}px`;
-
-  initialElementText = props.element.text;
-  isEditing.value = true;
-  editedText.value = props.element.text;
-  boardStore.setEditingElement(props.element.id);
+  if (!startEditing({
+    anchorNode: textNode,
+    initialValue: props.element.text,
+    fontSize: props.element.fontSize,
+    onCommit: (value) => {
+      boardStore.updateElement(props.element.id, { text: value });
+      historyStore.addState();
+    },
+  })) {
+    return;
+  }
 
   nextTick(() => {
     textareaRef.value?.focus();
@@ -98,53 +101,16 @@ const handleDblClick = (e: any) => {
 };
 
 const handleTextareaBlur = () => {
-  if (isEditing.value) {
-    isEditing.value = false;
-    boardStore.setEditingElement(null);
-    if (editedText.value !== initialElementText) {
-      boardStore.updateElement(props.element.id, { text: editedText.value });
-      historyStore.addState();
-    }
-  }
+  commitEditing();
 };
 
 const handleEnterKey = (e: KeyboardEvent) => {
-  if (!e.shiftKey) {
-    e.preventDefault();
-    textareaRef.value?.blur();
-  }
+  handleEditorEnterKey(e, true);
 };
 
 const handleEscapeKey = () => {
-  isEditing.value = false;
-  editedText.value = initialElementText;
-  boardStore.setEditingElement(null);
+  cancelEditing();
 };
-
-const textareaWrapperStyle = computed(() => ({
-  position: 'fixed' as const,
-  left: editingPos.left,
-  top: editingPos.top,
-  width: editingPos.width,
-  height: editingPos.height,
-  zIndex: '9999',
-}));
-
-const textareaStyle = computed(() => ({
-  width: '100%',
-  height: '100%',
-  fontSize: editingPos.fontSize,
-  fontFamily: 'inherit',
-  color: props.element.textColor,
-  background: 'transparent',
-  border: '1px dashed #ccc',
-  padding: '5px',
-  margin: '0',
-  overflow: 'hidden',
-  resize: 'none' as const,
-  boxSizing: 'border-box' as const,
-  outline: 'none',
-}));
 </script>
 
 <style scoped>
