@@ -23,7 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, provide, onBeforeUnmount } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import {
   type BoardElement,
@@ -37,6 +37,8 @@ import BoardText from './BoardText.vue';
 import Frame from './Frame.vue';
 import { Group } from 'konva/lib/Group';
 import type { Node as KonvaNode } from 'konva/lib/Node';
+import { boardElementEditorKey } from './boardElementContext';
+import { useInlineEditorController } from './useInlineEditorController';
 
 const props = defineProps<{
   element: BoardElement;
@@ -51,7 +53,44 @@ const frameDragState = ref<{
   stickyStartPositions: Map<string, { x: number; y: number }>;
 } | null>(null);
 
+const editor = useInlineEditorController({
+  elementId: props.element.id,
+  styles: {
+    textarea: (position) => ({
+      width: '100%',
+      height: '100%',
+      fontSize: position.fontSize,
+      fontFamily: 'inherit',
+      color: props.element.type === ElementType.StickyNote ? props.element.textColor : '#2c3e50',
+      background: props.element.type === ElementType.StickyNote ? props.element.backgroundColor : 'transparent',
+      border: '1px dashed #ccc',
+      padding: '5px',
+      margin: '0',
+      overflow: 'hidden',
+      resize: 'none' as const,
+      boxSizing: 'border-box' as const,
+      outline: 'none',
+    }),
+    input: (position) => ({
+      width: '100%',
+      height: '100%',
+      fontSize: position.fontSize,
+      fontWeight: '700',
+      color: '#2c3e50',
+      background: 'rgba(255, 255, 255, 0.92)',
+      border: '1px dashed #7f8c8d',
+      borderRadius: '4px',
+      padding: '2px 6px',
+      margin: '0',
+      boxSizing: 'border-box' as const,
+      outline: 'none',
+    }),
+  },
+});
+
 const isThisElementBeingEdited = computed(() => boardStore.editingElementId === props.element.id);
+
+provide(boardElementEditorKey, editor);
 
 // Configuration for the Konva Group that wraps each element
 const elementConfig = computed(() => ({
@@ -139,6 +178,11 @@ const handleDragEnd = (e: any) => {
     y: newY,
   });
 };
+
+onBeforeUnmount(() => {
+  boardStore.setEditingElement(null);
+  frameDragState.value = null;
+});
 
 // No transformend handler here, as transformer is no longer in this component
 </script>

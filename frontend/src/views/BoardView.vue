@@ -44,10 +44,10 @@ function connectBoardTopic(boardId: string) {
       Authorization: `Bearer ${token}`,
     },
     onConnect: () => {
+      console.log("websocket connected!")
       boardSubscription = client.subscribe(
         `/topic/boards/${boardId}/events`,
         (message: IMessage) => {
-          console.log("websocket connected!")
           console.log('board event:', message.body)
           // TODO: 等 payload 格式定案後再 parse / 更新 store
         },
@@ -148,9 +148,9 @@ onMounted(() => {
   window.addEventListener('keydown', handleKeyDown);
 
   // Poll board data in the background using the shared timer store.
-  timerStore.start(async () => {
-    await fetchBoardData(boardId);
-  }, POLLING_INTERVAL_MS);
+  // timerStore.start(async () => {
+  //   await fetchBoardData(boardId);
+  // }, POLLING_INTERVAL_MS);
 });
 
 onUnmounted(() => {
