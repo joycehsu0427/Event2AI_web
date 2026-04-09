@@ -7,6 +7,7 @@ import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
 import { elementApi } from '@/api';
+import { getNameByHex } from '@/constants/colors';
 
 export interface BoardStoreState {
   elements: BoardElement[];
@@ -79,7 +80,7 @@ export const useBoardStore = defineStore('board', {
           geoY: element.height,
           frameID: frameIDPayload,
           description: element.text,
-          color: element.backgroundColor,
+          color: getNameByHex(element.backgroundColor), // Convert Hex to name for backend
           fontColor: element.textColor,
           fontSize: String(element.fontSize),
         };

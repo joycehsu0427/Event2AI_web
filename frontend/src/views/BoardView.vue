@@ -17,6 +17,7 @@ import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
 import { boardApi } from '@/api';
+import { getHexByName } from '@/constants/colors';
 
 const route = useRoute();
 const boardId = route.params.boardId as string;
@@ -41,7 +42,7 @@ async function fetchBoardData(boardId: string) {
       text: note.description,
       fontSize: Number(note.fontSize) || 20,
       textColor: note.fontColor || '#000000',
-      backgroundColor: note.color || '#ffeb3b',
+      backgroundColor: getHexByName(note.color), // Convert name from backend to Hex
       draggable: true,
     }));
 
@@ -74,9 +75,9 @@ async function fetchBoardData(boardId: string) {
 
     const state: BoardStoreState = {
       elements: [...stickyNoteElements, ...textElements, ...frameElements],
-      selectedElementIds: [],
+      selectedElementIds: boardStore.selectedElementIds,
       canvasTransform: canvasTransform,
-      editingElementId: null,
+      editingElementId: boardStore.getEditingElementId,
       defaultStickyNoteColor: '#ffeb3b'
     };
     boardStore.loadBoardState(state);

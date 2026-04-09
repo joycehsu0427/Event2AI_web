@@ -1,5 +1,5 @@
 <template>
-  <div ref="containerRef" class="miro-board">
+  <div ref="containerRef" class="miro-board" @contextmenu.prevent>
     <v-stage
       ref="stageRef"
       :config="stageConfig"
@@ -24,11 +24,21 @@
         />
       </v-layer>
     </v-stage>
+
+    <!-- Floating Mini-Toolbar for selected Sticky Note -->
+    <div v-if="showFloatingToolbar" class="floating-toolbar" :style="floatingToolbarStyle">
+      <div v-for="color in stickyNoteColors" :key="color"
+           class="mini-color-swatch"
+           :style="{ backgroundColor: color }"
+           @click="boardStore.updateSelectedElementsColor(color)"
+           title="Change sticky note color"
+      ></div>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import type { Stage as KonvaStage } from 'konva/lib/Stage';
@@ -38,6 +48,7 @@ import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
 import { ElementType } from '@/interfaces/elements';
+import { STICKY_NOTE_COLOR_PALETTE } from '@/constants/colors';
 
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
@@ -46,6 +57,8 @@ const containerRef = ref<HTMLDivElement | null>(null);
 const stageRef = ref<{ getStage: () => KonvaStage } | null>(null);
 const elementsLayerRef = ref<{ getStage: () => KonvaLayer } | null>(null);
 const transformerRef = ref<Transformer | null>(null); // Ref for Konva Transformer
+
+const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
 
 const stageConfig = reactive({
   width: 0,
@@ -69,6 +82,35 @@ const renderedElements = computed(() => {
   );
 });
 
+// --- Floating Toolbar Logic ---
+const showFloatingToolbar = computed(() => {
+  if (boardStore.selectedElementIds.length !== 1) return false;
+  const selectedId = boardStore.selectedElementIds[0];
+  const element = boardStore.getElementById(selectedId);
+  return element?.type === ElementType.StickyNote;
+});
+
+const floatingToolbarStyle = computed(() => {
+  if (boardStore.selectedElementIds.length !== 1) return {};
+  const selectedId = boardStore.selectedElementIds[0];
+  const element = boardStore.getElementById(selectedId);
+  if (!element) return {};
+
+  const { x, y, scale } = boardStore.canvasTransform;
+  
+  // Convert stage coordinates to screen coordinates
+  // Position it at the horizontal center of the sticky note
+  const left = (element.x * scale) + x + (element.width * scale / 2);
+  const top = (element.y * scale) + y - 100; // 60px above the element
+
+  return {
+    position: 'absolute' as const,
+    left: `${left}px`,
+    top: `${top}px`,
+    zIndex: 1002,
+  };
+});
+
 // Watch for changes in board elements to record history
 watch(() => boardStore.elements, () => {
   historyStore.addState();
@@ -78,10 +120,9 @@ watch(() => boardStore.elements, () => {
 watch(() => boardStore.getEditingElementId, (editingElementId) => {
   const stageContainer = stageRef.value?.getStage().container();
   if (stageContainer) {
-    // The actual canvas is inside a div with class 'konvajs-content'
     const konvaContentDiv = stageContainer.parentElement;
     if (konvaContentDiv) {
-      konvaContentDiv.style.zIndex = editingElementId !== null ? '0' : '1'; // Push Konva behind HTML element
+      konvaContentDiv.style.zIndex = editingElementId !== null ? '0' : '1';
     }
   }
 });
@@ -95,16 +136,14 @@ watch(() => boardStore.selectedElementIds, (newSelection) => {
   if (newSelection.length > 0) {
     const selectedNodes: KonvaNode[] = [];
     newSelection.forEach(id => {
-      // Find the Konva group node for the selected element
-      // Using .find() with a selector like '#id' is more reliable
-      const node = stage.find(`#${id}`)[0]; // Assuming BoardElement's root v-group has id
+      const node = stage.find(`#${id}`)[0];
       if (node) {
         selectedNodes.push(node);
       }
     });
     transformer.nodes(selectedNodes);
   } else {
-    transformer.nodes([]); // Deselect all
+    transformer.nodes([]);
   }
   transformer.getLayer()?.batchDraw();
 }, { immediate: true });
@@ -131,8 +170,6 @@ const handleTransformEnd = (e: any) => {
   }
 };
 
-
-// --- Canvas Resizing ---
 const updateStageSize = () => {
   if (containerRef.value) {
     stageConfig.width = containerRef.value.offsetWidth;
@@ -149,11 +186,9 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateStageSize);
 });
 
-// --- Pan functionality ---
-const isPanning = ref(false); // Flag to track if right-click panning is active
+// --- Pan & Selection functionality ---
+const isPanning = ref(false);
 const lastPointerPosition = reactive({ x: 0, y: 0 });
-
-// --- Selection functionality ---
 const isSelecting = ref(false);
 const selectionStart = reactive({ x: 0, y: 0 });
 const selectionRectConfig = reactive({
@@ -168,34 +203,26 @@ const selectionRectConfig = reactive({
 });
 
 const handleStageMouseDown = (e: KonvaMouseEvent) => {
-  // If editing an HTML element, don't interact with the canvas
   if (boardStore.getEditingElementId) return;
-
   const stage = e.target.getStage();
   if (!stage) return;
 
-  // Check if clicking on the stage itself, not an element
   if (e.target === stage) {
-    // Right-click for pan
-    if (e.evt.button === 2) { // Right mouse button
+    if (e.evt.button === 2) {
       e.evt.preventDefault();
       isPanning.value = true;
       lastPointerPosition.x = e.evt.clientX;
       lastPointerPosition.y = e.evt.clientY;
     }
-    // Left-click for marquee selection
-    else if (e.evt.button === 0) { // Left mouse button
-      boardStore.selectElement(null); // Deselect elements
-      
+    else if (e.evt.button === 0) {
+      boardStore.selectElement(null);
       const pointer = stage.getPointerPosition();
       if (pointer) {
         isSelecting.value = true;
-        // Transform screen coordinates to stage coordinates
         const stageX = (pointer.x - stage.x()) / stage.scaleX();
         const stageY = (pointer.y - stage.y()) / stage.scaleY();
         selectionStart.x = stageX;
         selectionStart.y = stageY;
-        
         selectionRectConfig.x = stageX;
         selectionRectConfig.y = stageY;
         selectionRectConfig.width = 0;
@@ -212,30 +239,24 @@ const handleStageMouseUp = () => {
 
 const handleStageMouseMove = (e: KonvaMouseEvent) => {
   if (boardStore.getEditingElementId) return;
-
   const stage = e.target.getStage();
   if (!stage) return;
 
-  // Handle Pan
   if (isPanning.value) {
     const dx = e.evt.clientX - lastPointerPosition.x;
     const dy = e.evt.clientY - lastPointerPosition.y;
-
-    const newX = boardStore.canvasTransform.x + dx;
-    const newY = boardStore.canvasTransform.y + dy;
-
-    boardStore.setCanvasTransform({ x: newX, y: newY });
-
+    boardStore.setCanvasTransform({
+      x: boardStore.canvasTransform.x + dx,
+      y: boardStore.canvasTransform.y + dy
+    });
     lastPointerPosition.x = e.evt.clientX;
     lastPointerPosition.y = e.evt.clientY;
     return;
   }
 
-  // Handle Selection
   if (isSelecting.value) {
     const pointer = stage.getPointerPosition();
     if (!pointer) return;
-
     const stageX = (pointer.x - stage.x()) / stage.scaleX();
     const stageY = (pointer.y - stage.y()) / stage.scaleY();
 
@@ -244,63 +265,39 @@ const handleStageMouseMove = (e: KonvaMouseEvent) => {
     selectionRectConfig.width = Math.abs(stageX - selectionStart.x);
     selectionRectConfig.height = Math.abs(stageY - selectionStart.y);
 
-    // Collision detection
-    const box = {
-      x: selectionRectConfig.x,
-      y: selectionRectConfig.y,
-      width: selectionRectConfig.width,
-      height: selectionRectConfig.height,
-    };
-
     const selectedIds: string[] = [];
     boardStore.getElements.forEach((el) => {
-      // Simple box collision
-      const elBox = {
-        x: el.x,
-        y: el.y,
-        width: el.width || 0,
-        height: el.height || 0,
-      };
-
       if (
-        box.x < elBox.x + elBox.width &&
-        box.x + box.width > elBox.x &&
-        box.y < elBox.y + elBox.height &&
-        box.y + box.height > elBox.y
+        selectionRectConfig.x < el.x + (el.width || 0) &&
+        selectionRectConfig.x + selectionRectConfig.width > el.x &&
+        selectionRectConfig.y < el.y + (el.height || 0) &&
+        selectionRectConfig.y + selectionRectConfig.height > el.y
       ) {
         selectedIds.push(el.id);
       }
     });
-    
-    // Batch update selected elements in store
     boardStore.selectedElementIds = selectedIds;
   }
 };
 
-// --- Zoom functionality ---
 const ZOOM_FACTOR = 1.1;
-
 const handleWheel = (e: KonvaMouseEvent) => {
-  e.evt.preventDefault(); // Prevent page scrolling
-
+  e.evt.preventDefault();
   const stage = stageRef.value?.getStage();
   if (!stage) return;
-
   const oldScale = boardStore.canvasTransform.scale;
   const pointer = stage.getPointerPosition();
   if (!pointer) return;
-
   const mousePointTo = {
     x: (pointer.x - stage.x()) / oldScale,
     y: (pointer.y - stage.y()) / oldScale,
   };
-
   const newScale = e.evt.deltaY > 0 ? oldScale / ZOOM_FACTOR : oldScale * ZOOM_FACTOR;
-
-  const newX = pointer.x - mousePointTo.x * newScale;
-  const newY = pointer.y - mousePointTo.y * newScale;
-
-  boardStore.setCanvasTransform({ x: newX, y: newY, scale: newScale });
+  boardStore.setCanvasTransform({
+    x: pointer.x - mousePointTo.x * newScale,
+    y: pointer.y - mousePointTo.y * newScale,
+    scale: newScale
+  });
 };
 </script>
 
@@ -310,5 +307,30 @@ const handleWheel = (e: KonvaMouseEvent) => {
   height: 100%;
   overflow: hidden;
   position: relative;
+}
+
+.floating-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 6px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  pointer-events: auto;
+  transform: translateX(-50%);
+  transition: top 0.1s ease-out, left 0.1s ease-out;
+}
+
+.mini-color-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  transition: transform 0.1s;
+}
+
+.mini-color-swatch:hover {
+  transform: scale(1.2);
 }
 </style>

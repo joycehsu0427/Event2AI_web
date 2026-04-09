@@ -1,46 +1,51 @@
 <template>
   <div class="toolbar">
     <!-- Tools for adding elements -->
-    <button @click="addStickyNote" title="Add Sticky Note">Sticky</button>
+    <div class="sticky-tool-container">
+      <button @click="showColorPicker = !showColorPicker" :class="{ active: showColorPicker }" title="Add Sticky Note">
+        Sticky
+      </button>
+      
+      <!-- Popover Color Picker -->
+      <div v-if="showColorPicker" class="color-picker-popover">
+        <div v-for="color in stickyNoteColors" :key="color"
+             class="color-swatch"
+             :style="{ backgroundColor: color }"
+             @click="addStickyNote(color)"
+             title="Pick color and add note"
+        ></div>
+      </div>
+    </div>
+
     <button @click="addTextElement" title="Add Text">Text</button>
     <button @click="addFrameElement" title="Add Frame">Frame</button>
 
-    <!-- Color options for Sticky Notes -->
-    <div class="color-palette">
-      <div v-for="color in stickyNoteColors" :key="color"
-           class="color-swatch"
-           :style="{ backgroundColor: color, border: boardStore.defaultStickyNoteColor === color ? '2px solid #007bff' : '1px solid #ccc' }"
-           @click="selectDefaultColor(color)"
-           title="Set default sticky note color"
-      ></div>
-    </div>
-    <button @click="applyColorToSelected" :disabled="!canApplyColorToSelected" title="Apply color to selected">Apply Color</button>
-
-
     <!-- Undo/Redo/Delete -->
+    <div class="divider"></div>
     <button @click="historyStore.undo()" :disabled="!historyStore.canUndo" title="Undo">Undo</button>
     <button @click="historyStore.redo()" :disabled="!historyStore.canRedo" title="Redo">Redo</button>
     <button @click="deleteSelectedElements" :disabled="boardStore.selectedElementIds.length === 0" title="Delete Selected">Delete</button>
-    <!-- Future: Zoom controls, Pan mode, etc. -->
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
+import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
 import { useRoute } from 'vue-router';
 import { elementApi } from '@/api';
+import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const route = useRoute();
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const boardId = route.params.boardId as string;
 
-const stickyNoteColors = ['#ffeb3b', '#c1e1c1', '#add8e6', '#ffb6c1', '#d3d3d3']; // Yellow, Green, Blue, Pink, Grey
+const showColorPicker = ref(false);
+const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
 
-async function addStickyNoteApi() {
+async function addStickyNoteApi(colorHex: string) {
   try {
     const data = await elementApi.createStickyNote({
       boardId: boardId,
@@ -49,7 +54,7 @@ async function addStickyNoteApi() {
       geoX: 150,
       geoY: 150,
       description: 'New Sticky Note',
-      color: boardStore.getDefaultStickyNoteColor,
+      color: getNameByHex(colorHex), // Send color name (e.g., 'blue') to backend
       tag: 'sticky-note',
       fontColor: '#000000',
       fontSize: 20
@@ -61,8 +66,8 @@ async function addStickyNoteApi() {
   }
 }
 
-const addStickyNote = async () => {
-  const createdId = await addStickyNoteApi();
+const addStickyNote = async (color: string) => {
+  const createdId = await addStickyNoteApi(color);
   if (!createdId) return;
 
   const newStickyNote: Omit<StickyNoteElement, 'id'> = {
@@ -74,11 +79,14 @@ const addStickyNote = async () => {
     text: 'New Sticky Note',
     fontSize: 20,
     textColor: '#000000',
-    backgroundColor: boardStore.getDefaultStickyNoteColor, // Use default color from store
+    backgroundColor: color,
     draggable: true,
   };
   boardStore.addElement(newStickyNote, createdId);
   historyStore.addState(); // Record state change
+  
+  // Close the picker after selection
+  showColorPicker.value = false;
 };
 
 async function addTextElementApi() {
@@ -90,7 +98,7 @@ async function addTextElementApi() {
       geoX: 200,
       geoY: 40,
       description: 'New Text',
-      color: boardStore.getDefaultStickyNoteColor,
+      color: 'yellow', // Default color name
       tag: 'text-box',
       fontColor: '#000000',
       fontSize: 24
@@ -222,49 +230,85 @@ const applyColorToSelected = () => {
   display: flex;
   gap: 10px;
   padding: 10px;
-  background-color: #f0f0f0;
+  background-color: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  align-items: center;
+}
+
+.sticky-tool-container {
+  position: relative;
+}
+
+.color-picker-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  background: white;
+  padding: 8px;
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  align-items: center; /* Align items vertically */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  gap: 8px;
+  z-index: 1001;
+}
+
+.color-picker-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 20px;
+  width: 12px;
+  height: 12px;
+  background: white;
+  transform: rotate(45deg);
+}
+
+.divider {
+  width: 1px;
+  height: 24px;
+  background-color: #e0e0e0;
+  margin: 0 5px;
 }
 
 .toolbar button {
   padding: 8px 15px;
-  border: none;
-  border-radius: 5px;
-  background-color: #007bff;
-  color: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: #333;
   cursor: pointer;
   font-size: 14px;
-  white-space: nowrap; /* Prevent button text from wrapping */
+  transition: all 0.2s;
 }
 
 .toolbar button:hover:not(:disabled) {
-  background-color: #0056b3;
+  background-color: #f5f5f5;
+  border-color: #d0d0d0;
+}
+
+.toolbar button.active {
+  background-color: #eef6ff;
+  border-color: #007bff;
+  color: #007bff;
 }
 
 .toolbar button:disabled {
-  background-color: #cccccc;
+  background-color: #fafafa;
+  color: #ccc;
   cursor: not-allowed;
 }
 
-.color-palette {
-  display: flex;
-  gap: 5px;
-  margin-left: 10px;
-  margin-right: 5px;
-}
-
 .color-swatch {
-  width: 24px;
-  height: 24px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-  transition: transform 0.1s ease-in-out;
+  border: 1px solid rgba(0,0,0,0.1);
+  transition: transform 0.2s;
 }
 
 .color-swatch:hover {
-  transform: scale(1.1);
+  transform: scale(1.2);
 }
 </style>
