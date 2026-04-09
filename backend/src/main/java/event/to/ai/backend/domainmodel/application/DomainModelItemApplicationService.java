@@ -4,14 +4,14 @@ import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainAttributeDTO;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainEntityDTO;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainEntityRequest;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainEntityRequest;
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainAttributeData;
-import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainEntity;
+import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainModelItem;
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.domainmodel.application.port.out.BoardRepositoryPort;
-import event.to.ai.backend.domainmodel.application.port.out.DomainEntityRepositoryPort;
+import event.to.ai.backend.domainmodel.application.port.out.DomainModelItemRepositoryPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,117 +21,117 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-public class DomainEntityApplicationService {
+public class DomainModelItemApplicationService {
 
-    private final DomainEntityRepositoryPort domainEntityRepositoryPort;
+    private final DomainModelItemRepositoryPort domainModelItemRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
 
     @Autowired
-    public DomainEntityApplicationService(DomainEntityRepositoryPort domainEntityRepositoryPort,
-                                          BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                          BoardRepositoryPort boardRepositoryPort) {
-        this.domainEntityRepositoryPort = domainEntityRepositoryPort;
+    public DomainModelItemApplicationService(DomainModelItemRepositoryPort domainModelItemRepositoryPort,
+                                             BoardMembershipRepositoryPort boardMembershipRepositoryPort,
+                                             BoardRepositoryPort boardRepositoryPort) {
+        this.domainModelItemRepositoryPort = domainModelItemRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
     }
 
-    public List<DomainEntityDTO> getAllDomainEntities(UUID actorUserId) {
-        return domainEntityRepositoryPort.findAll().stream()
-                .filter(domainEntity -> domainEntity.getBoard() != null &&
+    public List<DomainModelItemDTO> getAllDomainEntities(UUID actorUserId) {
+        return domainModelItemRepositoryPort.findAll().stream()
+                .filter(domainModelItem -> domainModelItem.getBoard() != null &&
                         boardMembershipRepositoryPort.existsByBoardIdAndUserId(
-                                domainEntity.getBoard().getId(), actorUserId))
+                                domainModelItem.getBoard().getId(), actorUserId))
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<DomainEntityDTO> getDomainEntityById(UUID actorUserId, UUID id) {
-        return domainEntityRepositoryPort.findById(id)
-                .filter(domainEntity -> domainEntity.getBoard() != null &&
+    public List<DomainModelItemDTO> getDomainEntityById(UUID actorUserId, UUID id) {
+        return domainModelItemRepositoryPort.findById(id)
+                .filter(domainModelItem -> domainModelItem.getBoard() != null &&
                         boardMembershipRepositoryPort.existsByBoardIdAndUserId(
-                                domainEntity.getBoard().getId(), actorUserId))
-                .map(domainEntity -> List.of(convertToDTO(domainEntity)))
+                                domainModelItem.getBoard().getId(), actorUserId))
+                .map(domainModelItem -> List.of(convertToDTO(domainModelItem)))
                 .orElseGet(List::of);
     }
 
-    public List<DomainEntityDTO> getDomainEntitiesByBoardId(UUID actorUserId, UUID boardId) {
+    public List<DomainModelItemDTO> getDomainEntitiesByBoardId(UUID actorUserId, UUID boardId) {
         requireReadPermission(boardId, actorUserId);
-        return domainEntityRepositoryPort.findByBoardId(boardId).stream()
+        return domainModelItemRepositoryPort.findByBoardId(boardId).stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional
-    public DomainEntityDTO createDomainEntity(UUID actorUserId, CreateDomainEntityRequest request) {
+    public DomainModelItemDTO createDomainEntity(UUID actorUserId, CreateDomainEntityRequest request) {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
         requireWritePermission(board.getId(), actorUserId);
 
-        DomainEntity domainEntity = new DomainEntity();
-        domainEntity.setBoard(board);
-        domainEntity.setPos(new Point2D(request.getPosX(), request.getPosY()));
-        domainEntity.setSize(new Point2D(request.getWidth(), request.getHeight()));
-        domainEntity.setName(request.getName());
-        domainEntity.setDescription(request.getDescription());
+        DomainModelItem domainModelItem = new DomainModelItem();
+        domainModelItem.setBoard(board);
+        domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
+        domainModelItem.setSize(new Point2D(request.getWidth(), request.getHeight()));
+        domainModelItem.setName(request.getName());
+        domainModelItem.setDescription(request.getDescription());
 
         if (request.getAttributes() != null) {
             List<DomainAttributeData> attributes = request.getAttributes().stream()
                     .map(attr -> new DomainAttributeData(
                             attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
                     .collect(Collectors.toList());
-            domainEntity.setAttributes(attributes);
+            domainModelItem.setAttributes(attributes);
         }
 
-        DomainEntity savedEntity = domainEntityRepositoryPort.save(domainEntity);
+        DomainModelItem savedEntity = domainModelItemRepositoryPort.save(domainModelItem);
         return convertToDTO(savedEntity);
     }
 
     @Transactional
-    public DomainEntityDTO updateDomainEntity(UUID actorUserId, UUID id, UpdateDomainEntityRequest request) {
-        DomainEntity domainEntity = domainEntityRepositoryPort.findById(id)
+    public DomainModelItemDTO updateDomainEntity(UUID actorUserId, UUID id, UpdateDomainEntityRequest request) {
+        DomainModelItem domainModelItem = domainModelItemRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("DomainEntity not found with id: " + id));
 
-        requireWritePermission(domainEntity.getBoard().getId(), actorUserId);
+        requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
         if (request.getBoardId() != null) {
             Board board = boardRepositoryPort.findById(request.getBoardId())
                     .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
             requireWritePermission(board.getId(), actorUserId);
-            domainEntity.setBoard(board);
+            domainModelItem.setBoard(board);
         }
         if (request.getPosX() != null && request.getPosY() != null) {
-            domainEntity.setPos(new Point2D(request.getPosX(), request.getPosY()));
+            domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         }
         if (request.getWidth() != null && request.getHeight() != null) {
-            domainEntity.setSize(new Point2D(request.getWidth(), request.getHeight()));
+            domainModelItem.setSize(new Point2D(request.getWidth(), request.getHeight()));
         }
         if (request.getName() != null) {
-            domainEntity.setName(request.getName());
+            domainModelItem.setName(request.getName());
         }
         if (request.getDescription() != null) {
-            domainEntity.setDescription(request.getDescription());
+            domainModelItem.setDescription(request.getDescription());
         }
         if (request.getAttributes() != null) {
             List<DomainAttributeData> attributes = request.getAttributes().stream()
                     .map(attr -> new DomainAttributeData(
                             attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
                     .collect(Collectors.toList());
-            domainEntity.setAttributes(attributes);
+            domainModelItem.setAttributes(attributes);
         }
 
-        DomainEntity updatedEntity = domainEntityRepositoryPort.save(domainEntity);
+        DomainModelItem updatedEntity = domainModelItemRepositoryPort.save(domainModelItem);
         return convertToDTO(updatedEntity);
     }
 
     @Transactional
     public void deleteDomainEntity(UUID actorUserId, UUID id) {
-        DomainEntity domainEntity = domainEntityRepositoryPort.findById(id)
+        DomainModelItem domainModelItem = domainModelItemRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("DomainEntity not found with id: " + id));
 
-        requireWritePermission(domainEntity.getBoard().getId(), actorUserId);
+        requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
-        domainEntityRepositoryPort.deleteById(id);
+        domainModelItemRepositoryPort.deleteById(id);
     }
 
     private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {
@@ -152,21 +152,21 @@ public class DomainEntityApplicationService {
         }
     }
 
-    private DomainEntityDTO convertToDTO(DomainEntity domainEntity) {
-        List<DomainAttributeDTO> attributeDTOs = domainEntity.getAttributes().stream()
+    private DomainModelItemDTO convertToDTO(DomainModelItem domainModelItem) {
+        List<DomainAttributeDTO> attributeDTOs = domainModelItem.getAttributes().stream()
                 .map(attr -> new DomainAttributeDTO(
                         attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
                 .collect(Collectors.toList());
 
-        return new DomainEntityDTO(
-                domainEntity.getId(),
-                domainEntity.getBoard().getId(),
-                domainEntity.getPos() != null ? domainEntity.getPos().getX() : null,
-                domainEntity.getPos() != null ? domainEntity.getPos().getY() : null,
-                domainEntity.getSize() != null ? domainEntity.getSize().getX() : null,
-                domainEntity.getSize() != null ? domainEntity.getSize().getY() : null,
-                domainEntity.getName(),
-                domainEntity.getDescription(),
+        return new DomainModelItemDTO(
+                domainModelItem.getId(),
+                domainModelItem.getBoard().getId(),
+                domainModelItem.getPos() != null ? domainModelItem.getPos().getX() : null,
+                domainModelItem.getPos() != null ? domainModelItem.getPos().getY() : null,
+                domainModelItem.getSize() != null ? domainModelItem.getSize().getX() : null,
+                domainModelItem.getSize() != null ? domainModelItem.getSize().getY() : null,
+                domainModelItem.getName(),
+                domainModelItem.getDescription(),
                 attributeDTOs
         );
     }

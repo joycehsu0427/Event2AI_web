@@ -2,9 +2,9 @@ package event.to.ai.backend.domainmodel.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainEntityRequest;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainEntityDTO;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainEntityRequest;
-import event.to.ai.backend.domainmodel.application.DomainEntityApplicationService;
+import event.to.ai.backend.domainmodel.application.DomainModelItemApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -26,32 +26,32 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/domain-entities")
 @CrossOrigin(origins = "*")
-public class DomainEntityController {
+public class DomainModelItemController {
 
-    private final DomainEntityApplicationService domainEntityApplicationService;
+    private final DomainModelItemApplicationService domainModelItemApplicationService;
     private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
-    public DomainEntityController(DomainEntityApplicationService domainEntityApplicationService,
-                                  CurrentUserIdProvider currentUserIdProvider) {
-        this.domainEntityApplicationService = domainEntityApplicationService;
+    public DomainModelItemController(DomainModelItemApplicationService domainModelItemApplicationService,
+                                     CurrentUserIdProvider currentUserIdProvider) {
+        this.domainModelItemApplicationService = domainModelItemApplicationService;
         this.currentUserIdProvider = currentUserIdProvider;
     }
 
     @GetMapping
-    public ResponseEntity<List<DomainEntityDTO>> getDomainEntities(
+    public ResponseEntity<List<DomainModelItemDTO>> getDomainEntities(
             @RequestParam(required = false) UUID domainEntityId,
             @RequestParam(required = false) UUID boardId) {
 
         UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-        List<DomainEntityDTO> domainEntities;
+        List<DomainModelItemDTO> domainEntities;
 
         if (domainEntityId != null) {
-            domainEntities = domainEntityApplicationService.getDomainEntityById(currentUserId, domainEntityId);
+            domainEntities = domainModelItemApplicationService.getDomainEntityById(currentUserId, domainEntityId);
         } else if (boardId != null) {
-            domainEntities = domainEntityApplicationService.getDomainEntitiesByBoardId(currentUserId, boardId);
+            domainEntities = domainModelItemApplicationService.getDomainEntitiesByBoardId(currentUserId, boardId);
         } else {
-            domainEntities = domainEntityApplicationService.getAllDomainEntities(currentUserId);
+            domainEntities = domainModelItemApplicationService.getAllDomainEntities(currentUserId);
         }
 
         return ResponseEntity.ok(domainEntities);
@@ -61,7 +61,7 @@ public class DomainEntityController {
     public ResponseEntity<?> createDomainEntity(@Valid @RequestBody CreateDomainEntityRequest request) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            DomainEntityDTO createdEntity = domainEntityApplicationService.createDomainEntity(currentUserId, request);
+            DomainModelItemDTO createdEntity = domainModelItemApplicationService.createDomainEntity(currentUserId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdEntity);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -73,7 +73,7 @@ public class DomainEntityController {
                                                 @Valid @RequestBody UpdateDomainEntityRequest request) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            DomainEntityDTO updatedEntity = domainEntityApplicationService.updateDomainEntity(currentUserId, id, request);
+            DomainModelItemDTO updatedEntity = domainModelItemApplicationService.updateDomainEntity(currentUserId, id, request);
             return ResponseEntity.ok(updatedEntity);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -84,7 +84,7 @@ public class DomainEntityController {
     public ResponseEntity<?> deleteDomainEntity(@PathVariable UUID id) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            domainEntityApplicationService.deleteDomainEntity(currentUserId, id);
+            domainModelItemApplicationService.deleteDomainEntity(currentUserId, id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

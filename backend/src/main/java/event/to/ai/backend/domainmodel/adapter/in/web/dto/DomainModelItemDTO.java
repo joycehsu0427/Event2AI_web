@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class DomainEntityDTO {
+public class DomainModelItemDTO {
 
     private UUID id;
     private UUID boardId;
@@ -16,11 +16,11 @@ public class DomainEntityDTO {
     private String description;
     private List<DomainAttributeDTO> attributes = new ArrayList<>();
 
-    public DomainEntityDTO() {
+    public DomainModelItemDTO() {
     }
 
-    public DomainEntityDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
-                           String name, String description, List<DomainAttributeDTO> attributes) {
+    public DomainModelItemDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
+                              String name, String description, List<DomainAttributeDTO> attributes) {
         this.id = id;
         this.boardId = boardId;
         this.posX = posX;

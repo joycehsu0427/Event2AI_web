@@ -23,7 +23,7 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "domain_entities")
-public class DomainEntity {
+public class DomainModelItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -64,10 +64,10 @@ public class DomainEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
-    public DomainEntity() {
+    public DomainModelItem() {
     }
 
-    public DomainEntity(String name, String description) {
+    public DomainModelItem(String name, String description) {
         this.name = name;
         this.description = description;
     }
