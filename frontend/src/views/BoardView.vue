@@ -25,7 +25,7 @@ const boardId = route.params.boardId as string;
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
-const POLLING_INTERVAL_MS = 5000;
+// const POLLING_INTERVAL_MS = 5000;
 const stompClient = ref<Client | null>(null);
 
 let boardSubscription: StompSubscription | null = null;
