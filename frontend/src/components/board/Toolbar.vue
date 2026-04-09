@@ -25,6 +25,9 @@
     <button @click="historyStore.undo()" :disabled="!historyStore.canUndo" title="Undo">Undo</button>
     <button @click="historyStore.redo()" :disabled="!historyStore.canRedo" title="Redo">Redo</button>
     <button @click="deleteSelectedElements" :disabled="boardStore.selectedElementIds.length === 0" title="Delete Selected">Delete</button>
+    <button @click="handleAnalysis" :disabled="isAnalyzing" title="Analyze Board">{{ isAnalyzing ? 'Analyzing...' : 'Analyze' }}</button>
+    <div class="divider"></div>
+    <button @click="goHome" title="Back to Home">Back</button>
   </div>
 </template>
 
@@ -33,16 +36,18 @@ import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
-import { useRoute } from 'vue-router';
-import { elementApi } from '@/api';
+import { useRoute, useRouter } from 'vue-router';
+import { elementApi, commonApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const route = useRoute();
+const router = useRouter();
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const boardId = route.params.boardId as string;
 
 const showColorPicker = ref(false);
+const isAnalyzing = ref(false);
 const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
 
 async function addStickyNoteApi(colorHex: string) {
@@ -222,6 +227,23 @@ const canApplyColorToSelected = computed(() => {
 const applyColorToSelected = () => {
   boardStore.updateSelectedElementsColor(boardStore.getDefaultStickyNoteColor);
   historyStore.addState(); // Record state change
+};
+
+const handleAnalysis = async () => {
+  isAnalyzing.value = true;
+  try {
+    await commonApi.analysis(boardId);
+    alert('Analysis completed successfully');
+  } catch (error) {
+    console.error('Analysis failed:', error);
+    alert('Analysis failed. Please try again.');
+  } finally {
+    isAnalyzing.value = false;
+  }
+};
+
+const goHome = () => {
+  router.push({ name: 'home' });
 };
 </script>
 
