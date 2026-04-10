@@ -3,6 +3,7 @@ package event.to.ai.backend.domainmodel.adapter.in.web.dto;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
 public class DomainModelItemDTO {
 
@@ -13,6 +14,7 @@ public class DomainModelItemDTO {
     private Double width;
     private Double height;
     private String name;
+    private DomainModelItemType type;
     private String description;
     private List<DomainAttributeDTO> attributes = new ArrayList<>();
 
@@ -20,7 +22,7 @@ public class DomainModelItemDTO {
     }
 
     public DomainModelItemDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
-                              String name, String description, List<DomainAttributeDTO> attributes) {
+                              String name, DomainModelItemType type, String description, List<DomainAttributeDTO> attributes) {
         this.id = id;
         this.boardId = boardId;
         this.posX = posX;
@@ -28,6 +30,7 @@ public class DomainModelItemDTO {
         this.width = width;
         this.height = height;
         this.name = name;
+        this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
     }
@@ -86,6 +89,14 @@ public class DomainModelItemDTO {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public DomainModelItemType getType() {
+        return type;
+    }
+
+    public void setType(DomainModelItemType type) {
+        this.type = type;
     }
 
     public String getDescription() {

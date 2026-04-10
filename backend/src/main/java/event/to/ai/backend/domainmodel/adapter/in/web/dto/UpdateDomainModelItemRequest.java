@@ -6,6 +6,7 @@ import jakarta.validation.constraints.Size;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
 public class UpdateDomainModelItemRequest {
 
@@ -22,6 +23,8 @@ public class UpdateDomainModelItemRequest {
     @Size(max = 200, message = "Name must not exceed 200 characters")
     private String name;
 
+    private DomainModelItemType type;
+
     @Size(max = 1000, message = "Description must not exceed 1000 characters")
     private String description;
 
@@ -32,13 +35,14 @@ public class UpdateDomainModelItemRequest {
     }
 
     public UpdateDomainModelItemRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
-                                        String name, String description, List<DomainAttributeRequest> attributes) {
+                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
         this.height = height;
         this.name = name;
+        this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
     }
@@ -89,6 +93,14 @@ public class UpdateDomainModelItemRequest {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public DomainModelItemType getType() {
+        return type;
+    }
+
+    public void setType(DomainModelItemType type) {
+        this.type = type;
     }
 
     public String getDescription() {

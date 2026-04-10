@@ -12,6 +12,7 @@ import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainMode
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.domainmodel.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.domainmodel.application.port.out.DomainModelItemRepositoryPort;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,6 +74,7 @@ public class DomainModelItemApplicationService {
         domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         domainModelItem.setSize(new Point2D(request.getWidth(), request.getHeight()));
         domainModelItem.setName(request.getName());
+        domainModelItem.setType(request.getType());
         domainModelItem.setDescription(request.getDescription());
 
         if (request.getAttributes() != null) {
@@ -108,6 +110,9 @@ public class DomainModelItemApplicationService {
         }
         if (request.getName() != null) {
             domainModelItem.setName(request.getName());
+        }
+        if (request.getType() != null) {
+            domainModelItem.setType(request.getType());
         }
         if (request.getDescription() != null) {
             domainModelItem.setDescription(request.getDescription());
@@ -166,6 +171,7 @@ public class DomainModelItemApplicationService {
                 domainModelItem.getSize() != null ? domainModelItem.getSize().getX() : null,
                 domainModelItem.getSize() != null ? domainModelItem.getSize().getY() : null,
                 domainModelItem.getName(),
+                domainModelItem.getType(),
                 domainModelItem.getDescription(),
                 attributeDTOs
         );

@@ -1,12 +1,15 @@
 package event.to.ai.backend.domainmodel.adapter.out.persistence.entity;
 
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 import jakarta.persistence.AttributeOverride;
 import jakarta.persistence.AttributeOverrides;
 import jakarta.persistence.Column;
 import jakarta.persistence.Convert;
 import jakarta.persistence.Embedded;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -50,6 +53,10 @@ public class DomainModelItem {
 
     @Column(nullable = false, length = 200)
     private String name;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "item_type", nullable = false, length = 30)
+    private DomainModelItemType type;
 
     @Column(length = 1000)
     private String description;
@@ -127,6 +134,14 @@ public class DomainModelItem {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public DomainModelItemType getType() {
+        return type;
+    }
+
+    public void setType(DomainModelItemType type) {
+        this.type = type;
     }
 
     public String getDescription() {
