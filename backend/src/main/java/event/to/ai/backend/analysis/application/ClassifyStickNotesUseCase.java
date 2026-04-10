@@ -20,47 +20,30 @@ public class ClassifyStickNotesUseCase {
     public ClassifyStickNotesUseCase() {
     }
 
-    public void classify(List<List<StickyNote>> clusteredStickyNotes) {
+    public void classify(List<List<StickyNote>> clusteredStickyNotes, Map<String, Point2D> frameSizes) {
         this.clusteredStickyNotes = clusteredStickyNotes;
         for (List<StickyNote> stickyNotes : clusteredStickyNotes) {
-            this.groups.add(classifyGroup(stickyNotes));
+            this.groups.add(classifyGroup(stickyNotes, frameSizes));
         }
     }
 
-    private Group classifyGroup(List<StickyNote> stickyNotes) {
+    private Group classifyGroup(List<StickyNote> stickyNotes, Map<String, Point2D> frameSizes) {
         Group group = new Group();
 
-        // set the geo of this eventStorming
-        double maxY = stickyNotes.get(0).getPos().getY() + stickyNotes.get(0).getGeo().getY() * 0.5;
-        double minY = stickyNotes.get(0).getPos().getY() - stickyNotes.get(0).getGeo().getY() * 0.5;
-        double maxX = stickyNotes.get(0).getPos().getX() + stickyNotes.get(0).getGeo().getX() * 0.5;
-        double minX = stickyNotes.get(0).getPos().getX() - stickyNotes.get(0).getGeo().getX() * 0.5;
-        for(int i = 1; i < stickyNotes.size(); i++) {
-            StickyNote stickyNote = stickyNotes.get(i);
-            if(maxY < (stickyNote.getPos().getY() + stickyNote.getGeo().getY() * 0.5)) {
-                maxY = stickyNote.getPos().getY() + stickyNote.getGeo().getY() * 0.5;
-            }
-            if(minY > (stickyNote.getPos().getY() - stickyNote.getGeo().getY() * 0.5)) {
-                minY = stickyNote.getPos().getY() - stickyNote.getGeo().getY() * 0.5;
-            }
-            if(maxX < (stickyNote.getPos().getX() + stickyNote.getGeo().getX() * 0.5)) {
-                maxX = stickyNote.getPos().getX() + stickyNote.getGeo().getX() * 0.5;
-            }
-            if(minX > (stickyNote.getPos().getX() - stickyNote.getGeo().getX() * 0.5)) {
-                minX = stickyNote.getPos().getX() - stickyNote.getGeo().getX() * 0.5;
-            }
-        }
-        group.setEventStormingGeo(new Point2D.Double(maxX - minX, maxY - minY));
+        // New Rule: 新版 event storming 的 geo size 就是直接設定為 frame 的大小
+        String frameId = stickyNotes.get(0).getFrameId();
+        Point2D frameSize = (frameId != null) ? frameSizes.getOrDefault(frameId, new Point2D.Double()) : new Point2D.Double();
+        group.setEventStormingGeo(frameSize);
 
         // Process UseCase
-        StickyNote useCase_stickyNote = findByType("use_case", stickyNotes).get(0);
+        StickyNote useCase_stickyNote = findByType("use_case", stickyNotes).getFirst();
         group.setGroupId(useCase_stickyNote.getId());
         group.setUseCaseName(useCase_stickyNote.getDescription().replace("\n", ""));
         // set the position of useCase
         group.setUseCasePos(useCase_stickyNote.getPos());
 
         // Process input
-        StickyNote input_stickyNote = findByType("input", stickyNotes).get(0);
+        StickyNote input_stickyNote = findByType("input", stickyNotes).getFirst();
         List<String> inputsWithType = Arrays.asList(input_stickyNote.getDescription().replace(",", "").split("\\n"));
         List<UsecaseInput> input = new ArrayList<>();
         for (String inputWithType : inputsWithType) {
@@ -71,7 +54,7 @@ public class ClassifyStickNotesUseCase {
         group.setInput(input);
 
         // Process aggregate name
-        StickyNote aggregateName_stickyNote = findByType("aggregate_name", stickyNotes).get(0);
+        StickyNote aggregateName_stickyNote = findByType("aggregate_name", stickyNotes).getFirst();
         group.setAggregateName(aggregateName_stickyNote.getDescription().replace("\n", ""));
 
         // Process actor's name
@@ -97,7 +80,7 @@ public class ClassifyStickNotesUseCase {
 
         // Process "method"
         if (!findByType("method", stickyNotes).isEmpty()) {
-            StickyNote method_stickyNote = findByType("method", stickyNotes).get(0);
+            StickyNote method_stickyNote = findByType("method", stickyNotes).getFirst();
             group.setMethod(aggregateName_stickyNote.getDescription().replace("\n", "") + " " + method_stickyNote.getDescription().replace("\n", ""));
         }
         else {
@@ -251,17 +234,28 @@ public class ClassifyStickNotesUseCase {
                 attrs = StickyNoteToAttribute(thisEventsAttribute);
             }
 
-            for (StickyNote reactor : thisEventsReactors) {
+            if (thisEventsReactors.isEmpty() && thisEventsPolicies.isEmpty()) {
+                result.add(new DomainEvent(eventName.getDescription().replace("\n", ""), "", "", attrs));
+            } else if (thisEventsReactors.isEmpty()) {
                 for (StickyNote policy : thisEventsPolicies) {
-                    double threshold = max(max(reactor.getGeo().getX(), reactor.getGeo().getY()), max(policy.getGeo().getX(), policy.getGeo().getY()));
-                    double dx = abs(policy.getPos().getX() - reactor.getPos().getX());
-                    if (dx <= (multiple_X * threshold)) {
-                        DomainEvent domainEvent = new DomainEvent(eventName.getDescription().replace("\n", ""),
-                                reactor.getDescription().replace("\n", ""),
-                                policy.getDescription().replace("\n", ""),
-                                attrs);
-                        result.add(domainEvent);
-                        break;
+                    result.add(new DomainEvent(eventName.getDescription().replace("\n", ""), "", policy.getDescription().replace("\n", ""), attrs));
+                }
+            } else if (thisEventsPolicies.isEmpty()) {
+                for (StickyNote reactor : thisEventsReactors) {
+                    result.add(new DomainEvent(eventName.getDescription().replace("\n", ""), reactor.getDescription().replace("\n", ""), "", attrs));
+                }
+            } else {
+                for (StickyNote reactor : thisEventsReactors) {
+                    for (StickyNote policy : thisEventsPolicies) {
+                        double threshold = max(max(reactor.getGeo().getX(), reactor.getGeo().getY()), max(policy.getGeo().getX(), policy.getGeo().getY()));
+                        double dx = abs(policy.getPos().getX() - reactor.getPos().getX());
+                        if (dx <= (multiple_X * threshold)) {
+                            result.add(new DomainEvent(eventName.getDescription().replace("\n", ""),
+                                    reactor.getDescription().replace("\n", ""),
+                                    policy.getDescription().replace("\n", ""),
+                                    attrs));
+                            break;
+                        }
                     }
                 }
             }
@@ -285,7 +279,11 @@ public class ClassifyStickNotesUseCase {
 //        }
 
         for (String description : descriptions) {
-            description = description.replace("<!-- -->", "").replace("<br />", "");
+            description = description
+                    .replace("<!-- -->", "")
+                    .replace("<br />", "")
+                    .replace("\u2028", "\n")
+                    .replace("\u2029", "\n");
             String aggregateName = description.substring(0, description.indexOf('{')).trim();
 
             String body = description.substring(
@@ -320,7 +318,11 @@ public class ClassifyStickNotesUseCase {
 
     private List<Attribute> StickyNoteToAttribute(StickyNote attribute) {
         List<Attribute> result = new ArrayList<>();
-        String description = attribute.getDescription().replace("<!-- -->", "").replace("\u00A0", " ");
+        String description = attribute.getDescription()
+                .replace("<!-- -->", "")
+                .replace("\u00A0", " ")
+                .replace("\u2028", "\n")
+                .replace("\u2029", "\n");
 
         String[] lines = description.replace("\n", "<br />").split(",<br />");
 
@@ -336,9 +338,9 @@ public class ClassifyStickNotesUseCase {
                     : "";
 
 
-            String[] typeName = typeWithVarName.split("\\s+");
-            String type = typeName[0];
-            String name = typeName[1];
+            String[] typeName = typeWithVarName.trim().split("\\s+");
+            String name = typeName[typeName.length - 1];
+            String type = String.join(" ", Arrays.copyOfRange(typeName, 0, typeName.length - 1));
 
             result.add(new Attribute(name, type, constraint));
         }

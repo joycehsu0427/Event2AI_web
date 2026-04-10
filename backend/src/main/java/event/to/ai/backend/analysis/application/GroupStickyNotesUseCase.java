@@ -3,6 +3,8 @@ package event.to.ai.backend.analysis.application;
 import event.to.ai.backend.analysis.domain.Group;
 import event.to.ai.backend.analysis.domain.StickyNote;
 
+import java.awt.geom.Point2D;
+import java.util.Collections;
 import java.util.List;
 
 public class GroupStickyNotesUseCase {
@@ -19,7 +21,7 @@ public class GroupStickyNotesUseCase {
         clusterStickyNotesUseCase.cluster(stickyNotes);
         this.clusteredStickyNotes = clusterStickyNotesUseCase.getAllGroup();
         ClassifyStickNotesUseCase classifyStickNotesUseCase = new ClassifyStickNotesUseCase();
-        classifyStickNotesUseCase.classify(this.clusteredStickyNotes);
+        classifyStickNotesUseCase.classify(this.clusteredStickyNotes, Collections.emptyMap());
         this.groups = classifyStickNotesUseCase.getGroups();
     }
 

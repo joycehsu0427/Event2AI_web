@@ -1,6 +1,5 @@
-package event.to.ai.backend.board.adapter.in.web.dto;
+package event.to.ai.backend.frame.adapter.in.web.dto;
 
-import event.to.ai.backend.frame.adapter.in.web.dto.FrameDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.textbox.adapter.in.web.dto.TextBoxesDTO;
 

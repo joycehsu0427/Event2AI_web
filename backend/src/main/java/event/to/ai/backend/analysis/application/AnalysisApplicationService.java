@@ -5,11 +5,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import event.to.ai.backend.analysis.adapter.in.web.dto.GroupDTO;
 import event.to.ai.backend.analysis.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.BoardRepositoryPort;
+import event.to.ai.backend.analysis.application.port.out.FrameRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.StickyNoteRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.TextBoxRepositoryPort;
 import event.to.ai.backend.analysis.domain.Group;
 import event.to.ai.backend.analysis.domain.StickyNote;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
+import event.to.ai.backend.frame.adapter.out.persistence.entity.Frame;
 import event.to.ai.backend.textbox.adapter.out.persistence.entity.TextBoxes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -19,6 +21,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,16 +32,19 @@ public class AnalysisApplicationService {
     private final TextBoxRepositoryPort textBoxRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+    private final FrameRepositoryPort frameRepositoryPort;
 
     @Autowired
     public AnalysisApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
                                       TextBoxRepositoryPort textBoxRepositoryPort,
                                       BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                      BoardRepositoryPort boardRepositoryPort) {
+                                      BoardRepositoryPort boardRepositoryPort,
+                                      FrameRepositoryPort frameRepositoryPort) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
         this.textBoxRepositoryPort = textBoxRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
+        this.frameRepositoryPort = frameRepositoryPort;
     }
 
     private static final String OUTPUT_DIR = "ToAIJsonFile";
@@ -58,12 +64,20 @@ public class AnalysisApplicationService {
 //                .map(this::textBoxToDomainStickyNote)
 //                .forEach(allDomainNotes::add);
 
+        // 建立 frameId -> frame size 的對應表
+        Map<String, Point2D> frameSizes = frameRepositoryPort.findByBoardId(boardId).stream()
+                .collect(Collectors.toMap(
+                        frame -> frame.getId().toString(),
+                        frame -> new Point2D.Double(frame.getSize().getX(), frame.getSize().getY())
+                ));
+
         // 將撈出來的東西用 frameId 分群
         ClusterByFrameIdUseCase clusterUseCase = new ClusterByFrameIdUseCase();
         clusterUseCase.cluster(allDomainNotes);
 
+        // 丟進 ClassifyStickNotesUseCase 中進行分類
         ClassifyStickNotesUseCase classifyUseCase = new ClassifyStickNotesUseCase();
-        classifyUseCase.classify(clusterUseCase.getAllGroups());
+        classifyUseCase.classify(clusterUseCase.getAllGroups(), frameSizes);
 
         List<GroupDTO> groups = classifyUseCase.getGroups().stream()
                 .map(this::toGroupDTO)

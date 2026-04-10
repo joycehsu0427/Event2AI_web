@@ -1,9 +1,7 @@
 package event.to.ai.backend.frame.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
-import event.to.ai.backend.frame.adapter.in.web.dto.CreateFrameRequest;
-import event.to.ai.backend.frame.adapter.in.web.dto.FrameDTO;
-import event.to.ai.backend.frame.adapter.in.web.dto.UpdateFrameRequest;
+import event.to.ai.backend.frame.adapter.in.web.dto.*;
 import event.to.ai.backend.frame.application.FrameApllicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -72,6 +70,17 @@ public class FrameController {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
             FrameDTO createdFrame = frameApplicationService.createFrame(currentUserId, request);
             return ResponseEntity.status(HttpStatus.CREATED).body(createdFrame);
+        } catch (RuntimeException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
+    @PostMapping({"/event_storming_template"})
+    public ResponseEntity<?> createEventStormingTemplate(@Valid @RequestBody CreateEventStormingTemplateRequest request) {
+        try {
+            UUID currentUserId = currentUserIdProvider.getCurrentUserId();
+            BoardComponentsDTO createdFrameWithEventStorming = frameApplicationService.createEventStormingTemplate(currentUserId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdFrameWithEventStorming);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }

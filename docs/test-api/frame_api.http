@@ -11,9 +11,13 @@ Content-Type: application/json
 }
 
 ### 從登入回應擷取 token
-@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiI3NmY3ZDQzNC0xMmVjLTQzNzUtOTA2NS01ZWZjNDg5NjY3NmMiLCJpYXQiOjE3NzU0MDUyNzAsImV4cCI6MTc3NTQwODg3MH0.hOK6RBagF8pXAed7QImj85_EZW_64OpLm7BdIY-sF7w
-@boardId = 223dae65-26aa-4ad9-ac9f-ef9e83bc72a3
+@accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJjZjZmMTdmNi1hMjNlLTRhY2YtOThjMy1lZTZlNjQ3YzU5ZTEiLCJpYXQiOjE3NzU4MTE5ODUsImV4cCI6MTc3NTgxNTU4NX0.J_KYVlfAbE22bbgb8yaR_76Yqcb3AYIJ0BZaAFyP3C4
+@boardId = 54eca13c-8899-49fd-9906-b9bf7f6a6198
 @frameId = a047c5f9-82a1-41dd-bbb7-f9582d5dbc1f
+
+### 取得所有我的 Boards（Owner）
+GET {{baseUrl}}/api/boards
+Authorization: Bearer {{accessToken}}
 
 ### 依 boardId 取得 Frames（需要 JWT）
 GET {{baseUrl}}/api/frames/{{boardId}}
@@ -50,3 +54,15 @@ Authorization: Bearer {{accessToken}}
 ### 刪除 Frame（需要 JWT）
 DELETE {{baseUrl}}/api/frames/{{frameId}}
 Authorization: Bearer {{accessToken}}
+
+### 新增一組 Frame With Event Storming
+# @name createFrameWithEventStorming
+POST {{baseUrl}}/api/frames/event_storming_template
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "boardId": "{{boardId}}",
+  "posX": 100.0,
+  "posY": 100.0
+}

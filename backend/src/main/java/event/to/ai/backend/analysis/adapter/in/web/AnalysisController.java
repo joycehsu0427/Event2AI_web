@@ -33,7 +33,10 @@ public class AnalysisController {
     public ResponseEntity<?> analyse(@Valid @RequestBody AnalysisRequest request) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
+            System.out.println("analyse is called.");
+            System.out.println("currentId: " + currentUserId);
             analysisApplicationService.analyse(currentUserId, request.getBoardId());
+            System.out.println("analyse successfully.");
             return ResponseEntity.ok().build();
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
