@@ -1,9 +1,9 @@
 package event.to.ai.backend.domainmodel.adapter.in.web;
 
 import event.to.ai.backend.auth.CurrentUserIdProvider;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainEntityRequest;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainModelItemRequest;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainEntityRequest;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainModelItemRequest;
 import event.to.ai.backend.domainmodel.application.DomainModelItemApplicationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/domain-entities")
+@RequestMapping("/api/domain-model-items")
 @CrossOrigin(origins = "*")
 public class DomainModelItemController {
 
@@ -39,52 +39,52 @@ public class DomainModelItemController {
     }
 
     @GetMapping
-    public ResponseEntity<List<DomainModelItemDTO>> getDomainEntities(
-            @RequestParam(required = false) UUID domainEntityId,
+    public ResponseEntity<List<DomainModelItemDTO>> getDomainModelItems(
+            @RequestParam(required = false) UUID domainModelItemId,
             @RequestParam(required = false) UUID boardId) {
 
         UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-        List<DomainModelItemDTO> domainEntities;
+        List<DomainModelItemDTO> domainModelItems;
 
-        if (domainEntityId != null) {
-            domainEntities = domainModelItemApplicationService.getDomainEntityById(currentUserId, domainEntityId);
+        if (domainModelItemId != null) {
+            domainModelItems = domainModelItemApplicationService.getDomainModelItemById(currentUserId, domainModelItemId);
         } else if (boardId != null) {
-            domainEntities = domainModelItemApplicationService.getDomainEntitiesByBoardId(currentUserId, boardId);
+            domainModelItems = domainModelItemApplicationService.getDomainModelItemsByBoardId(currentUserId, boardId);
         } else {
-            domainEntities = domainModelItemApplicationService.getAllDomainEntities(currentUserId);
+            domainModelItems = domainModelItemApplicationService.getAllDomainModelItems(currentUserId);
         }
 
-        return ResponseEntity.ok(domainEntities);
+        return ResponseEntity.ok(domainModelItems);
     }
 
     @PostMapping
-    public ResponseEntity<?> createDomainEntity(@Valid @RequestBody CreateDomainEntityRequest request) {
+    public ResponseEntity<?> createDomainModelItem(@Valid @RequestBody CreateDomainModelItemRequest request) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            DomainModelItemDTO createdEntity = domainModelItemApplicationService.createDomainEntity(currentUserId, request);
-            return ResponseEntity.status(HttpStatus.CREATED).body(createdEntity);
+            DomainModelItemDTO createdDomainModelItem = domainModelItemApplicationService.createDomainModelItem(currentUserId, request);
+            return ResponseEntity.status(HttpStatus.CREATED).body(createdDomainModelItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateDomainEntity(@PathVariable UUID id,
-                                                @Valid @RequestBody UpdateDomainEntityRequest request) {
+    public ResponseEntity<?> updateDomainModelItem(@PathVariable UUID id,
+                                                   @Valid @RequestBody UpdateDomainModelItemRequest request) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            DomainModelItemDTO updatedEntity = domainModelItemApplicationService.updateDomainEntity(currentUserId, id, request);
-            return ResponseEntity.ok(updatedEntity);
+            DomainModelItemDTO updatedDomainModelItem = domainModelItemApplicationService.updateDomainModelItem(currentUserId, id, request);
+            return ResponseEntity.ok(updatedDomainModelItem);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteDomainEntity(@PathVariable UUID id) {
+    public ResponseEntity<?> deleteDomainModelItem(@PathVariable UUID id) {
         try {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
-            domainModelItemApplicationService.deleteDomainEntity(currentUserId, id);
+            domainModelItemApplicationService.deleteDomainModelItem(currentUserId, id);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();

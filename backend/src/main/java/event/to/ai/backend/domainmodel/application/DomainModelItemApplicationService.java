@@ -3,10 +3,10 @@ package event.to.ai.backend.domainmodel.application;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainModelItemRequest;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainAttributeDTO;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.CreateDomainEntityRequest;
-import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainEntityRequest;
+import event.to.ai.backend.domainmodel.adapter.in.web.dto.UpdateDomainModelItemRequest;
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainAttributeData;
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainModelItem;
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
@@ -36,7 +36,7 @@ public class DomainModelItemApplicationService {
         this.boardRepositoryPort = boardRepositoryPort;
     }
 
-    public List<DomainModelItemDTO> getAllDomainEntities(UUID actorUserId) {
+    public List<DomainModelItemDTO> getAllDomainModelItems(UUID actorUserId) {
         return domainModelItemRepositoryPort.findAll().stream()
                 .filter(domainModelItem -> domainModelItem.getBoard() != null &&
                         boardMembershipRepositoryPort.existsByBoardIdAndUserId(
@@ -45,7 +45,7 @@ public class DomainModelItemApplicationService {
                 .collect(Collectors.toList());
     }
 
-    public List<DomainModelItemDTO> getDomainEntityById(UUID actorUserId, UUID id) {
+    public List<DomainModelItemDTO> getDomainModelItemById(UUID actorUserId, UUID id) {
         return domainModelItemRepositoryPort.findById(id)
                 .filter(domainModelItem -> domainModelItem.getBoard() != null &&
                         boardMembershipRepositoryPort.existsByBoardIdAndUserId(
@@ -54,7 +54,7 @@ public class DomainModelItemApplicationService {
                 .orElseGet(List::of);
     }
 
-    public List<DomainModelItemDTO> getDomainEntitiesByBoardId(UUID actorUserId, UUID boardId) {
+    public List<DomainModelItemDTO> getDomainModelItemsByBoardId(UUID actorUserId, UUID boardId) {
         requireReadPermission(boardId, actorUserId);
         return domainModelItemRepositoryPort.findByBoardId(boardId).stream()
                 .map(this::convertToDTO)
@@ -62,7 +62,7 @@ public class DomainModelItemApplicationService {
     }
 
     @Transactional
-    public DomainModelItemDTO createDomainEntity(UUID actorUserId, CreateDomainEntityRequest request) {
+    public DomainModelItemDTO createDomainModelItem(UUID actorUserId, CreateDomainModelItemRequest request) {
         Board board = boardRepositoryPort.findById(request.getBoardId())
                 .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
 
@@ -83,14 +83,14 @@ public class DomainModelItemApplicationService {
             domainModelItem.setAttributes(attributes);
         }
 
-        DomainModelItem savedEntity = domainModelItemRepositoryPort.save(domainModelItem);
-        return convertToDTO(savedEntity);
+        DomainModelItem savedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
+        return convertToDTO(savedDomainModelItem);
     }
 
     @Transactional
-    public DomainModelItemDTO updateDomainEntity(UUID actorUserId, UUID id, UpdateDomainEntityRequest request) {
+    public DomainModelItemDTO updateDomainModelItem(UUID actorUserId, UUID id, UpdateDomainModelItemRequest request) {
         DomainModelItem domainModelItem = domainModelItemRepositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("DomainEntity not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("DomainModelItem not found with id: " + id));
 
         requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
@@ -120,14 +120,14 @@ public class DomainModelItemApplicationService {
             domainModelItem.setAttributes(attributes);
         }
 
-        DomainModelItem updatedEntity = domainModelItemRepositoryPort.save(domainModelItem);
-        return convertToDTO(updatedEntity);
+        DomainModelItem updatedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
+        return convertToDTO(updatedDomainModelItem);
     }
 
     @Transactional
-    public void deleteDomainEntity(UUID actorUserId, UUID id) {
+    public void deleteDomainModelItem(UUID actorUserId, UUID id) {
         DomainModelItem domainModelItem = domainModelItemRepositoryPort.findById(id)
-                .orElseThrow(() -> new RuntimeException("DomainEntity not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException("DomainModelItem not found with id: " + id));
 
         requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 

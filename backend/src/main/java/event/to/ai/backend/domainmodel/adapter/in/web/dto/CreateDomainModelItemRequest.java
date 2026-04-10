@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class CreateDomainEntityRequest {
+public class CreateDomainModelItemRequest {
 
     @NotNull(message = "Board ID is required")
     private UUID boardId;
@@ -36,11 +36,11 @@ public class CreateDomainEntityRequest {
     @Valid
     private List<DomainAttributeRequest> attributes = new ArrayList<>();
 
-    public CreateDomainEntityRequest() {
+    public CreateDomainModelItemRequest() {
     }
 
-    public CreateDomainEntityRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
-                                     String name, String description, List<DomainAttributeRequest> attributes) {
+    public CreateDomainModelItemRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
+                                        String name, String description, List<DomainAttributeRequest> attributes) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;

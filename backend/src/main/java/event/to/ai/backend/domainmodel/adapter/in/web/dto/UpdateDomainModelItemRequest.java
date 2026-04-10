@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class UpdateDomainEntityRequest {
+public class UpdateDomainModelItemRequest {
 
     private UUID boardId;
 
@@ -28,11 +28,11 @@ public class UpdateDomainEntityRequest {
     @Valid
     private List<DomainAttributeRequest> attributes = new ArrayList<>();
 
-    public UpdateDomainEntityRequest() {
+    public UpdateDomainModelItemRequest() {
     }
 
-    public UpdateDomainEntityRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
-                                     String name, String description, List<DomainAttributeRequest> attributes) {
+    public UpdateDomainModelItemRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
+                                        String name, String description, List<DomainAttributeRequest> attributes) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
