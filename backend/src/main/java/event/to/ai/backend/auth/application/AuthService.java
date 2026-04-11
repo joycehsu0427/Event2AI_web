@@ -2,6 +2,8 @@ package event.to.ai.backend.auth.application;
 
 import event.to.ai.backend.auth.adapter.in.web.dto.AuthResponse;
 import event.to.ai.backend.auth.adapter.in.web.dto.LoginRequest;
+import event.to.ai.backend.auth.exception.AccountNotFoundException;
+import event.to.ai.backend.auth.exception.InvalidPasswordException;
 import event.to.ai.backend.security.JwtService;
 import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
 import event.to.ai.backend.user.adapter.in.web.dto.UserDTO;
@@ -40,10 +42,10 @@ public class AuthService {
     public AuthResponse login(LoginRequest request) {
         String username = request.getUsername().trim();
         User user = userRepositoryPort.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("Invalid username or password"));
+                .orElseThrow(AccountNotFoundException::new);
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPasswordHash())) {
-            throw new RuntimeException("Invalid username or password");
+            throw new InvalidPasswordException();
         }
 
         UserDTO userDTO = new UserDTO(
