@@ -1,5 +1,6 @@
 package event.to.ai.backend.domainmodel.adapter.in.web.dto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -17,12 +18,16 @@ public class DomainModelItemDTO {
     private DomainModelItemType type;
     private String description;
     private List<DomainAttributeDTO> attributes = new ArrayList<>();
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public DomainModelItemDTO() {
     }
 
     public DomainModelItemDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
-                              String name, DomainModelItemType type, String description, List<DomainAttributeDTO> attributes) {
+                              String name, DomainModelItemType type, String description,
+                              List<DomainAttributeDTO> attributes,
+                              LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.boardId = boardId;
         this.posX = posX;
@@ -33,6 +38,8 @@ public class DomainModelItemDTO {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
     }
 
     public UUID getId() {
@@ -113,5 +120,21 @@ public class DomainModelItemDTO {
 
     public void setAttributes(List<DomainAttributeDTO> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

@@ -5,12 +5,9 @@ import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
 public class UpdateDomainModelItemRequest {
-
-    private UUID boardId;
 
     private Double posX;
 
@@ -34,9 +31,8 @@ public class UpdateDomainModelItemRequest {
     public UpdateDomainModelItemRequest() {
     }
 
-    public UpdateDomainModelItemRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
+    public UpdateDomainModelItemRequest(Double posX, Double posY, Double width, Double height,
                                         String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
-        this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
@@ -45,14 +41,6 @@ public class UpdateDomainModelItemRequest {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
-    }
-
-    public UUID getBoardId() {
-        return boardId;
-    }
-
-    public void setBoardId(UUID boardId) {
-        this.boardId = boardId;
     }
 
     public Double getPosX() {

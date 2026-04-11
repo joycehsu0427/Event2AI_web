@@ -12,7 +12,6 @@ import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainMode
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.domainmodel.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.domainmodel.application.port.out.DomainModelItemRepositoryPort;
-import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -96,12 +95,6 @@ public class DomainModelItemApplicationService {
 
         requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
-        if (request.getBoardId() != null) {
-            Board board = boardRepositoryPort.findById(request.getBoardId())
-                    .orElseThrow(() -> new RuntimeException("Board not found with id: " + request.getBoardId()));
-            requireWritePermission(board.getId(), actorUserId);
-            domainModelItem.setBoard(board);
-        }
         if (request.getPosX() != null && request.getPosY() != null) {
             domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         }
@@ -173,7 +166,9 @@ public class DomainModelItemApplicationService {
                 domainModelItem.getName(),
                 domainModelItem.getType(),
                 domainModelItem.getDescription(),
-                attributeDTOs
+                attributeDTOs,
+                domainModelItem.getCreatedAt(),
+                domainModelItem.getUpdatedAt()
         );
     }
 }
