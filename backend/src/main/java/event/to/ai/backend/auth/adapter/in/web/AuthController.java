@@ -1,8 +1,11 @@
 package event.to.ai.backend.auth.adapter.in.web;
 
 import event.to.ai.backend.auth.adapter.in.web.dto.AuthResponse;
+import event.to.ai.backend.auth.adapter.in.web.dto.LoginErrorResponse;
 import event.to.ai.backend.auth.adapter.in.web.dto.LoginRequest;
 import event.to.ai.backend.auth.application.AuthService;
+import event.to.ai.backend.auth.exception.AccountNotFoundException;
+import event.to.ai.backend.auth.exception.InvalidPasswordException;
 import event.to.ai.backend.user.adapter.in.web.dto.CreateUserRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +44,12 @@ public class AuthController {
         try {
             AuthResponse authResponse = authService.login(request);
             return ResponseEntity.ok(authResponse);
-        } catch (RuntimeException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
+        } catch (AccountNotFoundException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginErrorResponse("ACCOUNT_NOT_FOUND", "帳號不存在"));
+        } catch (InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(new LoginErrorResponse("INVALID_PASSWORD", "密碼錯誤"));
         }
     }
 }

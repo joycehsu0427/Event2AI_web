@@ -8,7 +8,7 @@
       @mouseup="handleStageMouseUp"
       @mousemove="handleStageMouseMove"
     >
-      <v-layer ref="elementsLayerRef">
+      <v-layer>
         <!-- Elements will be rendered here -->
         <template v-for="element in renderedElements" :key="element.id">
           <BoardElement :element="element" @transformend="handleTransformEnd" />
@@ -41,12 +41,11 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import type { Stage as KonvaStage } from 'konva/lib/Stage';
-import type { Layer as KonvaLayer } from 'konva/lib/Layer';
 import type { Node as KonvaNode } from 'konva/lib/Node';
 import type { KonvaMouseEvent } from 'konva/lib/Node';
 import type { Transformer } from 'konva/lib/shapes/Transformer';
 import BoardElement from './elements/BoardElement.vue';
-import { ElementType } from '@/interfaces/elements';
+import { ElementType } from '@/types/elements';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const boardStore = useBoardStore();
@@ -54,7 +53,6 @@ const historyStore = useHistoryStore();
 
 const containerRef = ref<HTMLDivElement | null>(null);
 const stageRef = ref<{ getStage: () => KonvaStage } | null>(null);
-const elementsLayerRef = ref<{ getStage: () => KonvaLayer } | null>(null);
 const transformerRef = ref<Transformer | null>(null); // Ref for Konva Transformer
 
 const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;

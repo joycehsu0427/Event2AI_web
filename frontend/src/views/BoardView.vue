@@ -10,7 +10,7 @@ import { useRoute } from 'vue-router';
 import { onMounted, onUnmounted, watch, ref } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import type { BoardStoreState } from '@/stores/boardStore';
-import { ElementType, type BoardElement } from '@/interfaces/elements';
+import { ElementType, type BoardElement } from '@/types/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useTimerStore } from '@/stores/timerStore';
 import Toolbar from '@/components/board/Toolbar.vue';
@@ -25,7 +25,7 @@ const boardId = route.params.boardId as string;
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
-const POLLING_INTERVAL_MS = 5000;
+// const POLLING_INTERVAL_MS = 5000;
 const stompClient = ref<Client | null>(null);
 
 let boardSubscription: StompSubscription | null = null;

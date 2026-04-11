@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Board } from '@/types/board'
+import type { Board } from '@/types/api/board'
 
 defineProps<{ board: Board }>()
 

@@ -1,6 +1,6 @@
 package event.to.ai.backend.domainmodel.adapter.out.persistence;
 
-import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainEntity;
+import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainModelItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface DomainEntityRepository extends JpaRepository<DomainEntity, UUID> {
+public interface DomainModelItemRepository extends JpaRepository<DomainModelItem, UUID> {
 
-    List<DomainEntity> findByBoardId(UUID boardId);
+    List<DomainModelItem> findByBoardId(UUID boardId);
 }

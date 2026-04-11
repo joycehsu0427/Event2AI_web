@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import type { Board, BoardMemberRole } from '@/types/board'
+import type { Board, BoardMemberRole } from '@/types/api/board'
 import { boardApi, userApi } from '@/api'
 import { useAuthStore } from '@/stores/authStore'
 import BoardCard from '@/components/menu/BoardCard.vue'

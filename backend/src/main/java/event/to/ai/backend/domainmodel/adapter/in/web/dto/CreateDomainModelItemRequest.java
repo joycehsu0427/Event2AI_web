@@ -1,43 +1,59 @@
 package event.to.ai.backend.domainmodel.adapter.in.web.dto;
 
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class DomainEntityDTO {
+public class CreateDomainModelItemRequest {
 
-    private UUID id;
+    @NotNull(message = "Board ID is required")
     private UUID boardId;
-    private Double posX;
-    private Double posY;
-    private Double width;
-    private Double height;
-    private String name;
-    private String description;
-    private List<DomainAttributeDTO> attributes = new ArrayList<>();
 
-    public DomainEntityDTO() {
+    @NotNull(message = "Position X is required")
+    private Double posX;
+
+    @NotNull(message = "Position Y is required")
+    private Double posY;
+
+    @NotNull(message = "Width is required")
+    private Double width;
+
+    @NotNull(message = "Height is required")
+    private Double height;
+
+    @NotBlank(message = "Name is required")
+    @Size(max = 200, message = "Name must not exceed 200 characters")
+    private String name;
+
+    @NotNull(message = "Type is required")
+    private DomainModelItemType type;
+
+    @Size(max = 1000, message = "Description must not exceed 1000 characters")
+    private String description;
+
+    @Valid
+    private List<DomainAttributeRequest> attributes = new ArrayList<>();
+
+    public CreateDomainModelItemRequest() {
     }
 
-    public DomainEntityDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
-                           String name, String description, List<DomainAttributeDTO> attributes) {
-        this.id = id;
+    public CreateDomainModelItemRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
+                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
         this.height = height;
         this.name = name;
+        this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public void setId(UUID id) {
-        this.id = id;
     }
 
     public UUID getBoardId() {
@@ -88,6 +104,14 @@ public class DomainEntityDTO {
         this.name = name;
     }
 
+    public DomainModelItemType getType() {
+        return type;
+    }
+
+    public void setType(DomainModelItemType type) {
+        this.type = type;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -96,11 +120,11 @@ public class DomainEntityDTO {
         this.description = description;
     }
 
-    public List<DomainAttributeDTO> getAttributes() {
+    public List<DomainAttributeRequest> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<DomainAttributeDTO> attributes) {
+    public void setAttributes(List<DomainAttributeRequest> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
     }
 }

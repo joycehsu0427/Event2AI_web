@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick } from 'vue';
-import type { TextElement } from '@/interfaces/elements';
+import type { TextElement } from '@/types/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useBoardElementEditor } from './boardElementContext';

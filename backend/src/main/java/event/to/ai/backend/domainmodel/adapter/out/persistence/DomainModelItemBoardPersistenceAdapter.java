@@ -10,12 +10,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Component
-public class DomainEntityBoardPersistenceAdapter implements BoardRepositoryPort {
+public class DomainModelItemBoardPersistenceAdapter implements BoardRepositoryPort {
 
     private final BoardRepository boardRepository;
 
     @Autowired
-    public DomainEntityBoardPersistenceAdapter(BoardRepository boardRepository) {
+    public DomainModelItemBoardPersistenceAdapter(BoardRepository boardRepository) {
         this.boardRepository = boardRepository;
     }
 

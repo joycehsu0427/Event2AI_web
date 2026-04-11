@@ -23,8 +23,8 @@
 
 <script setup lang="ts">
 import { computed, ref, nextTick, watch } from 'vue';
-import type { StickyNoteElement, FrameElement } from '@/interfaces/elements';
-import { ElementType } from '@/interfaces/elements';
+import type { StickyNoteElement, FrameElement } from '@/types/elements';
+import { ElementType } from '@/types/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useBoardElementEditor } from './boardElementContext';

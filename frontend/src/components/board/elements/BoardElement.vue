@@ -31,7 +31,7 @@ import {
   type FrameElement,
   type StickyNoteElement,
   type TextElement,
-} from '@/interfaces/elements';
+} from '@/types/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
 import Frame from './Frame.vue';

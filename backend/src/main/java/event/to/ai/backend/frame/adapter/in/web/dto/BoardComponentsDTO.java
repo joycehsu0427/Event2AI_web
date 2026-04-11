@@ -1,10 +1,10 @@
-package event.to.ai.backend.board.adapter.in.web.dto;
+package event.to.ai.backend.frame.adapter.in.web.dto;
 
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
-import event.to.ai.backend.frame.adapter.in.web.dto.FrameDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.textbox.adapter.in.web.dto.TextBoxesDTO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -16,13 +16,14 @@ public class BoardComponentsDTO {
     private List<FrameDTO> frames;
     private List<DomainModelItemDTO> domainModelItems;
 
+    // 保留舊有 constructor 供 createEventStormingTemplate 使用，domainModelItems 預設為空 list
     public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes,
-                              List<FrameDTO> frames, List<DomainModelItemDTO> domainModelItems) {
+                              List<FrameDTO> frames) {
         this.boardId = boardId;
         this.stickyNotes = stickyNotes;
         this.textBoxes = textBoxes;
         this.frames = frames;
-        this.domainModelItems = domainModelItems;
+        this.domainModelItems = new ArrayList<>();
     }
 
     public UUID getBoardId() {

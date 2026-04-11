@@ -25,7 +25,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from 'vue';
-import type { FrameElement } from '@/interfaces/elements';
+import type { FrameElement } from '@/types/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useBoardElementEditor } from './boardElementContext';

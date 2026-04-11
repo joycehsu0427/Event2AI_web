@@ -1,46 +1,53 @@
 package event.to.ai.backend.domainmodel.adapter.in.web.dto;
 
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.Size;
-
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
-public class UpdateDomainEntityRequest {
+public class DomainModelItemDTO {
 
+    private UUID id;
     private UUID boardId;
-
     private Double posX;
-
     private Double posY;
-
     private Double width;
-
     private Double height;
-
-    @Size(max = 200, message = "Name must not exceed 200 characters")
     private String name;
-
-    @Size(max = 1000, message = "Description must not exceed 1000 characters")
+    private DomainModelItemType type;
     private String description;
+    private List<DomainAttributeDTO> attributes = new ArrayList<>();
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
-    @Valid
-    private List<DomainAttributeRequest> attributes = new ArrayList<>();
-
-    public UpdateDomainEntityRequest() {
+    public DomainModelItemDTO() {
     }
 
-    public UpdateDomainEntityRequest(UUID boardId, Double posX, Double posY, Double width, Double height,
-                                     String name, String description, List<DomainAttributeRequest> attributes) {
+    public DomainModelItemDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height,
+                              String name, DomainModelItemType type, String description,
+                              List<DomainAttributeDTO> attributes,
+                              LocalDateTime createdAt, LocalDateTime updatedAt) {
+        this.id = id;
         this.boardId = boardId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
         this.height = height;
         this.name = name;
+        this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+        this.createdAt = createdAt;
+        this.updatedAt = updatedAt;
+    }
+
+    public UUID getId() {
+        return id;
+    }
+
+    public void setId(UUID id) {
+        this.id = id;
     }
 
     public UUID getBoardId() {
@@ -91,6 +98,14 @@ public class UpdateDomainEntityRequest {
         this.name = name;
     }
 
+    public DomainModelItemType getType() {
+        return type;
+    }
+
+    public void setType(DomainModelItemType type) {
+        this.type = type;
+    }
+
     public String getDescription() {
         return description;
     }
@@ -99,11 +114,27 @@ public class UpdateDomainEntityRequest {
         this.description = description;
     }
 
-    public List<DomainAttributeRequest> getAttributes() {
+    public List<DomainAttributeDTO> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<DomainAttributeRequest> attributes) {
+    public void setAttributes(List<DomainAttributeDTO> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

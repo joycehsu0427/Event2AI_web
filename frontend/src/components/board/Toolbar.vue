@@ -35,7 +35,7 @@
 import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/interfaces/elements';
+import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
 import { elementApi, commonApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
@@ -50,14 +50,34 @@ const showColorPicker = ref(false);
 const isAnalyzing = ref(false);
 const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
 
-async function addStickyNoteApi(colorHex: string) {
+const STICKY_NOTE_WIDTH = 150;
+const STICKY_NOTE_HEIGHT = 150;
+
+const TEXT_ELEMENT_WIDTH = 200;
+const TEXT_ELEMENT_HEIGHT = 40;
+
+const FRAME_WIDTH = 360;
+const FRAME_HEIGHT = 240;
+
+const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: number) => {
+  const { x, y, scale } = boardStore.canvasTransform;
+  const viewportCenterX = window.innerWidth / 2;
+  const viewportCenterY = window.innerHeight / 2;
+
+  return {
+    x: (viewportCenterX - x) / scale - elementWidth / 2,
+    y: (viewportCenterY - y) / scale - elementHeight / 2,
+  };
+};
+
+async function addStickyNoteApi(colorHex: string, position: { x: number; y: number }) {
   try {
     const data = await elementApi.createStickyNote({
       boardId: boardId,
-      posX: 50,
-      posY: 50,
-      geoX: 150,
-      geoY: 150,
+      posX: position.x,
+      posY: position.y,
+      geoX: STICKY_NOTE_WIDTH / boardStore.canvasTransform.scale,
+      geoY: STICKY_NOTE_HEIGHT / boardStore.canvasTransform.scale,
       description: 'New Sticky Note',
       color: getNameByHex(colorHex), // Send color name (e.g., 'blue') to backend
       tag: 'sticky-note',
@@ -72,15 +92,16 @@ async function addStickyNoteApi(colorHex: string) {
 }
 
 const addStickyNote = async (color: string) => {
-  const createdId = await addStickyNoteApi(color);
+  const position = getViewportCenterBoardPosition(STICKY_NOTE_WIDTH, STICKY_NOTE_HEIGHT);
+  const createdId = await addStickyNoteApi(color, position);
   if (!createdId) return;
 
   const newStickyNote: Omit<StickyNoteElement, 'id'> = {
     type: ElementType.StickyNote,
-    x: 50, // Default position
-    y: 50, // Default position
-    width: 150,
-    height: 150,
+    x: position.x,
+    y: position.y,
+    width: STICKY_NOTE_WIDTH / boardStore.canvasTransform.scale,
+    height: STICKY_NOTE_HEIGHT / boardStore.canvasTransform.scale,
     text: 'New Sticky Note',
     fontSize: 20,
     textColor: '#000000',
@@ -94,14 +115,14 @@ const addStickyNote = async (color: string) => {
   showColorPicker.value = false;
 };
 
-async function addTextElementApi() {
+async function addTextElementApi(position: { x: number; y: number }) {
   try {
     const data = await elementApi.createTextBox({
       boardId: boardId,
-      posX: 250,
-      posY: 50,
-      geoX: 200,
-      geoY: 40,
+      posX: position.x,
+      posY: position.y,
+      geoX: TEXT_ELEMENT_WIDTH / boardStore.canvasTransform.scale,
+      geoY: TEXT_ELEMENT_HEIGHT / boardStore.canvasTransform.scale,
       description: 'New Text',
       color: 'yellow', // Default color name
       tag: 'text-box',
@@ -116,15 +137,16 @@ async function addTextElementApi() {
 }
 
 const addTextElement = async () => {
-  const createdId = await addTextElementApi();
+  const position = getViewportCenterBoardPosition(TEXT_ELEMENT_WIDTH, TEXT_ELEMENT_HEIGHT);
+  const createdId = await addTextElementApi(position);
   if (!createdId) return;
 
   const newTextElement: Omit<TextElement, 'id'> = {
     type: ElementType.Text,
-    x: 250, // Default position
-    y: 50, // Default position
-    width: 200,
-    height: 40,
+    x: position.x,
+    y: position.y,
+    width: TEXT_ELEMENT_WIDTH / boardStore.canvasTransform.scale,
+    height: TEXT_ELEMENT_HEIGHT / boardStore.canvasTransform.scale,
     text: 'New Text',
     fontSize: 24,
     fontFamily: 'Arial',
@@ -135,14 +157,14 @@ const addTextElement = async () => {
   historyStore.addState(); // Record state change
 };
 
-async function addFrameApi() {
+async function addFrameApi(position: { x: number; y: number }) {
   try {
     const data = await elementApi.createFrame({
       boardId: boardId,
-      posX: 450,
-      posY: 80,
-      width: 360,
-      height: 240,
+      posX: position.x,
+      posY: position.y,
+      width: FRAME_WIDTH / boardStore.canvasTransform.scale,
+      height: FRAME_HEIGHT / boardStore.canvasTransform.scale,
       title: 'New Frame'
     });
     return data.id;
@@ -153,14 +175,15 @@ async function addFrameApi() {
 }
 
 const addFrameElement = async () => {
-  const createdId = await addFrameApi();
+  const position = getViewportCenterBoardPosition(FRAME_WIDTH, FRAME_HEIGHT);
+  const createdId = await addFrameApi(position);
 
   const newFrameElement: Omit<FrameElement, 'id'> = {
     type: ElementType.Frame,
-    x: 450,
-    y: 80,
-    width: 360,
-    height: 240,
+    x: position.x,
+    y: position.y,
+    width: FRAME_WIDTH / boardStore.canvasTransform.scale,
+    height: FRAME_HEIGHT / boardStore.canvasTransform.scale,
     title: 'New Frame',
     fill: '#ffffff',
     stroke: '#5f6b7a',

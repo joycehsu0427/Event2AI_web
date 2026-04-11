@@ -1,8 +1,8 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import type { BoardElement } from '@/interfaces/elements';
-import { ElementType } from '@/interfaces/elements'; // Import ElementType as a value
-import type { CanvasTransform, BoardState } from '@/interfaces/board';
+import type { BoardElement } from '@/types/elements';
+import { ElementType } from '@/types/elements'; // Import ElementType as a value
+import type { CanvasTransform, BoardState } from '@/types/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
