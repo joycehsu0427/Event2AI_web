@@ -97,8 +97,11 @@ public class FrameApllicationService {
         frame.setSize(new Point2D(1200.0, 800.0));
         frame.setTitle("Event Storming Template");
 
+        // 先將 frame 存進資料庫，確保 savedFrame.getId() 有值後再建立 StickyNotes
+        Frame savedFrame = frameRepositoryPort.save(frame);
+
         UUID boardId = board.getId();
-        UUID frameId = frame.getId();
+        UUID frameId = savedFrame.getId();
         List<StickyNoteDTO> stickyNotes = List.of(
                 buildNote(boardId, frameId, x + 150,  y + 400, 250.0, 150.0, "TypeA var1,\nTypeB var2",                    "green"),
                 buildNote(boardId, frameId, x + 300,  y + 550, 100.0, 100.0, "Actor",                                      "yellow"),
@@ -108,14 +111,11 @@ public class FrameApllicationService {
                 buildNote(boardId, frameId, x + 400,  y + 550, 150.0, 150.0, "Method",                                     "pink"),
                 buildNote(boardId, frameId, x + 550,  y + 400, 150.0, 150.0, "Domain Event's Name",                        "orange"),
                 buildNote(boardId, frameId, x + 700,  y + 400, 200.0, 150.0, "TypeA varA:constraint,\nTypeB varB:constraint", "light_green"),
-                buildNote(boardId, frameId, x + 900,  y + 250, 150.0, 150.0, "Domain Event's Reactor",                     "light_blue"),
-                buildNote(boardId, frameId, x + 900,  y + 400, 150.0, 150.0, "Domain Event's Policy",                      "violet")
+                buildNote(boardId, frameId, x + 900,  y + 325, 150.0, 150.0, "Domain Event's Reactor",                     "light_blue"),
+                buildNote(boardId, frameId, x + 900,  y + 475, 150.0, 150.0, "Domain Event's Policy",                      "violet")
         ).stream()
                 .map(note -> stickyNoteApplicationService.createStickyNote(actorUserId, note))
                 .collect(Collectors.toList());
-
-        // 將 frame 存進資料庫，StickyNotes 由 StickyNoteApplicationService 存進資料庫
-        Frame savedFrame = frameRepositoryPort.save(frame);
 
         return new BoardComponentsDTO(
                 board.getId(),
