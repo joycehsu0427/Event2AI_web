@@ -1,24 +1,17 @@
 package event.to.ai.backend.analysis.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import event.to.ai.backend.analysis.adapter.in.web.dto.GroupDTO;
 import event.to.ai.backend.analysis.application.port.out.BoardMembershipRepositoryPort;
-import event.to.ai.backend.analysis.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.FrameRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.StickyNoteRepositoryPort;
 import event.to.ai.backend.analysis.application.port.out.TextBoxRepositoryPort;
 import event.to.ai.backend.analysis.domain.Group;
 import event.to.ai.backend.analysis.domain.StickyNote;
-import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
-import event.to.ai.backend.frame.adapter.out.persistence.entity.Frame;
 import event.to.ai.backend.textbox.adapter.out.persistence.entity.TextBoxes;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.awt.geom.Point2D;
-import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +23,6 @@ public class AnalysisApplicationService {
 
     private final StickyNoteRepositoryPort stickyNoteRepositoryPort;
     private final TextBoxRepositoryPort textBoxRepositoryPort;
-    private final BoardRepositoryPort boardRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final FrameRepositoryPort frameRepositoryPort;
 
@@ -38,18 +30,14 @@ public class AnalysisApplicationService {
     public AnalysisApplicationService(StickyNoteRepositoryPort stickyNoteRepositoryPort,
                                       TextBoxRepositoryPort textBoxRepositoryPort,
                                       BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                      BoardRepositoryPort boardRepositoryPort,
                                       FrameRepositoryPort frameRepositoryPort) {
         this.stickyNoteRepositoryPort = stickyNoteRepositoryPort;
         this.textBoxRepositoryPort = textBoxRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
-        this.boardRepositoryPort = boardRepositoryPort;
         this.frameRepositoryPort = frameRepositoryPort;
     }
 
-    private static final String OUTPUT_DIR = "ToAIJsonFile";
-
-    public void analyse(UUID actorUserId, UUID boardId) {
+    public List<GroupDTO> analyse(UUID actorUserId, UUID boardId) {
         requireReadPermission(boardId, actorUserId);
 
         List<StickyNote> allDomainNotes = new ArrayList<>();
@@ -79,33 +67,9 @@ public class AnalysisApplicationService {
         ClassifyStickNotesUseCase classifyUseCase = new ClassifyStickNotesUseCase();
         classifyUseCase.classify(clusterUseCase.getAllGroups(), frameSizes);
 
-        List<GroupDTO> groups = classifyUseCase.getGroups().stream()
+        return classifyUseCase.getGroups().stream()
                 .map(this::toGroupDTO)
                 .collect(Collectors.toList());
-
-        saveToJsonFile(boardId, groups);
-    }
-
-    private void saveToJsonFile(UUID boardId, List<GroupDTO> groups) {
-        try {
-            Board board = boardRepositoryPort.findById(boardId)
-                    .orElseThrow(() -> new RuntimeException("Board not found with id: " + boardId));
-            String boardName = board.getTitle();
-            File boardDir = new File(OUTPUT_DIR, boardName);
-            if (!boardDir.exists()) {
-                boardDir.mkdirs();
-            }
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
-
-            for (GroupDTO group : groups) {
-                File outputFile = new File(boardDir, group.getUseCaseName() + ".json");
-                objectMapper.writeValue(outputFile, group);
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to save analysis result to JSON file", e);
-        }
     }
 
     private StickyNote toDomainStickyNote(

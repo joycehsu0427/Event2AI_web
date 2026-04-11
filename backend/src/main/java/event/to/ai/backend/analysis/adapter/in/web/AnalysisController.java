@@ -1,7 +1,10 @@
 package event.to.ai.backend.analysis.adapter.in.web;
 
 import event.to.ai.backend.analysis.adapter.in.web.dto.AnalysisRequest;
+import event.to.ai.backend.analysis.adapter.in.web.dto.GroupDTO;
 import event.to.ai.backend.analysis.application.AnalysisApplicationService;
+
+import java.util.List;
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +38,9 @@ public class AnalysisController {
             UUID currentUserId = currentUserIdProvider.getCurrentUserId();
             System.out.println("analyse is called.");
             System.out.println("currentId: " + currentUserId);
-            analysisApplicationService.analyse(currentUserId, request.getBoardId());
+            List<GroupDTO> result = analysisApplicationService.analyse(currentUserId, request.getBoardId());
             System.out.println("analyse successfully.");
-            return ResponseEntity.ok().build();
+            return ResponseEntity.ok(result);
         } catch (RuntimeException e) {
             return ResponseEntity.badRequest().body(e.getMessage());
         }
