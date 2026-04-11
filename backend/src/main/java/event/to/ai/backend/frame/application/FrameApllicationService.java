@@ -89,7 +89,6 @@ public class FrameApllicationService {
 
         requireWritePermission(board.getId(), actorUserId);
 
-
         double x = request.getPosX();
         double y = request.getPosY();
         Frame frame = new Frame();
@@ -97,159 +96,23 @@ public class FrameApllicationService {
         frame.setPos(new Point2D(x, y));
         frame.setSize(new Point2D(1200.0, 800.0));
         frame.setTitle("Event Storming Template");
-        List<StickyNoteDTO> stickyNotes = new ArrayList<>();
 
-
-        // UsecaseName
-        CreateStickyNoteRequest useCaseName = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 400,
-                y + 400,
-                150.0,
-                150.0,
-                "Usecase Name",
-                "blue",
-                "sticky-note",
-                "#000000",
-                "20");
-        useCaseName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, useCaseName));
-
-        // UseCaseInput
-        CreateStickyNoteRequest useCaseInput = new CreateStickyNoteRequest(
-            board.getId(),
-            x + 150,
-            y + 400,
-            250.0,
-            150.0,
-            "TypeA var1,\nTypeB var2",
-            "green",
-            "sticky-note",
-            "#000000",
-            "20");
-        useCaseInput.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId,useCaseInput));
-
-        // AggregateName
-        CreateStickyNoteRequest aggregateName = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 400,
-                y + 250,
-                150.0,
-                150.0,
-                "Aggregate Name",
-                "light_yellow",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, aggregateName));
-
-        // Actor Name
-        CreateStickyNoteRequest actor = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 300,
-                y + 550,
-                100.0,
-                100.0,
-                "Actor",
-                "yellow",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, actor));
-
-        // Comment
-        CreateStickyNoteRequest comment = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 400,
-                y + 100,
-                150.0,
-                150.0,
-                "comment",
-                "gray",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, comment));
-
-        // domainEventName
-        CreateStickyNoteRequest domainEventName = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 550,
-                y + 400,
-                150.0,
-                150.0,
-                "Domain Event's Name",
-                "orange",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, domainEventName));
-
-        // domainEventReactor
-        CreateStickyNoteRequest domainEventReactor = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 900,
-                y + 250,
-                150.0,
-                150.0,
-                "Domain Event's Reactor",
-                "light_blue",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, domainEventReactor));
-
-        // domainEventPolicy
-        CreateStickyNoteRequest domainEventPolicy = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 900,
-                y + 400,
-                150.0,
-                150.0,
-                "Domain Event's Policy",
-                "violet",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, domainEventPolicy));
-
-        // domainEventAttributes
-        CreateStickyNoteRequest domainEventAttributes = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 700,
-                y + 400,
-                200.0,
-                150.0,
-                "TypeA varA:constraint,\nTypeB varB:constraint",
-                "light_green",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, domainEventAttributes));
-
-        // method
-        CreateStickyNoteRequest method = new CreateStickyNoteRequest(
-                board.getId(),
-                x + 400,
-                y + 550,
-                150.0,
-                150.0,
-                "Method",
-                "pink",
-                "sticky-note",
-                "#000000",
-                "20");
-        aggregateName.setFrameId(frame.getId());
-        stickyNotes.add(stickyNoteApplicationService.createStickyNote(actorUserId, method));
-
+        UUID boardId = board.getId();
+        UUID frameId = frame.getId();
+        List<StickyNoteDTO> stickyNotes = List.of(
+                buildNote(boardId, frameId, x + 150,  y + 400, 250.0, 150.0, "TypeA var1,\nTypeB var2",                    "green"),
+                buildNote(boardId, frameId, x + 300,  y + 550, 100.0, 100.0, "Actor",                                      "yellow"),
+                buildNote(boardId, frameId, x + 400,  y + 100, 150.0, 150.0, "comment",                                    "gray"),
+                buildNote(boardId, frameId, x + 400,  y + 250, 150.0, 150.0, "Aggregate Name",                             "light_yellow"),
+                buildNote(boardId, frameId, x + 400,  y + 400, 150.0, 150.0, "Usecase Name",                               "blue"),
+                buildNote(boardId, frameId, x + 400,  y + 550, 150.0, 150.0, "Method",                                     "pink"),
+                buildNote(boardId, frameId, x + 550,  y + 400, 150.0, 150.0, "Domain Event's Name",                        "orange"),
+                buildNote(boardId, frameId, x + 700,  y + 400, 200.0, 150.0, "TypeA varA:constraint,\nTypeB varB:constraint", "light_green"),
+                buildNote(boardId, frameId, x + 900,  y + 250, 150.0, 150.0, "Domain Event's Reactor",                     "light_blue"),
+                buildNote(boardId, frameId, x + 900,  y + 400, 150.0, 150.0, "Domain Event's Policy",                      "violet")
+        ).stream()
+                .map(note -> stickyNoteApplicationService.createStickyNote(actorUserId, note))
+                .collect(Collectors.toList());
 
         // 將 frame 存進資料庫，StickyNotes 由 StickyNoteApplicationService 存進資料庫
         Frame savedFrame = frameRepositoryPort.save(frame);
@@ -260,6 +123,16 @@ public class FrameApllicationService {
                 java.util.Collections.emptyList(),
                 List.of(convertToDTO(savedFrame))
         );
+    }
+
+    private CreateStickyNoteRequest buildNote(UUID boardId, UUID frameId,
+                                              double x, double y,
+                                              double w, double h,
+                                              String text, String color) {
+        CreateStickyNoteRequest req = new CreateStickyNoteRequest(
+                boardId, x, y, w, h, text, color, "sticky-note", "#000000", "20");
+        req.setFrameId(frameId);
+        return req;
     }
 
     @Transactional
