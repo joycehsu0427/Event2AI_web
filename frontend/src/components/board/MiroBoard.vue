@@ -7,7 +7,6 @@
       @mousedown="handleStageMouseDown"
       @mouseup="handleStageMouseUp"
       @mousemove="handleStageMouseMove"
-      @contextmenu.prevent="() => {}"
     >
       <v-layer ref="elementsLayerRef">
         <!-- Elements will be rendered here -->
