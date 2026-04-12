@@ -24,7 +24,6 @@
 <script setup lang="ts">
 import { computed, ref, nextTick, watch } from 'vue';
 import type { StickyNoteElement, FrameElement } from '@/types/elements';
-import { ElementType } from '@/types/elements';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useBoardElementEditor } from './boardElementContext';
@@ -71,43 +70,6 @@ const textConfig = computed(() => ({
   verticalAlign: 'top',
   padding: 5,
 }));
-
-// Helper function to check if sticky note overlaps with any frame
-const findOverlappingFrameId = (): string | null => {
-  const frames = boardStore.getElements.filter(
-    (el) => el.type === ElementType.Frame
-  ) as FrameElement[];
-
-  // Check if this sticky note's bounds overlap with any frame
-  for (const frame of frames) {
-    // Check if sticky note is within frame bounds
-    if (
-      props.element.x >= frame.x &&
-      props.element.x + props.element.width <= frame.x + frame.width &&
-      props.element.y >= frame.y &&
-      props.element.y + props.element.height <= frame.y + frame.height
-    ) {
-      return frame.id;
-    }
-  }
-  return null;
-};
-
-// Watch for position changes and update frameId accordingly
-watch(
-  () => [props.element.x, props.element.y],
-  () => {
-    const newFrameId = findOverlappingFrameId();
-    const currentFrameId = props.element.frameId || null;
-
-    // Only update if frameId has changed
-    if (newFrameId !== currentFrameId) {
-      boardStore.updateElement(props.element.id, {
-        frameId: newFrameId,
-      });
-    }
-  }
-);
 
 const handleDblClick = (e: any) => {
   e.evt.stopPropagation();

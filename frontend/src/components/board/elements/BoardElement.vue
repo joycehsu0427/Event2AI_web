@@ -102,6 +102,26 @@ const elementConfig = computed(() => ({
   draggable: !isThisElementBeingEdited.value, // Make element non-draggable if it's being edited
 }));
 
+const findOverlappingFrameId = (x: number, y: number): string | null => {
+  const frames = boardStore.getElements.filter(
+    (el) => el.type === ElementType.Frame
+  ) as FrameElement[];
+
+  // Check if this sticky note's bounds overlap with any frame
+  for (const frame of frames) {
+    // Check if sticky note is within frame bounds
+    if (
+      x >= frame.x &&
+      x + props.element.width <= frame.x + frame.width &&
+      y >= frame.y &&
+      y + props.element.height <= frame.y + frame.height
+    ) {
+      return frame.id;
+    }
+  }
+  return null;
+};
+
 const handleClick = (e: any) => {
   // Prevent event bubbling to the stage if an element is clicked
   e.cancelBubble = true;
@@ -170,6 +190,20 @@ const handleDragEnd = (e: any) => {
     });
 
     frameDragState.value = null;
+  }
+
+  if (props.element.type === ElementType.StickyNote) {
+    // Check if sticky note is now within a different frame after drag
+    const newFrameId = findOverlappingFrameId(newX, newY);
+    const currentFrameId = props.element.frameId || null;
+    console.log(newFrameId, currentFrameId);
+
+    // Only update if frameId has changed
+    if (newFrameId !== currentFrameId) {
+      boardStore.updateElement(props.element.id, {
+        frameId: newFrameId,
+      });
+    }
   }
 
   // Update element's position in store after drag
