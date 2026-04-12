@@ -12,12 +12,15 @@ import event.to.ai.backend.frame.application.port.out.FrameRepositoryPort;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.CreateStickyNoteRequest;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
 import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
+import event.to.ai.backend.websocket.BoardRealtimeEventType;
+import event.to.ai.backend.websocket.BoardRealtimePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -28,16 +31,19 @@ public class FrameApllicationService {
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
     private final StickyNoteApplicationService stickyNoteApplicationService;
+    private final BoardRealtimePublisher boardRealtimePublisher;
 
     @Autowired
     public FrameApllicationService(FrameRepositoryPort frameRepositoryPort,
                                    BoardMembershipRepositoryPort boardMembershipRepositoryPort,
                                    BoardRepositoryPort boardRepositoryPort,
-                                   StickyNoteApplicationService stickyNoteApplicationService) {
+                                   StickyNoteApplicationService stickyNoteApplicationService,
+                                   BoardRealtimePublisher boardRealtimePublisher) {
         this.frameRepositoryPort = frameRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
         this.stickyNoteApplicationService = stickyNoteApplicationService;
+        this.boardRealtimePublisher = boardRealtimePublisher;
     }
 
     public List<FrameDTO> getAllFrames(UUID actorUserId) {
@@ -79,7 +85,9 @@ public class FrameApllicationService {
         frame.setTitle(request.getTitle());
 
         Frame savedFrame = frameRepositoryPort.save(frame);
-        return convertToDTO(savedFrame);
+        FrameDTO dto = convertToDTO(savedFrame);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -99,6 +107,8 @@ public class FrameApllicationService {
 
         // 先將 frame 存進資料庫，確保 savedFrame.getId() 有值後再建立 StickyNotes
         Frame savedFrame = frameRepositoryPort.save(frame);
+        FrameDTO savedFrameDto = convertToDTO(savedFrame);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, savedFrameDto.getBoardId(), savedFrameDto);
 
         UUID boardId = board.getId();
         UUID frameId = savedFrame.getId();
@@ -121,7 +131,7 @@ public class FrameApllicationService {
                 board.getId(),
                 stickyNotes,
                 java.util.Collections.emptyList(),
-                List.of(convertToDTO(savedFrame))
+                List.of(savedFrameDto)
         );
     }
 
@@ -160,7 +170,9 @@ public class FrameApllicationService {
         }
 
         Frame updatedFrame = frameRepositoryPort.save(frame);
-        return convertToDTO(updatedFrame);
+        FrameDTO dto = convertToDTO(updatedFrame);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_UPDATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -168,9 +180,11 @@ public class FrameApllicationService {
         Frame frame = frameRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("Frame not found with id: " + id));
 
-        requireWritePermission(frame.getBoard().getId(), actorUserId);
+        UUID boardId = frame.getBoard().getId();
+        requireWritePermission(boardId, actorUserId);
 
         frameRepositoryPort.deleteById(id);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_DELETED, boardId, Map.of("id", id));
     }
 
     private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {
