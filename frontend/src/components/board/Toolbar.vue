@@ -37,7 +37,7 @@ import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
-import { elementApi, commonApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, commonApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const route = useRoute();
@@ -72,7 +72,7 @@ const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: num
 
 async function addStickyNoteApi(colorHex: string, position: { x: number; y: number }) {
   try {
-    const data = await elementApi.createStickyNote({
+    const data = await stickyNoteApi.create({
       boardId: boardId,
       posX: position.x,
       posY: position.y,
@@ -117,7 +117,7 @@ const addStickyNote = async (color: string) => {
 
 async function addTextElementApi(position: { x: number; y: number }) {
   try {
-    const data = await elementApi.createTextBox({
+    const data = await textBoxApi.create({
       boardId: boardId,
       posX: position.x,
       posY: position.y,
@@ -159,7 +159,7 @@ const addTextElement = async () => {
 
 async function addFrameApi(position: { x: number; y: number }) {
   try {
-    const data = await elementApi.createFrame({
+    const data = await frameApi.create({
       boardId: boardId,
       posX: position.x,
       posY: position.y,
@@ -203,17 +203,17 @@ const deleteSelectedElements = async () => {
       if (!element) return { id, success: false };
 
       if (element.type === ElementType.StickyNote) {
-        await elementApi.deleteStickyNote(id);
+        await stickyNoteApi.delete(id);
         return { id, success: true };
       }
 
       if (element.type === ElementType.Text) {
-        await elementApi.deleteTextBox(id);
+        await textBoxApi.delete(id);
         return { id, success: true };
       }
 
       if (element.type === ElementType.Frame) {
-        await elementApi.deleteFrame(id);
+        await frameApi.delete(id);
         return { id, success: true };
       }
 

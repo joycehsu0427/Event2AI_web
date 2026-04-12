@@ -6,7 +6,7 @@ import type { CanvasTransform, BoardState } from '@/types/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
-import { elementApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi } from '@/api';
 import { getNameByHex } from '@/constants/colors';
 
 export interface BoardStoreState {
@@ -58,7 +58,7 @@ export const useBoardStore = defineStore('board', {
           fontSize: String(element.fontSize),
         };
         try {
-          await elementApi.updateTextBox(element.id, payload);
+          await textBoxApi.update(element.id, payload);
         } catch (error) {
           console.error(`Failed to update text box ${element.id}:`, error);
         }
@@ -85,7 +85,7 @@ export const useBoardStore = defineStore('board', {
           fontSize: String(element.fontSize),
         };
         try {
-          await elementApi.updateStickyNote(element.id, payload);
+          await stickyNoteApi.update(element.id, payload);
           // console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
@@ -102,7 +102,7 @@ export const useBoardStore = defineStore('board', {
           title: element.title
         };
         try {
-          await elementApi.updateFrame(element.id, payload);
+          await frameApi.update(element.id, payload);
         } catch (error) {
           console.error(`Failed to update frame ${element.id}:`, error);
         }
