@@ -14,7 +14,7 @@
           <BoardElement :element="element" @transformend="handleTransformEnd" />
         </template>
         <!-- Konva Transformer for selected elements -->
-        <v-transformer ref="transformerRef" />
+        <v-transformer ref="transformerRef" :config="{ rotateEnabled: false }" />
 
         <!-- Marquee Selection Rectangle -->
         <v-rect
