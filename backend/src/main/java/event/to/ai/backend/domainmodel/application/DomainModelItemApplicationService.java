@@ -12,11 +12,14 @@ import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainMode
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.domainmodel.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.domainmodel.application.port.out.DomainModelItemRepositoryPort;
+import event.to.ai.backend.websocket.BoardRealtimeEventType;
+import event.to.ai.backend.websocket.BoardRealtimePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -26,14 +29,17 @@ public class DomainModelItemApplicationService {
     private final DomainModelItemRepositoryPort domainModelItemRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
+    private final BoardRealtimePublisher boardRealtimePublisher;
 
     @Autowired
     public DomainModelItemApplicationService(DomainModelItemRepositoryPort domainModelItemRepositoryPort,
                                              BoardMembershipRepositoryPort boardMembershipRepositoryPort,
-                                             BoardRepositoryPort boardRepositoryPort) {
+                                             BoardRepositoryPort boardRepositoryPort,
+                                             BoardRealtimePublisher boardRealtimePublisher) {
         this.domainModelItemRepositoryPort = domainModelItemRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
+        this.boardRealtimePublisher = boardRealtimePublisher;
     }
 
     public List<DomainModelItemDTO> getAllDomainModelItems(UUID actorUserId) {
@@ -85,7 +91,9 @@ public class DomainModelItemApplicationService {
         }
 
         DomainModelItem savedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
-        return convertToDTO(savedDomainModelItem);
+        DomainModelItemDTO dto = convertToDTO(savedDomainModelItem);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_CREATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -119,7 +127,9 @@ public class DomainModelItemApplicationService {
         }
 
         DomainModelItem updatedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
-        return convertToDTO(updatedDomainModelItem);
+        DomainModelItemDTO dto = convertToDTO(updatedDomainModelItem);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_UPDATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -129,7 +139,9 @@ public class DomainModelItemApplicationService {
 
         requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
+        UUID boardId = domainModelItem.getBoard().getId();
         domainModelItemRepositoryPort.deleteById(id);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_DELETED, boardId, Map.of("id", id));
     }
 
     private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {

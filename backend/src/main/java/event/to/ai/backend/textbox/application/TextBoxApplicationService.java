@@ -10,11 +10,14 @@ import event.to.ai.backend.textbox.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.textbox.adapter.out.persistence.entity.TextBoxes;
 import event.to.ai.backend.textbox.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.textbox.application.port.out.TextBoxesRepositoryPort;
+import event.to.ai.backend.websocket.BoardRealtimeEventType;
+import event.to.ai.backend.websocket.BoardRealtimePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -24,14 +27,17 @@ public class TextBoxApplicationService {
     private final TextBoxesRepositoryPort textBoxesRepositoryPort;
     private final BoardRepositoryPort boardRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+    private final BoardRealtimePublisher boardRealtimePublisher;
 
     @Autowired
     public TextBoxApplicationService(TextBoxesRepositoryPort textBoxesRepositoryPort,
                                      BoardRepositoryPort boardRepositoryPort,
-                                     BoardMembershipRepositoryPort boardMembershipRepositoryPort) {
+                                     BoardMembershipRepositoryPort boardMembershipRepositoryPort,
+                                     BoardRealtimePublisher boardRealtimePublisher) {
         this.textBoxesRepositoryPort = textBoxesRepositoryPort;
         this.boardRepositoryPort = boardRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
+        this.boardRealtimePublisher = boardRealtimePublisher;
     }
 
     public List<TextBoxesDTO> getAllTextBoxes(UUID actorUserId) {
@@ -74,7 +80,9 @@ public class TextBoxApplicationService {
         }
 
         TextBoxes saved = textBoxesRepositoryPort.save(textBoxes);
-        return convertToDTO(saved);
+        TextBoxesDTO dto = convertToDTO(saved);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_CREATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -114,7 +122,9 @@ public class TextBoxApplicationService {
         }
 
         TextBoxes updated = textBoxesRepositoryPort.save(textBoxes);
-        return convertToDTO(updated);
+        TextBoxesDTO dto = convertToDTO(updated);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_UPDATED, dto.getBoardId(), dto);
+        return dto;
     }
 
     @Transactional
@@ -122,9 +132,11 @@ public class TextBoxApplicationService {
         TextBoxes textBoxes = textBoxesRepositoryPort.findById(id)
                 .orElseThrow(() -> new RuntimeException("TextBox not found with id: " + id));
 
-        requireWritePermission(textBoxes.getBoard().getId(), actorUserId);
+        UUID boardId = textBoxes.getBoard().getId();
+        requireWritePermission(boardId, actorUserId);
 
         textBoxesRepositoryPort.deleteById(id);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_DELETED, boardId, Map.of("id", id));
     }
 
     private List<TextBoxesDTO> filterAndConvert(List<TextBoxes> textBoxes, UUID actorUserId) {

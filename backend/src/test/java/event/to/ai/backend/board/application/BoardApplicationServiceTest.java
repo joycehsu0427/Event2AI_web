@@ -207,15 +207,23 @@ class BoardApplicationServiceTest {
         Feature.New("Board Application Service")
                 .newScenario("Delete board fails when board id does not exist")
                 .Given("a non-existing board id", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
                     UUID boardId = UUID.randomUUID();
+                    Board board = new Board("Missing Board", "Description");
+                    board.setId(boardId);
+
+                    env.put("actorUserId", actorUserId);
                     env.put("boardId", boardId);
+                    when(boardMembershipRepositoryPort.findByBoardIdAndUserId(boardId, actorUserId))
+                            .thenReturn(Optional.of(membership(board, user(actorUserId), BoardMembershipRole.OWNER)));
                     when(boardRepositoryPort.existsById(boardId)).thenReturn(false);
                 })
                 .When("deleting board", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
                     UUID boardId = env.get("boardId", UUID.class);
                     RuntimeException ex = assertThrows(
                             RuntimeException.class,
-                            () -> boardApplicationService.deleteBoard(boardId)
+                            () -> boardApplicationService.deleteBoard(actorUserId, boardId)
                     );
                     env.put("error", ex);
                 })
