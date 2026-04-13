@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import type { BoardElement } from '@/types/elements';
+import type { BoardElement, DomainModelItemElement } from '@/types/elements';
 import { ElementType } from '@/types/elements'; // Import ElementType as a value
 import type { CanvasTransform, BoardState } from '@/types/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
-import { stickyNoteApi, textBoxApi, frameApi, domainEntityApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, domainModelItemApi } from '@/api';
 import { getNameByHex } from '@/constants/colors';
 
 export interface BoardStoreState {
@@ -14,6 +14,8 @@ export interface BoardStoreState {
   selectedElementIds: string[];
   canvasTransform: CanvasTransform;
   editingElementId: string | null; // Tracks the ID of the element currently being edited via HTML
+  editingDomainModelId: string | null; // ID of the Domain Model being edited in the modal
+  isDomainModelModalOpen: boolean;
   defaultStickyNoteColor: string; // New state for default sticky note color
 }
 
@@ -23,6 +25,8 @@ export const useBoardStore = defineStore('board', {
     selectedElementIds: [],
     canvasTransform: { x: 0, y: 0, scale: 1 },
     editingElementId: null, // Initialize to null
+    editingDomainModelId: null,
+    isDomainModelModalOpen: false,
     defaultStickyNoteColor: '#ffeb3b', // Default to yellow
   }),
   getters: {
@@ -34,6 +38,8 @@ export const useBoardStore = defineStore('board', {
       state.elements.find((el) => el.id === id),
     getDefaultStickyNoteColor: (state) => state.defaultStickyNoteColor, // New getter
     getEditingElementId: (state) => state.editingElementId, // New getter
+    getEditingDomainModel: (state) => 
+      state.elements.find(el => el.id === state.editingDomainModelId) as DomainModelItemElement | undefined,
   },
   actions: {
     getCurrentBoardId(): string | null {
@@ -87,6 +93,7 @@ export const useBoardStore = defineStore('board', {
         };
         try {
           await stickyNoteApi.update(element.id, payload);
+          // console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
         }
@@ -108,7 +115,7 @@ export const useBoardStore = defineStore('board', {
         }
       }
 
-      else if (element.type === ElementType.DomainEntity) {
+      else if (element.type === ElementType.DomainModelItem) {
         const payload = {
           boardId,
           posX: element.x,
@@ -120,9 +127,9 @@ export const useBoardStore = defineStore('board', {
           attributes: element.attributes,
         };
         try {
-          await domainEntityApi.update(element.id, payload);
+          await domainModelItemApi.update(element.id, payload);
         } catch (error) {
-          console.error(`Failed to update domain entity ${element.id}:`, error);
+          console.error(`Failed to update domain model item ${element.id}:`, error);
         }
       }
     },
@@ -160,6 +167,16 @@ export const useBoardStore = defineStore('board', {
 
     setEditingElement(id: string | null) {
       this.editingElementId = id;
+    },
+
+    openDomainModelModal(id: string) {
+      this.editingDomainModelId = id;
+      this.isDomainModelModalOpen = true;
+    },
+
+    closeDomainModelModal() {
+      this.isDomainModelModalOpen = false;
+      this.editingDomainModelId = null;
     },
 
     deleteElements(ids: string[]) {

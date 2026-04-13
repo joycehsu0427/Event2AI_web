@@ -19,7 +19,7 @@
 
     <button @click="addTextElement" title="Add Text">Text</button>
     <button @click="addFrameElement" title="Add Frame">Frame</button>
-    <button @click="addDomainEntity" title="Add Domain Entity">Entity</button>
+    <button @click="addDomainModelItem" title="Add Domain Model Item">Model</button>
 
     <!-- Undo/Redo/Delete -->
     <div class="divider"></div>
@@ -36,9 +36,9 @@
 import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, DomainEntityType, type FrameElement, type StickyNoteElement, type TextElement, type DomainEntityElement } from '@/types/elements';
+import { ElementType, DomainModelItemType, type FrameElement, type StickyNoteElement, type TextElement, type DomainModelItemElement } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
-import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainEntityApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainModelItemApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const route = useRoute();
@@ -60,8 +60,8 @@ const TEXT_ELEMENT_HEIGHT = 40;
 const FRAME_WIDTH = 360;
 const FRAME_HEIGHT = 240;
 
-const DOMAIN_ENTITY_WIDTH = 200;
-const DOMAIN_ENTITY_HEIGHT = 150;
+const DOMAIN_MODEL_ITEM_WIDTH = 200;
+const DOMAIN_MODEL_ITEM_HEIGHT = 150;
 
 const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: number) => {
   const { x, y, scale } = boardStore.canvasTransform;
@@ -199,39 +199,39 @@ const addFrameElement = async () => {
   historyStore.addState(); // Record state change
 };
 
-async function addDomainEntityApi(position: { x: number; y: number }) {
+async function addDomainModelItemApi(position: { x: number; y: number }) {
   try {
-    const data = await domainEntityApi.create({
+    const data = await domainModelItemApi.create({
       boardId: boardId,
       posX: position.x,
       posY: position.y,
-      width: DOMAIN_ENTITY_WIDTH / boardStore.canvasTransform.scale,
-      height: DOMAIN_ENTITY_HEIGHT / boardStore.canvasTransform.scale,
+      width: DOMAIN_MODEL_ITEM_WIDTH / boardStore.canvasTransform.scale,
+      height: DOMAIN_MODEL_ITEM_HEIGHT / boardStore.canvasTransform.scale,
       name: 'NewEntity',
-      type: DomainEntityType.ENTITY,
+      type: DomainModelItemType.ENTITY,
       attributes: [
         { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
       ]
     });
     return data.id;
   } catch (error) {
-    console.log('Error adding domain entity:', error);
+    console.log('Error adding domain model item:', error);
     return null;
   }
 }
 
-const addDomainEntity = async () => {
-  const position = getViewportCenterBoardPosition(DOMAIN_ENTITY_WIDTH, DOMAIN_ENTITY_HEIGHT);
-  const createdId = await addDomainEntityApi(position);
+const addDomainModelItem = async () => {
+  const position = getViewportCenterBoardPosition(DOMAIN_MODEL_ITEM_WIDTH, DOMAIN_MODEL_ITEM_HEIGHT);
+  const createdId = await addDomainModelItemApi(position);
   if (!createdId) return;
 
-  const newDomainEntity: Omit<DomainEntityElement, 'id'> = {
-    type: ElementType.DomainEntity,
-    modelType: DomainEntityType.ENTITY,
+  const newDomainModelItem: Omit<DomainModelItemElement, 'id'> = {
+    type: ElementType.DomainModelItem,
+    modelType: DomainModelItemType.ENTITY,
     x: position.x,
     y: position.y,
-    width: DOMAIN_ENTITY_WIDTH / boardStore.canvasTransform.scale,
-    height: DOMAIN_ENTITY_HEIGHT / boardStore.canvasTransform.scale,
+    width: DOMAIN_MODEL_ITEM_WIDTH / boardStore.canvasTransform.scale,
+    height: DOMAIN_MODEL_ITEM_HEIGHT / boardStore.canvasTransform.scale,
     name: 'NewEntity',
     attributes: [
       { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
@@ -239,7 +239,7 @@ const addDomainEntity = async () => {
     draggable: true,
   };
 
-  boardStore.addElement(newDomainEntity, createdId);
+  boardStore.addElement(newDomainModelItem, createdId);
   historyStore.addState();
 };
 
@@ -265,8 +265,8 @@ const deleteSelectedElements = async () => {
         return { id, success: true };
       }
 
-      if (element.type === ElementType.DomainEntity) {
-        await domainEntityApi.delete(id);
+      if (element.type === ElementType.DomainModelItem) {
+        await domainModelItemApi.delete(id);
         return { id, success: true };
       }
 

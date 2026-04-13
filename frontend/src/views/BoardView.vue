@@ -2,19 +2,21 @@
   <div class="board-view">
     <Toolbar class="board-toolbar" />
     <MiroBoard class="miro-board-container" @contextmenu.prevent="() => {}"/>
+    <DomainModelItemModal />
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import type { BoardStoreState } from '@/stores/boardStore';
-import { ElementType, type BoardElement, type DomainEntityElement } from '@/types/elements';
+import { ElementType, type BoardElement, type DomainModelItemElement } from '@/types/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useTimerStore } from '@/stores/timerStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
+import DomainModelItemModal from '@/components/menu/DomainModelItemModal.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
 import { boardApi } from '@/api';
 import { getHexByName } from '@/constants/colors';
@@ -25,52 +27,6 @@ const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
 const POLLING_INTERVAL_MS = 5000;
-const stompClient = ref<Client | null>(null);
-
-let boardSubscription: StompSubscription | null = null;
-
-function connectBoardTopic(boardId: string) {
-  const token = localStorage.getItem('token')
-  if (!token) {
-    console.error('Missing JWT token')
-    return
-  }
-
-  const client = new Client({
-    brokerURL: "ws://localhost:8080/ws",
-    reconnectDelay: 5000,
-    connectHeaders: {
-      Authorization: `Bearer ${token}`,
-    },
-    onConnect: () => {
-      console.log("websocket connected!")
-      boardSubscription = client.subscribe(
-        `/topic/boards/${boardId}/events`,
-        (message: IMessage) => {
-          console.log('board event:', message.body)
-          // TODO: 等 payload 格式定案後再 parse / 更新 store
-        },
-      )
-    },
-    onStompError: (frame) => {
-      console.error('STOMP error:', frame.headers['message'], frame.body)
-    },
-    onWebSocketError: (event) => {
-      console.error('WebSocket error:', event)
-    },
-  })
-
-  client.activate()
-  stompClient.value = client
-}
-
-function disconnectBoardTopic() {
-  boardSubscription?.unsubscribe()
-  boardSubscription = null
-  stompClient.value?.deactivate()
-  stompClient.value = null
-  console.log("websocket disconnected!")
-}
 
 async function fetchBoardData(boardId: string) {
   try {
@@ -116,9 +72,9 @@ async function fetchBoardData(boardId: string) {
       draggable: true,
     }));
 
-    const domainEntityElements: BoardElement[] = (data?.domainModelItems ?? []).map((item: any) => ({
+    const domainModelItemElements: BoardElement[] = (data?.domainModelItems ?? []).map((item: any) => ({
       id: item.id,
-      type: ElementType.DomainEntity,
+      type: ElementType.DomainModelItem,
       x: item.pos.x,
       y: item.pos.y,
       width: item.size.x,
@@ -137,10 +93,12 @@ async function fetchBoardData(boardId: string) {
     const canvasTransform = boardStore.canvasTransform;
 
     const state: BoardStoreState = {
-      elements: [...stickyNoteElements, ...textElements, ...frameElements, ...domainEntityElements],
+      elements: [...stickyNoteElements, ...textElements, ...frameElements, ...domainModelItemElements],
       selectedElementIds: boardStore.selectedElementIds,
       canvasTransform: canvasTransform,
       editingElementId: boardStore.getEditingElementId,
+      editingDomainModelId: boardStore.editingDomainModelId,
+      isDomainModelModalOpen: boardStore.isDomainModelModalOpen,
       defaultStickyNoteColor: '#ffeb3b'
     };
     boardStore.loadBoardState(state);

@@ -2,7 +2,7 @@ export enum ElementType {
   StickyNote = 'stickyNote',
   Text = 'text',
   Frame = 'frame',
-  DomainEntity = 'domain-entity',
+  DomainModelItem = 'domain-model-item',
 }
 
 export interface BaseElement {
@@ -43,26 +43,26 @@ export interface FrameElement extends BaseElement {
   title: string;
 }
 
-export enum DomainEntityType {
+export enum DomainModelItemType {
   ENTITY = 'ENTITY',
   AGGREGATE = 'AGGREGATE',
   VALUE_OBJECT = 'VALUE_OBJECT',
   ENUM = 'ENUM',
 }
 
-export interface DomainEntityAttribute {
+export interface DomainModelAttribute {
   name: string;
   dataType?: string;
   constraint?: string;
   displayOrder?: number;
 }
 
-export interface DomainEntityElement extends BaseElement {
-  type: ElementType.DomainEntity;
-  modelType: DomainEntityType;
+export interface DomainModelItemElement extends BaseElement {
+  type: ElementType.DomainModelItem;
+  modelType: DomainModelItemType;
   name: string;
-  attributes: DomainEntityAttribute[];
+  attributes: DomainModelAttribute[];
 }
 
 // Union type for all possible elements
-export type BoardElement = StickyNoteElement | TextElement | FrameElement | DomainEntityElement;
+export type BoardElement = StickyNoteElement | TextElement | FrameElement | DomainModelItemElement;
