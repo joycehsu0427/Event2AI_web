@@ -2,7 +2,7 @@ export enum ElementType {
   StickyNote = 'stickyNote',
   Text = 'text',
   Frame = 'frame',
-  // Add more types as needed (e.g., Rectangle, Circle, Image)
+  DomainEntity = 'domain-entity',
 }
 
 export interface BaseElement {
@@ -19,7 +19,6 @@ export interface BaseElement {
   strokeWidth?: number;
   draggable?: boolean;
   selected?: boolean; // Managed by boardStore, but useful in element data model
-  // ... potentially more common properties
 }
 
 export interface StickyNoteElement extends BaseElement {
@@ -37,7 +36,6 @@ export interface TextElement extends BaseElement {
   fontSize: number;
   fontFamily: string;
   textColor: string;
-  // ... potentially more text-specific properties
 }
 
 export interface FrameElement extends BaseElement {
@@ -45,5 +43,26 @@ export interface FrameElement extends BaseElement {
   title: string;
 }
 
+export enum DomainEntityType {
+  ENTITY = 'ENTITY',
+  AGGREGATE = 'AGGREGATE',
+  VALUE_OBJECT = 'VALUE_OBJECT',
+  ENUM = 'ENUM',
+}
+
+export interface DomainEntityAttribute {
+  name: string;
+  dataType?: string;
+  constraint?: string;
+  displayOrder?: number;
+}
+
+export interface DomainEntityElement extends BaseElement {
+  type: ElementType.DomainEntity;
+  modelType: DomainEntityType;
+  name: string;
+  attributes: DomainEntityAttribute[];
+}
+
 // Union type for all possible elements
-export type BoardElement = StickyNoteElement | TextElement | FrameElement;
+export type BoardElement = StickyNoteElement | TextElement | FrameElement | DomainEntityElement;
