@@ -19,6 +19,9 @@
     <template v-else-if="element.type === ElementType.Frame">
       <Frame :element="(element as FrameElement)" />
     </template>
+    <template v-else-if="element.type === ElementType.DomainEntity">
+      <DomainEntity :element="(element as DomainEntityElement)" />
+    </template>
   </v-group>
 </template>
 
@@ -31,10 +34,12 @@ import {
   type FrameElement,
   type StickyNoteElement,
   type TextElement,
+  type DomainEntityElement,
 } from '@/types/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
 import Frame from './Frame.vue';
+import DomainEntity from './DomainEntity.vue';
 import { Group } from 'konva/lib/Group';
 import type { Node as KonvaNode } from 'konva/lib/Node';
 import { boardElementEditorKey } from './boardElementContext';
@@ -184,5 +189,4 @@ onBeforeUnmount(() => {
   frameDragState.value = null;
 });
 
-// No transformend handler here, as transformer is no longer in this component
 </script>

@@ -19,6 +19,7 @@
 
     <button @click="addTextElement" title="Add Text">Text</button>
     <button @click="addFrameElement" title="Add Frame">Frame</button>
+    <button @click="addDomainEntity" title="Add Domain Entity">Entity</button>
 
     <!-- Undo/Redo/Delete -->
     <div class="divider"></div>
@@ -35,9 +36,9 @@
 import { ref, computed } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, type FrameElement, type StickyNoteElement, type TextElement } from '@/types/elements';
+import { ElementType, DomainEntityType, type FrameElement, type StickyNoteElement, type TextElement, type DomainEntityElement } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
-import { stickyNoteApi, textBoxApi, frameApi, commonApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainEntityApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
 
 const route = useRoute();
@@ -58,6 +59,9 @@ const TEXT_ELEMENT_HEIGHT = 40;
 
 const FRAME_WIDTH = 360;
 const FRAME_HEIGHT = 240;
+
+const DOMAIN_ENTITY_WIDTH = 200;
+const DOMAIN_ENTITY_HEIGHT = 150;
 
 const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: number) => {
   const { x, y, scale } = boardStore.canvasTransform;
@@ -195,6 +199,50 @@ const addFrameElement = async () => {
   historyStore.addState(); // Record state change
 };
 
+async function addDomainEntityApi(position: { x: number; y: number }) {
+  try {
+    const data = await domainEntityApi.create({
+      boardId: boardId,
+      posX: position.x,
+      posY: position.y,
+      width: DOMAIN_ENTITY_WIDTH / boardStore.canvasTransform.scale,
+      height: DOMAIN_ENTITY_HEIGHT / boardStore.canvasTransform.scale,
+      name: 'NewEntity',
+      type: DomainEntityType.ENTITY,
+      attributes: [
+        { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
+      ]
+    });
+    return data.id;
+  } catch (error) {
+    console.log('Error adding domain entity:', error);
+    return null;
+  }
+}
+
+const addDomainEntity = async () => {
+  const position = getViewportCenterBoardPosition(DOMAIN_ENTITY_WIDTH, DOMAIN_ENTITY_HEIGHT);
+  const createdId = await addDomainEntityApi(position);
+  if (!createdId) return;
+
+  const newDomainEntity: Omit<DomainEntityElement, 'id'> = {
+    type: ElementType.DomainEntity,
+    modelType: DomainEntityType.ENTITY,
+    x: position.x,
+    y: position.y,
+    width: DOMAIN_ENTITY_WIDTH / boardStore.canvasTransform.scale,
+    height: DOMAIN_ENTITY_HEIGHT / boardStore.canvasTransform.scale,
+    name: 'NewEntity',
+    attributes: [
+      { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
+    ],
+    draggable: true,
+  };
+
+  boardStore.addElement(newDomainEntity, createdId);
+  historyStore.addState();
+};
+
 const deleteSelectedElements = async () => {
   const idsToDelete = [...boardStore.selectedElementIds];
   const deleteResults = await Promise.allSettled(
@@ -214,6 +262,11 @@ const deleteSelectedElements = async () => {
 
       if (element.type === ElementType.Frame) {
         await frameApi.delete(id);
+        return { id, success: true };
+      }
+
+      if (element.type === ElementType.DomainEntity) {
+        await domainEntityApi.delete(id);
         return { id, success: true };
       }
 

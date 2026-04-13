@@ -6,7 +6,7 @@ import type { CanvasTransform, BoardState } from '@/types/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
-import { stickyNoteApi, textBoxApi, frameApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, domainEntityApi } from '@/api';
 import { getNameByHex } from '@/constants/colors';
 
 export interface BoardStoreState {
@@ -45,6 +45,7 @@ export const useBoardStore = defineStore('board', {
 
     async syncElementUpdateToBackend(element: BoardElement, updates?: Partial<BoardElement>) {
       const boardId = this.getCurrentBoardId();
+      if (!boardId) return;
       
       if (element.type === ElementType.Text) {
         const payload = {
@@ -86,7 +87,6 @@ export const useBoardStore = defineStore('board', {
         };
         try {
           await stickyNoteApi.update(element.id, payload);
-          // console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
         }
@@ -105,6 +105,24 @@ export const useBoardStore = defineStore('board', {
           await frameApi.update(element.id, payload);
         } catch (error) {
           console.error(`Failed to update frame ${element.id}:`, error);
+        }
+      }
+
+      else if (element.type === ElementType.DomainEntity) {
+        const payload = {
+          boardId,
+          posX: element.x,
+          posY: element.y,
+          width: element.width,
+          height: element.height,
+          name: element.name,
+          type: element.modelType,
+          attributes: element.attributes,
+        };
+        try {
+          await domainEntityApi.update(element.id, payload);
+        } catch (error) {
+          console.error(`Failed to update domain entity ${element.id}:`, error);
         }
       }
     },

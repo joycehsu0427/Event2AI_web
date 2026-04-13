@@ -1,4 +1,4 @@
 export * from './stickyNote';
 export * from './textBox';
 export * from './frame';
-export * from './domainModel';
+export * from './domainEntity';
