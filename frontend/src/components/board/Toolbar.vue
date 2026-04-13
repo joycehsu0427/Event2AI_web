@@ -1,13 +1,12 @@
 <template>
   <div class="toolbar">
-    <!-- Tools for adding elements -->
-    <div class="sticky-tool-container">
-      <button @click="showColorPicker = !showColorPicker" :class="{ active: showColorPicker }" title="Add Sticky Note">
+    <!-- 1. Sticky Note Tool -->
+    <div class="tool-container">
+      <button @click="toggleColorPicker" :class="{ active: showColorPicker }" title="Add Sticky Note">
         Sticky
       </button>
       
-      <!-- Popover Color Picker -->
-      <div v-if="showColorPicker" class="color-picker-popover">
+      <div v-if="showColorPicker" class="popover color-picker-popover">
         <div v-for="color in stickyNoteColors" :key="color"
              class="color-swatch"
              :style="{ backgroundColor: color }"
@@ -19,7 +18,22 @@
 
     <button @click="addTextElement" title="Add Text">Text</button>
     <button @click="addFrameElement" title="Add Frame">Frame</button>
-    <button @click="addDomainModelItem" title="Add Domain Model Item">Model</button>
+
+    <!-- 2. Domain Model Tool -->
+    <div class="tool-container">
+      <button @click="toggleModelTypePicker" :class="{ active: showModelTypePicker }" title="Add Domain Model">
+        Model
+      </button>
+
+      <div v-if="showModelTypePicker" class="popover model-type-popover">
+        <div v-for="type in modelTypes" :key="type"
+             class="type-item"
+             @click="addDomainModelItem(type)"
+        >
+          {{ type }}
+        </div>
+      </div>
+    </div>
 
     <!-- Undo/Redo/Delete -->
     <div class="divider"></div>
@@ -48,20 +62,30 @@ const historyStore = useHistoryStore();
 const boardId = route.params.boardId as string;
 
 const showColorPicker = ref(false);
+const showModelTypePicker = ref(false);
 const isAnalyzing = ref(false);
+
 const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
+const modelTypes = Object.values(DomainModelItemType);
 
 const STICKY_NOTE_WIDTH = 150;
 const STICKY_NOTE_HEIGHT = 150;
-
 const TEXT_ELEMENT_WIDTH = 200;
 const TEXT_ELEMENT_HEIGHT = 40;
-
 const FRAME_WIDTH = 360;
 const FRAME_HEIGHT = 240;
-
 const DOMAIN_MODEL_ITEM_WIDTH = 200;
 const DOMAIN_MODEL_ITEM_HEIGHT = 150;
+
+const toggleColorPicker = () => {
+  showColorPicker.value = !showColorPicker.value;
+  showModelTypePicker.value = false;
+};
+
+const toggleModelTypePicker = () => {
+  showModelTypePicker.value = !showModelTypePicker.value;
+  showColorPicker.value = false;
+};
 
 const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: number) => {
   const { x, y, scale } = boardStore.canvasTransform;
@@ -83,7 +107,7 @@ async function addStickyNoteApi(colorHex: string, position: { x: number; y: numb
       geoX: STICKY_NOTE_WIDTH / boardStore.canvasTransform.scale,
       geoY: STICKY_NOTE_HEIGHT / boardStore.canvasTransform.scale,
       description: 'New Sticky Note',
-      color: getNameByHex(colorHex), // Send color name (e.g., 'blue') to backend
+      color: getNameByHex(colorHex),
       tag: 'sticky-note',
       fontColor: '#000000',
       fontSize: 20
@@ -113,9 +137,7 @@ const addStickyNote = async (color: string) => {
     draggable: true,
   };
   boardStore.addElement(newStickyNote, createdId);
-  historyStore.addState(); // Record state change
-  
-  // Close the picker after selection
+  historyStore.addState();
   showColorPicker.value = false;
 };
 
@@ -128,7 +150,7 @@ async function addTextElementApi(position: { x: number; y: number }) {
       geoX: TEXT_ELEMENT_WIDTH / boardStore.canvasTransform.scale,
       geoY: TEXT_ELEMENT_HEIGHT / boardStore.canvasTransform.scale,
       description: 'New Text',
-      color: 'yellow', // Default color name
+      color: 'yellow',
       tag: 'text-box',
       fontColor: '#000000',
       fontSize: 24
@@ -158,7 +180,7 @@ const addTextElement = async () => {
     draggable: true,
   };
   boardStore.addElement(newTextElement, createdId);
-  historyStore.addState(); // Record state change
+  historyStore.addState();
 };
 
 async function addFrameApi(position: { x: number; y: number }) {
@@ -196,10 +218,10 @@ const addFrameElement = async () => {
   };
 
   boardStore.addElement(newFrameElement, createdId ?? undefined);
-  historyStore.addState(); // Record state change
+  historyStore.addState();
 };
 
-async function addDomainModelItemApi(position: { x: number; y: number }) {
+async function addDomainModelItemApi(type: DomainModelItemType, position: { x: number; y: number }) {
   try {
     const data = await domainModelItemApi.create({
       boardId: boardId,
@@ -207,10 +229,10 @@ async function addDomainModelItemApi(position: { x: number; y: number }) {
       posY: position.y,
       width: DOMAIN_MODEL_ITEM_WIDTH / boardStore.canvasTransform.scale,
       height: DOMAIN_MODEL_ITEM_HEIGHT / boardStore.canvasTransform.scale,
-      name: 'NewEntity',
-      type: DomainModelItemType.ENTITY,
+      name: `New${type}`,
+      type: type,
       attributes: [
-        { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
+        { name: 'id', dataType: type === DomainModelItemType.ENUM ? '' : 'UUID', constraint: type === DomainModelItemType.ENUM ? '' : 'PK', displayOrder: 0 }
       ]
     });
     return data.id;
@@ -220,27 +242,28 @@ async function addDomainModelItemApi(position: { x: number; y: number }) {
   }
 }
 
-const addDomainModelItem = async () => {
+const addDomainModelItem = async (type: DomainModelItemType) => {
   const position = getViewportCenterBoardPosition(DOMAIN_MODEL_ITEM_WIDTH, DOMAIN_MODEL_ITEM_HEIGHT);
-  const createdId = await addDomainModelItemApi(position);
+  const createdId = await addDomainModelItemApi(type, position);
   if (!createdId) return;
 
   const newDomainModelItem: Omit<DomainModelItemElement, 'id'> = {
     type: ElementType.DomainModelItem,
-    modelType: DomainModelItemType.ENTITY,
+    modelType: type,
     x: position.x,
     y: position.y,
     width: DOMAIN_MODEL_ITEM_WIDTH / boardStore.canvasTransform.scale,
     height: DOMAIN_MODEL_ITEM_HEIGHT / boardStore.canvasTransform.scale,
-    name: 'NewEntity',
+    name: `New${type}`,
     attributes: [
-      { name: 'id', dataType: 'UUID', constraint: 'PK', displayOrder: 0 }
+      { name: 'id', dataType: type === DomainModelItemType.ENUM ? '' : 'UUID', constraint: type === DomainModelItemType.ENUM ? '' : 'PK', displayOrder: 0 }
     ],
     draggable: true,
   };
 
   boardStore.addElement(newDomainModelItem, createdId);
   historyStore.addState();
+  showModelTypePicker.value = false;
 };
 
 const deleteSelectedElements = async () => {
@@ -281,28 +304,8 @@ const deleteSelectedElements = async () => {
 
   if (successfulIds.length > 0) {
     boardStore.deleteElements(successfulIds);
-    historyStore.addState(); // Record state change
+    historyStore.addState();
   }
-
-  deleteResults
-    .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
-    .forEach((result) => {
-      console.error('Error deleting selected element:', result.reason);
-    });
-};
-
-const selectDefaultColor = (color: string) => {
-  boardStore.setDefaultStickyNoteColor(color);
-};
-
-// Check if any selected elements are sticky notes to enable apply color button
-const canApplyColorToSelected = computed(() => {
-  return boardStore.getSelectedElements.some(el => el.type === ElementType.StickyNote);
-});
-
-const applyColorToSelected = () => {
-  boardStore.updateSelectedElementsColor(boardStore.getDefaultStickyNoteColor);
-  historyStore.addState(); // Record state change
 };
 
 const handleAnalysis = async () => {
@@ -334,11 +337,11 @@ const goHome = () => {
   align-items: center;
 }
 
-.sticky-tool-container {
+.tool-container {
   position: relative;
 }
 
-.color-picker-popover {
+.popover {
   position: absolute;
   top: calc(100% + 10px);
   left: 0;
@@ -347,11 +350,10 @@ const goHome = () => {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   display: flex;
-  gap: 8px;
   z-index: 1001;
 }
 
-.color-picker-popover::before {
+.popover::before {
   content: '';
   position: absolute;
   top: -6px;
@@ -360,6 +362,30 @@ const goHome = () => {
   height: 12px;
   background: white;
   transform: rotate(45deg);
+}
+
+.color-picker-popover {
+  gap: 8px;
+}
+
+.model-type-popover {
+  flex-direction: column;
+  min-width: 140px;
+  padding: 5px;
+}
+
+.type-item {
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  color: #444;
+  transition: background 0.2s;
+}
+
+.type-item:hover {
+  background: #f0f7ff;
+  color: #007bff;
 }
 
 .divider {
