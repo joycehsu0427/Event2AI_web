@@ -4,7 +4,7 @@
 - [x] 每五秒版面不固定的問題 (D)
 - [x] 自定義滑鼠右鍵(或改成其他按鍵移動)  (J)
 - [x] Frame (D)
-- [ ] domain model  (J)
+- [x] domain model  (J)
 
 ### 後端要做的事情：
 - [x] STOMP (B)
@@ -21,12 +21,11 @@
 - [x] 串接 Event2AI 的按鈕、Board 畫面中，回首頁的按鈕 (D)
 - [x] Create StickyNote 時，視窗看的到地方 (要將 StickyNote 先黏在滑鼠上) (D)
 - [x] 顏色加上文字敘述 (J)
-- [ ] Domain Model (J)
+- [x] Domain Model (J)
 - [x] 旋轉問題 => 刪掉這個功能 (J)
-- [ ] Frame、Frame 互相重疊的問題 (D)
-- [ ] STOMP 完整推播功能串接與更新 (D)
-- [ ] 滑鼠右鍵 (J)
-- [ ] 功能列表：複製、貼上、剪下、上一步、下一步、置頂、置底、上一層、下一層
+- [x] Frame、Frame 互相重疊的問題 (D)
+- [x] 滑鼠右鍵 (J)
+- [x] 功能列表：複製、貼上、剪下、上一步、下一步、置頂、置底、上一層、下一層
 
 ## Backend：
 - [x] STOMP 完整推播功能 (B)
@@ -42,3 +41,27 @@
 ## DeadLine : 0414(二)8PM、0415(三)午餐結束各開一次會
 
 ---
+
+# 日期：2026.04.14(二)
+## Frontend：
+- [x] 修正 `Frame` (D) 
+- [v] 修正 `DomainModelItem` (J)
+- [v] Create 一組 EventStorming Template 的按鈕 (D)
+- [v] STOMP 完整推播功能串接與更新 (D)
+- [v] 功能列表：複製、貼上、剪下、上一步、下一步、置頂、置底、上一層、下一層 (J)
+- [v] `Analsis` 的按鈕 + 壓縮 JsonFile (D)
+- [ ] `Connector` 的箭頭折角 (J)
+- [ ] EventStorming 內部可以直接用點擊的方式編輯參數 (J)
+- [x] 修正 Create `Rectangle` 創立時的大小問題 (D)
+- [v] 修正 `Rectangle` 的縮放問題 (D)
+
+## Backend：
+- [x] 加上 `WebSocket` 的 `Message` 中缺少的 `UserId` (B)
+- [v] `Board` DELETE 會報錯 (B、I)
+- [x] `DomainModel` 的 `ENUM` 在 Create 時會有問題 (I)
+- [ ] 整理 test-api (I)
+- [ ] `Connector` 的箭頭折角 (B、I)
+
+## DeadLine : 0416(四) AM 11:00
+
+
