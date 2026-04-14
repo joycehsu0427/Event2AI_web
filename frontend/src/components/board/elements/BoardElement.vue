@@ -100,14 +100,46 @@ const isThisElementBeingEdited = computed(() => boardStore.editingElementId === 
 provide(boardElementEditorKey, editor);
 
 // Configuration for the Konva Group that wraps each element
-const elementConfig = computed(() => ({
-  x: props.element.x,
-  y: props.element.y,
-  width: props.element.width,
-  height: props.element.height,
-  rotation: props.element.rotation || 0,
-  draggable: !isThisElementBeingEdited.value && !boardStore.isDrawingConnector, 
-}));
+const elementConfig = computed(() => {
+  // 排除 Connector 類型，因為它沒有 x, y, width, height
+  if (props.element.type === ElementType.Connector) {
+    return {};
+  }
+  
+  return {
+    x: props.element.x,
+    y: props.element.y,
+    width: props.element.width,
+    height: props.element.height,
+    rotation: props.element.rotation || 0,
+    draggable: !isThisElementBeingEdited.value && !boardStore.isDrawingConnector,
+  };
+});
+
+const findOverlappingFrameId = (x: number, y: number): string | null => {
+  // Avoid accessing width/height for Connector elements
+  if (props.element.type === ElementType.Connector) {
+    return null;
+  }
+
+  const frames = boardStore.getElements.filter(
+    (el) => el.type === ElementType.Frame
+  ) as FrameElement[];
+
+  // Check if this sticky note's bounds overlap with any frame
+  for (const frame of frames) {
+    // Check if sticky note is within frame bounds
+    if (
+      x >= frame.x &&
+      x + props.element.width <= frame.x + frame.width &&
+      y >= frame.y &&
+      y + props.element.height <= frame.y + frame.height
+    ) {
+      return frame.id;
+    }
+  }
+  return null;
+};
 
 const handleClick = (e: any) => {
   e.cancelBubble = true;
@@ -214,6 +246,20 @@ const handleDragEnd = (e: any) => {
     });
 
     frameDragState.value = null;
+  }
+
+  if (props.element.type === ElementType.StickyNote) {
+    // Check if sticky note is now within a different frame after drag
+    const newFrameId = findOverlappingFrameId(newX, newY);
+    const currentFrameId = props.element.frameId || null;
+    console.log(newFrameId, currentFrameId);
+
+    // Only update if frameId has changed
+    if (newFrameId !== currentFrameId) {
+      boardStore.updateElement(props.element.id, {
+        frameId: newFrameId,
+      });
+    }
   }
 
   // Update element's position in store after drag
