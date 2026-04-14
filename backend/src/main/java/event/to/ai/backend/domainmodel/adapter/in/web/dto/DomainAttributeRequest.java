@@ -9,7 +9,6 @@ public class DomainAttributeRequest {
     @Size(max = 200, message = "Attribute name must not exceed 200 characters")
     private String name;
 
-    @NotBlank(message = "Attribute data type is required")
     @Size(max = 100, message = "Attribute data type must not exceed 100 characters")
     private String dataType;
 

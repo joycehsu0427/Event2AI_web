@@ -12,6 +12,7 @@ import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.DomainMode
 import event.to.ai.backend.domainmodel.adapter.out.persistence.entity.Point2D;
 import event.to.ai.backend.domainmodel.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.domainmodel.application.port.out.DomainModelItemRepositoryPort;
+import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 import event.to.ai.backend.websocket.BoardRealtimeEventType;
 import event.to.ai.backend.websocket.BoardRealtimePublisher;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 @Service
@@ -83,10 +85,21 @@ public class DomainModelItemApplicationService {
         domainModelItem.setDescription(request.getDescription());
 
         if (request.getAttributes() != null) {
-            List<DomainAttributeData> attributes = request.getAttributes().stream()
-                    .map(attr -> new DomainAttributeData(
-                            attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
-                    .collect(Collectors.toList());
+            List<DomainAttributeData> attributes;
+            if(domainModelItem.getType() == DomainModelItemType.ENUM) {
+                AtomicInteger index = new AtomicInteger(0);
+                attributes = request.getAttributes().stream()
+                        .map(attr -> new DomainAttributeData(
+                                attr.getName(), "", "", index.getAndIncrement()
+                        ))
+                        .collect(Collectors.toList());
+            }
+            else {
+                attributes = request.getAttributes().stream()
+                        .map(attr -> new DomainAttributeData(
+                                attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
+                        .collect(Collectors.toList());
+            }
             domainModelItem.setAttributes(attributes);
         }
 
@@ -119,10 +132,21 @@ public class DomainModelItemApplicationService {
             domainModelItem.setDescription(request.getDescription());
         }
         if (request.getAttributes() != null) {
-            List<DomainAttributeData> attributes = request.getAttributes().stream()
-                    .map(attr -> new DomainAttributeData(
-                            attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
-                    .collect(Collectors.toList());
+            List<DomainAttributeData> attributes;
+            if(domainModelItem.getType() == DomainModelItemType.ENUM) {
+                AtomicInteger index = new AtomicInteger(0);
+                attributes = request.getAttributes().stream()
+                        .map(attr -> new DomainAttributeData(
+                                attr.getName(), "", "", index.getAndIncrement()
+                        ))
+                        .collect(Collectors.toList());
+            }
+            else {
+                attributes = request.getAttributes().stream()
+                        .map(attr -> new DomainAttributeData(
+                                attr.getName(), attr.getDataType(), attr.getConstraint(), attr.getDisplayOrder()))
+                        .collect(Collectors.toList());
+            }
             domainModelItem.setAttributes(attributes);
         }
 

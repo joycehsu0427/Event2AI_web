@@ -17,6 +17,13 @@ public class DomainAttributeData {
         this.displayOrder = displayOrder;
     }
 
+    public DomainAttributeData(String name) {
+        this.name = name;
+        this.dataType = "";
+        this.constraint = "";
+        this.displayOrder = 0;
+    }
+
     public String getName() {
         return name;
     }
