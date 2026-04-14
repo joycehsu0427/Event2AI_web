@@ -11,7 +11,7 @@ import { useRoute } from 'vue-router';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import type { BoardStoreState } from '@/stores/boardStore';
-import { ElementType, type BoardElement, type DomainModelItemElement } from '@/types/elements';
+import { ElementType, type BoardElement, type DomainModelItemElement, type ConnectorElement, ConnectorTargetType, ConnectorAnchorSide, ConnectorLineType, ConnectorArrowType } from '@/types/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useTimerStore } from '@/stores/timerStore';
 import Toolbar from '@/components/board/Toolbar.vue';
@@ -90,16 +90,48 @@ async function fetchBoardData(boardId: string) {
       draggable: true,
     }));
 
+    const connectorElements: BoardElement[] = (data?.connectors ?? []).map((conn: any) => ({
+      id: conn.id,
+      type: ElementType.Connector,
+      fromTargetType: conn.fromTargetType,
+      fromTargetId: conn.fromTargetId,
+      fromSide: conn.fromSide,
+      fromOffset: conn.fromOffset,
+      fromPoint: conn.fromPoint,
+      toTargetType: conn.toTargetType,
+      toTargetId: conn.toTargetId,
+      toSide: conn.toSide,
+      toOffset: conn.toOffset,
+      toPoint: conn.toPoint,
+      lineType: conn.lineType,
+      label: conn.label,
+      strokeColor: conn.strokeColor || '#333333',
+      strokeWidth: conn.strokeWidth || 2,
+      dashed: conn.dashed || false,
+      startArrow: conn.startArrow || ConnectorArrowType.NONE,
+      endArrow: conn.endArrow || ConnectorArrowType.TRIANGLE,
+      zIndex: conn.zIndex || 0,
+      draggable: false,
+    }));
+
     const canvasTransform = boardStore.canvasTransform;
 
     const state: BoardStoreState = {
-      elements: [...stickyNoteElements, ...textElements, ...frameElements, ...domainModelItemElements],
+      elements: [
+        ...stickyNoteElements,
+        ...textElements,
+        ...frameElements,
+        ...domainModelItemElements,
+        ...connectorElements
+      ],
       selectedElementIds: boardStore.selectedElementIds,
       canvasTransform: canvasTransform,
       editingElementId: boardStore.getEditingElementId,
       editingDomainModelId: boardStore.editingDomainModelId,
       isDomainModelModalOpen: boardStore.isDomainModelModalOpen,
-      defaultStickyNoteColor: '#ffeb3b'
+      defaultStickyNoteColor: '#ffeb3b',
+      isDrawingConnector: boardStore.isDrawingConnector,
+      connectorDrawingStart: boardStore.connectorDrawingStart,
     };
     boardStore.loadBoardState(state);
   } catch (error) {

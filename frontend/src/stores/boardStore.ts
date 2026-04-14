@@ -1,12 +1,12 @@
 import { defineStore } from 'pinia';
 import { v4 as uuidv4 } from 'uuid';
-import type { BoardElement, DomainModelItemElement } from '@/types/elements';
+import type { BoardElement, DomainModelItemElement, ConnectorElement } from '@/types/elements';
 import { ElementType } from '@/types/elements'; // Import ElementType as a value
 import type { CanvasTransform, BoardState } from '@/types/board';
 import { saveStateToLocalStorage } from '@/utils/localStorage';
 import { debounce } from '@/utils/debounce';
 import router from '@/router';
-import { stickyNoteApi, textBoxApi, frameApi, domainModelItemApi } from '@/api';
+import { stickyNoteApi, textBoxApi, frameApi, domainModelItemApi, connectorApi } from '@/api';
 import { getNameByHex } from '@/constants/colors';
 
 export interface BoardStoreState {
@@ -17,6 +17,12 @@ export interface BoardStoreState {
   editingDomainModelId: string | null; // ID of the Domain Model being edited in the modal
   isDomainModelModalOpen: boolean;
   defaultStickyNoteColor: string; // New state for default sticky note color
+  isDrawingConnector: boolean;
+  connectorDrawingStart: {
+    targetId?: string;
+    targetType: any;
+    point?: { x: number; y: number };
+  } | null;
 }
 
 export const useBoardStore = defineStore('board', {
@@ -28,6 +34,8 @@ export const useBoardStore = defineStore('board', {
     editingDomainModelId: null,
     isDomainModelModalOpen: false,
     defaultStickyNoteColor: '#ffeb3b', // Default to yellow
+    isDrawingConnector: false,
+    connectorDrawingStart: null,
   }),
   getters: {
     getElements: (state) => state.elements,
@@ -93,7 +101,6 @@ export const useBoardStore = defineStore('board', {
         };
         try {
           await stickyNoteApi.update(element.id, payload);
-          // console.log("Updated sticky note", res.data);
         } catch (error) {
           console.error(`Failed to update sticky note ${element.id}:`, error);
         }
@@ -130,6 +137,35 @@ export const useBoardStore = defineStore('board', {
           await domainModelItemApi.update(element.id, payload);
         } catch (error) {
           console.error(`Failed to update domain model item ${element.id}:`, error);
+        }
+      }
+
+      else if (element.type === ElementType.Connector) {
+        const payload = {
+          boardId,
+          fromTargetType: element.fromTargetType,
+          fromTargetId: element.fromTargetId,
+          fromSide: element.fromSide,
+          fromOffset: element.fromOffset,
+          fromPoint: element.fromPoint,
+          toTargetType: element.toTargetType,
+          toTargetId: element.toTargetId,
+          toSide: element.toSide,
+          toOffset: element.toOffset,
+          toPoint: element.toPoint,
+          lineType: element.lineType,
+          label: element.label,
+          strokeColor: element.strokeColor,
+          strokeWidth: element.strokeWidth,
+          dashed: element.dashed,
+          startArrow: element.startArrow,
+          endArrow: element.endArrow,
+          zIndex: element.zIndex,
+        };
+        try {
+          await connectorApi.update(element.id, payload);
+        } catch (error) {
+          console.error(`Failed to update connector ${element.id}:`, error);
         }
       }
     },
@@ -228,5 +264,15 @@ export const useBoardStore = defineStore('board', {
     saveBoardStateToLocalStorage() {
       this.debouncedSaveState();
     },
+
+    startDrawingConnector(start: { targetId?: string; targetType: any; point?: { x: number; y: number } }) {
+      this.isDrawingConnector = true;
+      this.connectorDrawingStart = start;
+    },
+
+    stopDrawingConnector() {
+      this.isDrawingConnector = false;
+      this.connectorDrawingStart = null;
+    }
   },
 });

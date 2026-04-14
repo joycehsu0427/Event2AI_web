@@ -35,6 +35,15 @@
       </div>
     </div>
 
+    <!-- 3. Connector Tool -->
+    <button 
+      @click="toggleLineTool" 
+      :class="{ active: boardStore.isDrawingConnector }" 
+      title="Draw Connection Line"
+    >
+      Line
+    </button>
+
     <!-- Undo/Redo/Delete -->
     <div class="divider"></div>
     <button @click="historyStore.undo()" :disabled="!historyStore.canUndo" title="Undo">Undo</button>
@@ -47,10 +56,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, DomainModelItemType, type FrameElement, type StickyNoteElement, type TextElement, type DomainModelItemElement } from '@/types/elements';
+import { ElementType, DomainModelItemType, type FrameElement, type StickyNoteElement, type TextElement, type DomainModelItemElement, ConnectorTargetType } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
 import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainModelItemApi } from '@/api';
 import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
@@ -80,11 +89,25 @@ const DOMAIN_MODEL_ITEM_HEIGHT = 150;
 const toggleColorPicker = () => {
   showColorPicker.value = !showColorPicker.value;
   showModelTypePicker.value = false;
+  boardStore.stopDrawingConnector();
 };
 
 const toggleModelTypePicker = () => {
   showModelTypePicker.value = !showModelTypePicker.value;
   showColorPicker.value = false;
+  boardStore.stopDrawingConnector();
+};
+
+const toggleLineTool = () => {
+  if (boardStore.isDrawingConnector) {
+    boardStore.stopDrawingConnector();
+    document.body.style.cursor = 'default';
+  } else {
+    showColorPicker.value = false;
+    showModelTypePicker.value = false;
+    boardStore.startDrawingConnector({ targetType: ConnectorTargetType.FREE_POINT });
+    document.body.style.cursor = 'crosshair';
+  }
 };
 
 const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: number) => {

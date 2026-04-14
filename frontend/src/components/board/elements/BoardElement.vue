@@ -35,6 +35,8 @@ import {
   type StickyNoteElement,
   type TextElement,
   type DomainModelItemElement,
+  ConnectorTargetType,
+  ConnectorAnchorSide,
 } from '@/types/elements';
 import StickyNote from './StickyNote.vue';
 import BoardText from './BoardText.vue';
@@ -104,14 +106,51 @@ const elementConfig = computed(() => ({
   width: props.element.width,
   height: props.element.height,
   rotation: props.element.rotation || 0,
-  draggable: !isThisElementBeingEdited.value, // Make element non-draggable if it's being edited
+  draggable: !isThisElementBeingEdited.value && !boardStore.isDrawingConnector, 
 }));
 
 const handleClick = (e: any) => {
-  // Prevent event bubbling to the stage if an element is clicked
   e.cancelBubble = true;
-  // Select this element
+
+  // If in drawing connector mode, handle connector logic
+  if (boardStore.isDrawingConnector) {
+    handleConnectorModeClick(e);
+    return;
+  }
+
+  // Normal select logic
   boardStore.selectElement(props.element.id, e.evt.shiftKey || e.evt.ctrlKey || e.evt.metaKey);
+};
+
+const handleConnectorModeClick = (e: any) => {
+  const stage = e.target.getStage();
+  const pointer = stage.getPointerPosition();
+  if (!pointer) return;
+
+  const targetType = mapElementTypeToConnectorTargetType(props.element.type);
+  
+  if (!boardStore.connectorDrawingStart?.targetId) {
+    // Start drawing from this element
+    boardStore.startDrawingConnector({
+      targetId: props.element.id,
+      targetType: targetType,
+      // Default to auto-side or closest side later, now just start
+    });
+  } else {
+    // Complete drawing to this element
+    // This part is actually handled better in MiroBoard.vue or via a global event
+    // because we need to know where the user clicked exactly on the object.
+  }
+};
+
+const mapElementTypeToConnectorTargetType = (type: ElementType): ConnectorTargetType => {
+  switch(type) {
+    case ElementType.StickyNote: return ConnectorTargetType.STICKY_NOTE;
+    case ElementType.Text: return ConnectorTargetType.TEXT_BOX;
+    case ElementType.Frame: return ConnectorTargetType.FRAME;
+    case ElementType.DomainModelItem: return ConnectorTargetType.DOMAIN_MODEL_ITEM;
+    default: return ConnectorTargetType.FREE_POINT;
+  }
 };
 
 const handleDragStart = (e: any) => {
