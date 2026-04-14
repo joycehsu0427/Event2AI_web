@@ -20,13 +20,60 @@ import DomainModelItemModal from '@/components/menu/DomainModelItemModal.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
 import { boardApi } from '@/api';
 import { getHexByName } from '@/constants/colors';
+import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 
 const route = useRoute();
 const boardId = route.params.boardId as string;
 const boardStore = useBoardStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
-const POLLING_INTERVAL_MS = 5000;
+// const POLLING_INTERVAL_MS = 5000;
+const stompClient = ref<Client | null>(null);
+
+let boardSubscription: StompSubscription | null = null;
+
+function connectBoardTopic(boardId: string) {
+  const token = localStorage.getItem('token')
+  if (!token) {
+    console.error('Missing JWT token')
+    return
+  }
+
+  const client = new Client({
+    brokerURL: "ws://localhost:8080/ws",
+    reconnectDelay: 5000,
+    connectHeaders: {
+      Authorization: `Bearer ${token}`,
+    },
+    onConnect: () => {
+      console.log("websocket connected!")
+      boardSubscription = client.subscribe(
+        `/topic/boards/${boardId}/events`,
+        (message: IMessage) => {
+          console.log('board event:', JSON.parse(message.body))
+          // TODO: 等 payload 格式定案後再 parse / 更新 store
+        },
+      )
+    },
+    onStompError: (frame) => {
+      console.error('STOMP error:', frame.headers['message'], frame.body)
+    },
+    onWebSocketError: (event) => {
+      console.error('WebSocket error:', event)
+    },
+  })
+
+  client.activate()
+  stompClient.value = client
+}
+
+function disconnectBoardTopic() {
+  boardSubscription?.unsubscribe()
+  boardSubscription = null
+  stompClient.value?.deactivate()
+  stompClient.value = null
+  console.log("websocket disconnected!")
+}
 
 async function fetchBoardData(boardId: string) {
   try {
@@ -140,6 +187,7 @@ async function fetchBoardData(boardId: string) {
 }
 
 onMounted(() => {
+  connectBoardTopic(boardId);
   fetchBoardData(boardId);
   const savedState = loadStateFromLocalStorage();
   if (savedState) {
@@ -154,6 +202,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  disconnectBoardTopic();
   window.removeEventListener('keydown', handleKeyDown);
   timerStore.stop();
 });
