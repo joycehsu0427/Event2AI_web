@@ -39,7 +39,7 @@ async function fetchBoardData(boardId: string) {
       y: note.posY,
       width: note.geoX,
       height: note.geoY,
-      frameId: note.frameID || null,
+      frameId: note.frameId || null,
       text: note.description,
       fontSize: Number(note.fontSize) || 20,
       textColor: note.fontColor || '#000000',
@@ -148,9 +148,9 @@ onMounted(() => {
   historyStore.initializeHistory();
   window.addEventListener('keydown', handleKeyDown);
 
-  timerStore.start(async () => {
-    await fetchBoardData(boardId);
-  }, POLLING_INTERVAL_MS);
+  // timerStore.start(async () => {
+  //   await fetchBoardData(boardId);
+  // }, POLLING_INTERVAL_MS);
 });
 
 onUnmounted(() => {

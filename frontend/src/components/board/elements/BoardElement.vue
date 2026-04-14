@@ -252,7 +252,6 @@ const handleDragEnd = (e: any) => {
     // Check if sticky note is now within a different frame after drag
     const newFrameId = findOverlappingFrameId(newX, newY);
     const currentFrameId = props.element.frameId || null;
-    console.log(newFrameId, currentFrameId);
 
     // Only update if frameId has changed
     if (newFrameId !== currentFrameId) {
