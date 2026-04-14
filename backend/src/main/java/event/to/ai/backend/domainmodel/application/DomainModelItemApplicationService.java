@@ -92,7 +92,7 @@ public class DomainModelItemApplicationService {
 
         DomainModelItem savedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
         DomainModelItemDTO dto = convertToDTO(savedDomainModelItem);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_CREATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_CREATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -128,7 +128,7 @@ public class DomainModelItemApplicationService {
 
         DomainModelItem updatedDomainModelItem = domainModelItemRepositoryPort.save(domainModelItem);
         DomainModelItemDTO dto = convertToDTO(updatedDomainModelItem);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_UPDATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_UPDATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -141,7 +141,7 @@ public class DomainModelItemApplicationService {
 
         UUID boardId = domainModelItem.getBoard().getId();
         domainModelItemRepositoryPort.deleteById(id);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_DELETED, boardId, Map.of("id", id));
+        boardRealtimePublisher.publish(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_DELETED, actorUserId, boardId, Map.of("id", id));
     }
 
     private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {

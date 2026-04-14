@@ -86,7 +86,7 @@ public class FrameApllicationService {
 
         Frame savedFrame = frameRepositoryPort.save(frame);
         FrameDTO dto = convertToDTO(savedFrame);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -108,7 +108,7 @@ public class FrameApllicationService {
         // 先將 frame 存進資料庫，確保 savedFrame.getId() 有值後再建立 StickyNotes
         Frame savedFrame = frameRepositoryPort.save(frame);
         FrameDTO savedFrameDto = convertToDTO(savedFrame);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, savedFrameDto.getBoardId(), savedFrameDto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_CREATED, actorUserId, savedFrameDto.getBoardId(), savedFrameDto);
 
         UUID boardId = board.getId();
         UUID frameId = savedFrame.getId();
@@ -171,7 +171,7 @@ public class FrameApllicationService {
 
         Frame updatedFrame = frameRepositoryPort.save(frame);
         FrameDTO dto = convertToDTO(updatedFrame);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_UPDATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_UPDATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -184,7 +184,7 @@ public class FrameApllicationService {
         requireWritePermission(boardId, actorUserId);
 
         frameRepositoryPort.deleteById(id);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_DELETED, boardId, Map.of("id", id));
+        boardRealtimePublisher.publish(BoardRealtimeEventType.FRAME_DELETED, actorUserId, boardId, Map.of("id", id));
     }
 
     private BoardMembershipRole getMemberRole(UUID boardId, UUID actorUserId) {

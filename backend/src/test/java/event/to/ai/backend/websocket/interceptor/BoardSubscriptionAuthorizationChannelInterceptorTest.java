@@ -2,6 +2,7 @@ package event.to.ai.backend.websocket.interceptor;
 
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.security.AuthUserPrincipal;
+import event.to.ai.backend.user.application.port.out.UserRepositoryPort;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.messaging.Message;
@@ -22,8 +23,9 @@ class BoardSubscriptionAuthorizationChannelInterceptorTest {
     @Test
     void preSendShouldAllowBoardMemberToSubscribe() {
         BoardMembershipRepositoryPort boardMembershipRepositoryPort = Mockito.mock(BoardMembershipRepositoryPort.class);
+        UserRepositoryPort userRepositoryPort = Mockito.mock(UserRepositoryPort.class);
         BoardSubscriptionAuthorizationChannelInterceptor interceptor =
-                new BoardSubscriptionAuthorizationChannelInterceptor(boardMembershipRepositoryPort);
+                new BoardSubscriptionAuthorizationChannelInterceptor(boardMembershipRepositoryPort, userRepositoryPort);
 
         UUID boardId = UUID.fromString("00000000-0000-0000-0000-000000000201");
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000202");
@@ -42,8 +44,9 @@ class BoardSubscriptionAuthorizationChannelInterceptorTest {
     @Test
     void preSendShouldRejectNonMemberSubscription() {
         BoardMembershipRepositoryPort boardMembershipRepositoryPort = Mockito.mock(BoardMembershipRepositoryPort.class);
+        UserRepositoryPort userRepositoryPort = Mockito.mock(UserRepositoryPort.class);
         BoardSubscriptionAuthorizationChannelInterceptor interceptor =
-                new BoardSubscriptionAuthorizationChannelInterceptor(boardMembershipRepositoryPort);
+                new BoardSubscriptionAuthorizationChannelInterceptor(boardMembershipRepositoryPort, userRepositoryPort);
 
         UUID boardId = UUID.fromString("00000000-0000-0000-0000-000000000203");
         UUID userId = UUID.fromString("00000000-0000-0000-0000-000000000204");

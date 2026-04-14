@@ -95,7 +95,7 @@ public class StickyNoteApplicationService {
 
         StickyNote savedNote = stickyNoteRepositoryPort.save(stickyNote);
         StickyNoteDTO dto = convertToDTO(savedNote);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_CREATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_CREATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -152,7 +152,7 @@ public class StickyNoteApplicationService {
 
         StickyNote updatedNote = stickyNoteRepositoryPort.save(stickyNote);
         StickyNoteDTO dto = convertToDTO(updatedNote);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_UPDATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_UPDATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -165,7 +165,7 @@ public class StickyNoteApplicationService {
         requireWritePermission(boardId, actorUserId);
 
         stickyNoteRepositoryPort.deleteById(id);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_DELETED, boardId, Map.of("id", id));
+        boardRealtimePublisher.publish(BoardRealtimeEventType.STICKY_NOTE_DELETED, actorUserId, boardId, Map.of("id", id));
     }
 
     // 將 stickyNotes 內的所有 stickyNote 過濾掉 actorUserId 沒有權限的

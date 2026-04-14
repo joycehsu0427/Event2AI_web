@@ -7,15 +7,17 @@ public class BoardRealtimeEvent {
 
     private BoardRealtimeEventType type;
     private UUID boardId;
+    private UUID userId;
     // payload 直接沿用既有 DTO，避免維護第二套即時同步模型。
     private Object payload;
 
     public BoardRealtimeEvent() {
     }
 
-    public BoardRealtimeEvent(BoardRealtimeEventType type, UUID boardId, Object payload) {
+    public BoardRealtimeEvent(BoardRealtimeEventType type, UUID userId, UUID boardId, Object payload) {
         this.type = type;
         this.boardId = boardId;
+        this.userId = userId;
         this.payload = payload;
     }
 
@@ -33,6 +35,14 @@ public class BoardRealtimeEvent {
 
     public void setBoardId(UUID boardId) {
         this.boardId = boardId;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public Object getPayload() {

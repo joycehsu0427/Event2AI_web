@@ -15,8 +15,8 @@ public class BoardRealtimePublisher {
     }
 
     // 所有 board realtime 訊息都統一送到同一個 topic，由前端用 type 分流。
-    public void publish(BoardRealtimeEventType type, UUID boardId, Object payload) {
-        messagingTemplate.convertAndSend(topicFor(boardId), new BoardRealtimeEvent(type, boardId, payload));
+    public void publish(BoardRealtimeEventType type, UUID userId, UUID boardId, Object payload) {
+        messagingTemplate.convertAndSend(topicFor(boardId), new BoardRealtimeEvent(type, userId, boardId, payload));
     }
 
     public String topicFor(UUID boardId) {

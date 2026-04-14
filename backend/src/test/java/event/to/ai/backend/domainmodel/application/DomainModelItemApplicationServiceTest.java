@@ -87,6 +87,7 @@ class DomainModelItemApplicationServiceTest {
         ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
         verify(boardRealtimePublisher).publish(
                 eq(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_CREATED),
+                eq(actorUserId),
                 eq(boardId),
                 payloadCaptor.capture()
         );
@@ -140,6 +141,7 @@ class DomainModelItemApplicationServiceTest {
         ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
         verify(boardRealtimePublisher).publish(
                 eq(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_UPDATED),
+                eq(actorUserId),
                 eq(boardId),
                 payloadCaptor.capture()
         );
@@ -175,6 +177,7 @@ class DomainModelItemApplicationServiceTest {
         ArgumentCaptor<Object> payloadCaptor = ArgumentCaptor.forClass(Object.class);
         verify(boardRealtimePublisher).publish(
                 eq(BoardRealtimeEventType.DOMAIN_MODEL_ITEM_DELETED),
+                eq(actorUserId),
                 eq(boardId),
                 payloadCaptor.capture()
         );

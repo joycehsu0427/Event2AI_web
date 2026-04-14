@@ -81,7 +81,7 @@ public class TextBoxApplicationService {
 
         TextBoxes saved = textBoxesRepositoryPort.save(textBoxes);
         TextBoxesDTO dto = convertToDTO(saved);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_CREATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_CREATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -123,7 +123,7 @@ public class TextBoxApplicationService {
 
         TextBoxes updated = textBoxesRepositoryPort.save(textBoxes);
         TextBoxesDTO dto = convertToDTO(updated);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_UPDATED, dto.getBoardId(), dto);
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_UPDATED, actorUserId, dto.getBoardId(), dto);
         return dto;
     }
 
@@ -136,7 +136,7 @@ public class TextBoxApplicationService {
         requireWritePermission(boardId, actorUserId);
 
         textBoxesRepositoryPort.deleteById(id);
-        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_DELETED, boardId, Map.of("id", id));
+        boardRealtimePublisher.publish(BoardRealtimeEventType.TEXT_BOX_DELETED, actorUserId, boardId, Map.of("id", id));
     }
 
     private List<TextBoxesDTO> filterAndConvert(List<TextBoxes> textBoxes, UUID actorUserId) {
