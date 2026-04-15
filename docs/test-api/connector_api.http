@@ -62,7 +62,7 @@ Authorization: Bearer {{accessToken}}
   "zIndex": 1
 }
 
-### 建立 Connector：DOMAIN_ENTITY → DOMAIN_ENTITY，折線（需要 JWT）
+### 建立 Connector：DOMAIN_MODEL_ITEM → DOMAIN_MODEL_ITEM，折線（需要 JWT）
 POST {{baseUrl}}/api/connectors
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
@@ -70,13 +70,13 @@ Authorization: Bearer {{accessToken}}
 {
   "boardId": "{{boardId}}",
   "frameId": null,
-  "fromTargetType": "DOMAIN_ENTITY",
+  "fromTargetType": "DOMAIN_MODEL_ITEM",
   "fromTargetId": "{{fromTargetId}}",
   "fromSide": "BOTTOM",
   "fromOffset": 0.5,
   "fromX": 200.0,
   "fromY": 300.0,
-  "toTargetType": "DOMAIN_ENTITY",
+  "toTargetType": "DOMAIN_MODEL_ITEM",
   "toTargetId": "{{toTargetId}}",
   "toSide": "TOP",
   "toOffset": 0.5,
