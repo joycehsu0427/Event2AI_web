@@ -59,12 +59,6 @@ public class CreateDomainModelItemRequest {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
     }
 
-    public CreateDomainModelItemRequest(UUID boardId, UUID frameId, Double posX, Double posY, Double width, Double height,
-                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
-        this(boardId, posX, posY, width, height, name, type, description, attributes);
-        this.frameId = frameId;
-    }
-
     public UUID getBoardId() {
         return boardId;
     }

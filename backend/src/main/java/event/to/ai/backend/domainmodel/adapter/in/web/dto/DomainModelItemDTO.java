@@ -44,14 +44,6 @@ public class DomainModelItemDTO {
         this.updatedAt = updatedAt;
     }
 
-    public DomainModelItemDTO(UUID id, UUID boardId, UUID frameId, Double posX, Double posY, Double width, Double height,
-                              String name, DomainModelItemType type, String description,
-                              List<DomainAttributeDTO> attributes,
-                              LocalDateTime createdAt, LocalDateTime updatedAt) {
-        this(id, boardId, posX, posY, width, height, name, type, description, attributes, createdAt, updatedAt);
-        this.frameId = frameId;
-    }
-
     public UUID getId() {
         return id;
     }

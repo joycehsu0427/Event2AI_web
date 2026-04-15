@@ -54,9 +54,6 @@ public class DomainModelItem {
     })
     private Point2D size;
 
-    @Column(name = "frame_id", columnDefinition = "BINARY(16)")
-    private UUID frameId;
-
     @Column(nullable = false, length = 200)
     private String name;
 
@@ -73,6 +70,7 @@ public class DomainModelItem {
     @Convert(converter = DomainAttributeListConverter.class)
     @Column(name = "attributes", nullable = false)
     private List<DomainAttributeData> attributes = new ArrayList<>();
+
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
