@@ -54,6 +54,8 @@
 - [ ] EventStorming 內部可以直接用點擊的方式編輯參數 (J)
 - [x] 修正 Create `Rectangle` 創立時的大小問題 (D)
 - [v] 修正 `Rectangle` 的縮放問題 (D)
+- [v] 更改關於 `Frame`、`Connector` Z軸的相對關係
+- [v] 更改關於 `Frame`、`DomainModelItem` 的 API，ex：`DomainModelItem` 移進 `Frame` 中後，需要發API改變 `FrameId`
 
 ## Backend：
 - [x] 加上 `WebSocket` 的 `Message` 中缺少的 `UserId` (B)
@@ -61,6 +63,8 @@
 - [x] `DomainModel` 的 `ENUM` 在 Create 時會有問題 (I)
 - [ ] 整理 test-api (I)
 - [ ] `Connector` 的箭頭折角 (B、I)
+- [v] 將 `DomainModelItem` 新增 `FrameId` (B)
+- [v] 將 `DomainModelItem` 的 API 修改成可以更新 `FrameId` (I)
 
 ## DeadLine : 0416(四) AM 11:00
 
