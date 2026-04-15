@@ -51,6 +51,9 @@ public class DomainModelItem {
     })
     private Point2D size;
 
+    @Column(name = "frame_id", columnDefinition = "BINARY(16)")
+    private UUID frameId;
+
     @Column(nullable = false, length = 200)
     private String name;
 
@@ -110,6 +113,14 @@ public class DomainModelItem {
 
     public void setBoard(Board board) {
         this.board = board;
+    }
+
+    public UUID getFrameId() {
+        return frameId;
+    }
+
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public Point2D getPos() {

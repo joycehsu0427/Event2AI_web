@@ -9,6 +9,8 @@ import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
 public class UpdateDomainModelItemRequest {
 
+    private String frameId;
+
     private Double posX;
 
     private Double posY;
@@ -31,8 +33,9 @@ public class UpdateDomainModelItemRequest {
     public UpdateDomainModelItemRequest() {
     }
 
-    public UpdateDomainModelItemRequest(Double posX, Double posY, Double width, Double height,
+    public UpdateDomainModelItemRequest(String frameId, Double posX, Double posY, Double width, Double height,
                                         String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
+        this.frameId = frameId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
@@ -41,6 +44,14 @@ public class UpdateDomainModelItemRequest {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public String getFrameId() {
+        return frameId;
+    }
+
+    public void setFrameId(String frameId) {
+        this.frameId = frameId;
     }
 
     public Double getPosX() {
