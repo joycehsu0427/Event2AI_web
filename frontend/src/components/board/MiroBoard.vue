@@ -225,7 +225,8 @@ watch(() => boardStore.getEditingElementId, (editingElementId) => {
   }
 });
 
-watch(() => boardStore.selectedElementIds, (newSelection) => {
+watch(() => boardStore.selectedElementIds, async (newSelection) => {
+  await nextTick(); // Wait for Vue to render the new Konva elements
   const transformer = transformerRef.value?.getNode();
   const stage = stageRef.value?.getStage();
   if (!transformer || !stage) return;
@@ -243,7 +244,7 @@ watch(() => boardStore.selectedElementIds, (newSelection) => {
     transformer.nodes([]);
   }
   transformer.getLayer()?.batchDraw();
-}, { immediate: true });
+}, { immediate: true, deep: true });
 
 const handleTransformEnd = (e: any) => {
   const node = e.target;

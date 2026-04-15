@@ -11,14 +11,14 @@ import { useRoute } from 'vue-router';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import type { BoardStoreState } from '@/stores/boardStore';
-import { ElementType, type BoardElement, type DomainModelItemElement, type ConnectorElement, ConnectorTargetType, ConnectorAnchorSide, ConnectorLineType, ConnectorArrowType } from '@/types/elements';
+import { ElementType, ConnectorTargetType, ConnectorAnchorSide, ConnectorLineType, ConnectorArrowType, type BoardElement, type DomainModelItemElement, type ConnectorElement } from '@/types/elements';
 import { useHistoryStore } from '@/stores/historyStore';
 import { useTimerStore } from '@/stores/timerStore';
 import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
 import DomainModelItemModal from '@/components/menu/DomainModelItemModal.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
-import { boardApi } from '@/api';
+import { boardApi, stickyNoteApi, textBoxApi, frameApi, domainModelItemApi, connectorApi } from '@/api';
 import { getHexByName } from '@/constants/colors';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 
@@ -128,7 +128,7 @@ async function fetchBoardData(boardId: string) {
       height: item.height,
       name: item.name,
       modelType: item.type,
-      attributes: item.attributes.map((attr: any) => ({
+      attributes: (item.attributes ?? []).map((attr: any) => ({
         name: attr.name,
         dataType: attr.dataType,
         constraint: attr.constraint,
@@ -220,16 +220,109 @@ watch(
 
 
 const handleKeyDown = (event: KeyboardEvent) => {
+  // Disable global shortcuts if we're in inline editing mode
+  if (boardStore.getEditingElementId !== null) return;
+
+  // Disable global shortcuts if focus is on an input or textarea (like in a modal)
+  const activeElement = document.activeElement;
+  if (activeElement && (activeElement.tagName === 'INPUT' || activeElement.tagName === 'TEXTAREA')) {
+    return;
+  }
+
   if (event.ctrlKey || event.metaKey) {
     if (event.key === 'z') {
       event.preventDefault();
       historyStore.undo();
-    }
-    if (event.key === 'y') {
+    } else if (event.key === 'y') {
       event.preventDefault();
       historyStore.redo();
+    } else if (event.key === 'c') {
+      // No preventDefault here to allow normal copy if needed elsewhere, 
+      // but usually we want to copy the selected elements.
+      boardStore.copySelected();
+    } else if (event.key === 'x') {
+      // Ctrl+X: Cut
+      boardStore.cutSelected();
+      deleteSelectedElements();
+    } else if (event.key === 'v') {
+      event.preventDefault();
+      boardStore.paste();
+    }
+  } else if (event.key === 'Delete' || event.key === 'Backspace') {
+    if (boardStore.selectedElementIds.length > 0) {
+      // Using Toolbar's delete logic as reference (but it's private there, so we re-implement or call store)
+      // Actually MiroBoard/Toolbar should probably share this logic.
+      // For now, let's trigger the deletion from the store.
+      const idsToDelete = [...boardStore.selectedElementIds];
+      
+      // We should ideally call the API for each deletion if we want it to be persistent.
+      // Since I don't have a single "deleteAll" API, I'll rely on the user having 
+      // already established how to delete elements.
+      // Looking at boardStore.ts, it has deleteElements(ids) which only updates local state.
+      
+      // I'll search for how Toolbar deletes elements to stay consistent.
+      deleteSelectedElements();
     }
   }
+};
+
+const deleteSelectedElements = async () => {
+  const initialIds = [...boardStore.selectedElementIds];
+  if (initialIds.length === 0) return;
+
+  const allIdsToDelete = new Set<string>();
+
+  const collectIds = (id: string) => {
+    if (allIdsToDelete.has(id)) return;
+    allIdsToDelete.add(id);
+
+    const el = boardStore.getElementById(id);
+    if (el && el.type === ElementType.Frame) {
+      boardStore.elements.forEach(child => {
+        // Check if child explicitly belongs to this frame
+        if (child.frameId === el.id) {
+          collectIds(child.id);
+        } 
+        // Also check spatial containment to be consistent with copy logic
+        else if (
+          child.type !== ElementType.Frame && 
+          child.type !== ElementType.Connector &&
+          child.x >= el.x &&
+          child.x + child.width <= el.x + el.width &&
+          child.y >= el.y &&
+          child.y + child.height <= el.y + el.height
+        ) {
+          collectIds(child.id);
+        }
+      });
+    }
+  };
+
+  initialIds.forEach(id => collectIds(id));
+  const idsArr = Array.from(allIdsToDelete);
+
+  for (const id of idsArr) {
+    const element = boardStore.getElementById(id);
+    if (!element) continue;
+
+    try {
+      if (element.type === ElementType.StickyNote) {
+        await stickyNoteApi.delete(id);
+      } else if (element.type === ElementType.Text) {
+        await textBoxApi.delete(id);
+      } else if (element.type === ElementType.Frame) {
+        await frameApi.delete(id);
+      } else if (element.type === ElementType.DomainModelItem) {
+        await domainModelItemApi.delete(id);
+      } else if (element.type === ElementType.Connector) {
+        await connectorApi.delete(id);
+      }
+    } catch (error) {
+      console.error(`Failed to delete element ${id}:`, error);
+    }
+  }
+  boardStore.deleteElements(idsArr);
+  historyStore.addState();
 };
 </script>
 
