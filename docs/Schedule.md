@@ -54,7 +54,7 @@
 - [ ] 功能列表：置頂、置底、上一層、下一層 (J)
 - [ ] EventStorming 內部可以直接用點擊的方式編輯參數 (J)
 - [x] 修正 Create `Rectangle` 創立時的大小問題 (D)
-- [v] 修正 `Rectangle` 的縮放問題 (D)
+- [x] 修正 `Rectangle` 的縮放問題 (D)
 - [v] 更改關於 `Frame`、`Connector` Z軸的相對關係
 - [v] 更改關於 `Frame`、`DomainModelItem` 的 API，ex：`DomainModelItem` 移進 `Frame` 中後，需要發API改變 `FrameId`
 
