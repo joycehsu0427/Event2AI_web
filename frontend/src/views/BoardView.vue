@@ -122,10 +122,10 @@ async function fetchBoardData(boardId: string) {
     const domainModelItemElements: BoardElement[] = (data?.domainModelItems ?? []).map((item: any) => ({
       id: item.id,
       type: ElementType.DomainModelItem,
-      x: item.pos.x,
-      y: item.pos.y,
-      width: item.size.x,
-      height: item.size.y,
+      x: item.posX,
+      y: item.posY,
+      width: item.width,
+      height: item.height,
       name: item.name,
       modelType: item.type,
       attributes: item.attributes.map((attr: any) => ({
