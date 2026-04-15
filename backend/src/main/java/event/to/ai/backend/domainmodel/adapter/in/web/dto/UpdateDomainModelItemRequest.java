@@ -33,9 +33,8 @@ public class UpdateDomainModelItemRequest {
     public UpdateDomainModelItemRequest() {
     }
 
-    public UpdateDomainModelItemRequest(String frameId, Double posX, Double posY, Double width, Double height,
+    public UpdateDomainModelItemRequest(Double posX, Double posY, Double width, Double height,
                                         String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
-        this.frameId = frameId;
         this.posX = posX;
         this.posY = posY;
         this.width = width;
@@ -44,6 +43,12 @@ public class UpdateDomainModelItemRequest {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public UpdateDomainModelItemRequest(String frameId, Double posX, Double posY, Double width, Double height,
+                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
+        this(posX, posY, width, height, name, type, description, attributes);
+        this.frameId = frameId;
     }
 
     public String getFrameId() {

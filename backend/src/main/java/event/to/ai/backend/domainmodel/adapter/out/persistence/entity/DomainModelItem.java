@@ -37,6 +37,9 @@ public class DomainModelItem {
     @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
     private Board board;
 
+    @Column(name = "frame_id", columnDefinition = "BINARY(16)")
+    private UUID frameId;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "x", column = @Column(name = "pos_x", nullable = false)),
@@ -63,6 +66,9 @@ public class DomainModelItem {
 
     @Column(length = 1000)
     private String description;
+
+    @Column(name = "z_index", nullable = false)
+    private Integer zIndex = 0;
 
     @Convert(converter = DomainAttributeListConverter.class)
     @Column(name = "attributes", nullable = false)
@@ -161,6 +167,14 @@ public class DomainModelItem {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 
     public List<DomainAttributeData> getAttributes() {
