@@ -37,6 +37,9 @@ public class DomainModelItem {
     @JoinColumn(name = "board_id", nullable = false, columnDefinition = "BINARY(16)")
     private Board board;
 
+    @Column(name = "frame_id", columnDefinition = "BINARY(16)")
+    private UUID frameId;
+
     @Embedded
     @AttributeOverrides({
             @AttributeOverride(name = "x", column = @Column(name = "pos_x", nullable = false)),
@@ -110,6 +113,14 @@ public class DomainModelItem {
 
     public void setBoard(Board board) {
         this.board = board;
+    }
+
+    public UUID getFrameId() {
+        return frameId;
+    }
+
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public Point2D getPos() {

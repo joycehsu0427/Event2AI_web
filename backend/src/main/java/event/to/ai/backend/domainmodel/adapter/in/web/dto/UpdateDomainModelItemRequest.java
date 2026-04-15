@@ -5,9 +5,12 @@ import jakarta.validation.constraints.Size;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import event.to.ai.backend.domainmodel.domain.DomainModelItemType;
 
 public class UpdateDomainModelItemRequest {
+
+    private UUID frameId;
 
     private Double posX;
 
@@ -41,6 +44,20 @@ public class UpdateDomainModelItemRequest {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public UpdateDomainModelItemRequest(UUID frameId, Double posX, Double posY, Double width, Double height,
+                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
+        this(posX, posY, width, height, name, type, description, attributes);
+        this.frameId = frameId;
+    }
+
+    public UUID getFrameId() {
+        return frameId;
+    }
+
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public Double getPosX() {

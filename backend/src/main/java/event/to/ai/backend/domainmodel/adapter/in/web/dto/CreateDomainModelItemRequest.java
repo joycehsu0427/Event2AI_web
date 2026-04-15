@@ -15,6 +15,8 @@ public class CreateDomainModelItemRequest {
     @NotNull(message = "Board ID is required")
     private UUID boardId;
 
+    private UUID frameId;
+
     @NotNull(message = "Position X is required")
     private Double posX;
 
@@ -56,12 +58,26 @@ public class CreateDomainModelItemRequest {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
     }
 
+    public CreateDomainModelItemRequest(UUID boardId, UUID frameId, Double posX, Double posY, Double width, Double height,
+                                        String name, DomainModelItemType type, String description, List<DomainAttributeRequest> attributes) {
+        this(boardId, posX, posY, width, height, name, type, description, attributes);
+        this.frameId = frameId;
+    }
+
     public UUID getBoardId() {
         return boardId;
     }
 
     public void setBoardId(UUID boardId) {
         this.boardId = boardId;
+    }
+
+    public UUID getFrameId() {
+        return frameId;
+    }
+
+    public void setFrameId(UUID frameId) {
+        this.frameId = frameId;
     }
 
     public Double getPosX() {
