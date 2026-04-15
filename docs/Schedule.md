@@ -66,7 +66,7 @@
 - [x] 將 `DomainModelItem` 新增 `FrameId` (B)
 - [x] 將 `DomainModelItem` 的 API 修改成可以更新 `FrameId` (I)
 - [x] 將所有 component 新增紀錄 Z 軸的參數 (B)
-- [ ] 新增 Z軸 的 API (I)
+- [x] 新增 Z軸 的 API (I)
 
 ## DeadLine : 0416(四) AM 11:00
 

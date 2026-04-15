@@ -53,7 +53,8 @@ Authorization: Bearer {{accessToken}}
   "description": "This is a text box for testing.",
   "tag": "important",
   "fontColor": "#000000",
-  "fontSize": "14px"
+  "fontSize": "14px",
+  "zIndex": 0
 }
 
 ### 更新 TextBox（需要 JWT，所有欄位皆可選填）
@@ -67,7 +68,8 @@ Authorization: Bearer {{accessToken}}
   "description": "Updated description.",
   "tag": "done",
   "fontColor": "#ff0000",
-  "fontSize": "16px"
+  "fontSize": "16px",
+  "zIndex": 1
 }
 
 ### 刪除 TextBox（需要 JWT）

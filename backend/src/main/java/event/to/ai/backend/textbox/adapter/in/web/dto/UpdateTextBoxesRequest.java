@@ -30,6 +30,8 @@ public class UpdateTextBoxesRequest {
 
     private String fontSize;
 
+    private Integer zIndex;
+
     // Constructors
     public UpdateTextBoxesRequest() {
     }
@@ -135,5 +137,13 @@ public class UpdateTextBoxesRequest {
 
     public void setFontSize(String fontSize) {
         this.fontSize = fontSize;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

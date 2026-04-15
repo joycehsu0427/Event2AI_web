@@ -19,6 +19,7 @@ public class DomainModelItemDTO {
     private DomainModelItemType type;
     private String description;
     private List<DomainAttributeDTO> attributes = new ArrayList<>();
+    private Integer zIndex;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -27,7 +28,7 @@ public class DomainModelItemDTO {
 
     public DomainModelItemDTO(UUID id, UUID boardId, UUID frameId, Double posX, Double posY, Double width, Double height,
                               String name, DomainModelItemType type, String description,
-                              List<DomainAttributeDTO> attributes,
+                              List<DomainAttributeDTO> attributes, Integer zIndex,
                               LocalDateTime createdAt, LocalDateTime updatedAt) {
         this.id = id;
         this.boardId = boardId;
@@ -40,6 +41,7 @@ public class DomainModelItemDTO {
         this.type = type;
         this.description = description;
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+        this.zIndex = zIndex;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
@@ -130,6 +132,14 @@ public class DomainModelItemDTO {
 
     public void setAttributes(List<DomainAttributeDTO> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 
     public LocalDateTime getCreatedAt() {

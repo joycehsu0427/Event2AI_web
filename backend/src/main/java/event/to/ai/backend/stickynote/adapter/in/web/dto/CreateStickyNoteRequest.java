@@ -42,6 +42,8 @@ public class CreateStickyNoteRequest {
     @NotBlank(message = "FontSize is required")
     private String fontSize;
 
+    private Integer zIndex;
+
     // Constructors
     public CreateStickyNoteRequest() {
     }
@@ -147,5 +149,13 @@ public class CreateStickyNoteRequest {
 
     public void setFontSize(String fontSize) {
         this.fontSize = fontSize;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

@@ -35,7 +35,8 @@ Authorization: Bearer {{accessToken}}
   "posY": 100.0,
   "width": 400.0,
   "height": 300.0,
-  "title": "My Frame"
+  "title": "My Frame",
+  "zIndex": 0
 }
 
 ### 更新 Frame（需要 JWT，所有欄位皆可選填）
@@ -48,7 +49,8 @@ Authorization: Bearer {{accessToken}}
   "posY": 150.0,
   "width": 500.0,
   "height": 350.0,
-  "title": "Updated Frame Title"
+  "title": "Updated Frame Title",
+  "zIndex": 1
 }
 
 ### 刪除 Frame（需要 JWT）

@@ -63,7 +63,8 @@ Authorization: Bearer {{accessToken}}
   "color": "green",
   "tag": "not done",
   "fontColor": "#000000",
-  "fontSize": "14px"
+  "fontSize": "14px",
+  "zIndex": 0
 }
 
 ### 更新 StickyNote（需要 JWT，所有欄位皆可選填）
@@ -76,7 +77,8 @@ Authorization: Bearer {{accessToken}}
   "color": "yellow",
   "tag": "in progress",
   "fontColor": "#ff0000",
-  "fontSize": "16px"
+  "fontSize": "16px",
+  "zIndex": 1
 }
 
 ### 刪除 StickyNote（需要 JWT）

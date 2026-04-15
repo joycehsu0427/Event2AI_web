@@ -27,6 +27,8 @@ public class CreateFrameRequest {
     @Size(max = 200, message = "Title must not exceed 200 characters")
     private String title;
 
+    private Integer zIndex;
+
     public CreateFrameRequest() {
     }
 
@@ -85,5 +87,13 @@ public class CreateFrameRequest {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

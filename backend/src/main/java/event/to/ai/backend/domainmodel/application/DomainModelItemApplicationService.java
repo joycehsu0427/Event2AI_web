@@ -79,6 +79,9 @@ public class DomainModelItemApplicationService {
         DomainModelItem domainModelItem = new DomainModelItem();
         domainModelItem.setBoard(board);
         domainModelItem.setFrameId(request.getFrameId());
+        if (request.getZIndex() != null) {
+            domainModelItem.setZIndex(request.getZIndex());
+        }
         domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         domainModelItem.setSize(new Point2D(request.getWidth(), request.getHeight()));
         domainModelItem.setName(request.getName());
@@ -142,6 +145,9 @@ public class DomainModelItemApplicationService {
         }
         if (request.getDescription() != null) {
             domainModelItem.setDescription(request.getDescription());
+        }
+        if (request.getZIndex() != null) {
+            domainModelItem.setZIndex(request.getZIndex());
         }
         if (request.getAttributes() != null) {
             List<DomainAttributeData> attributes;
@@ -216,6 +222,7 @@ public class DomainModelItemApplicationService {
                 domainModelItem.getType(),
                 domainModelItem.getDescription(),
                 attributeDTOs,
+                domainModelItem.getZIndex(),
                 domainModelItem.getCreatedAt(),
                 domainModelItem.getUpdatedAt()
         );

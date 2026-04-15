@@ -42,6 +42,8 @@ public class CreateDomainModelItemRequest {
     @Valid
     private List<DomainAttributeRequest> attributes = new ArrayList<>();
 
+    private Integer zIndex;
+
     public CreateDomainModelItemRequest() {
     }
 
@@ -137,5 +139,13 @@ public class CreateDomainModelItemRequest {
 
     public void setAttributes(List<DomainAttributeRequest> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

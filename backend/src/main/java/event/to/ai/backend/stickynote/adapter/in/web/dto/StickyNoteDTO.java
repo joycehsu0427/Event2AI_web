@@ -16,13 +16,14 @@ public class StickyNoteDTO {
     private String tag;
     private String fontColor;
     private String fontSize;
+    private Integer zIndex;
 
     // Constructors
     public StickyNoteDTO() {
     }
 
     public StickyNoteDTO(UUID id, UUID boardId, UUID frameId, Double posX, Double posY, Double geoX, Double geoY,
-                        String description, String color, String tag, String fontColor, String fontSize) {
+                        String description, String color, String tag, String fontColor, String fontSize, Integer zIndex) {
         this.id = id;
         this.boardId = boardId;
         this.frameId = frameId;
@@ -35,6 +36,7 @@ public class StickyNoteDTO {
         this.tag = tag;
         this.fontColor = fontColor;
         this.fontSize = fontSize;
+        this.zIndex = zIndex;
     }
 
     // Getters and Setters
@@ -125,4 +127,8 @@ public class StickyNoteDTO {
     public String getFontSize() { return this.fontSize;}
 
     public void setFontSize(String fontSize) { this.fontSize = fontSize;}
+
+    public Integer getZIndex() { return zIndex; }
+
+    public void setZIndex(Integer zIndex) { this.zIndex = zIndex; }
 }

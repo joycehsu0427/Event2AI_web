@@ -88,6 +88,9 @@ public class StickyNoteApplicationService {
         stickyNote.setTag(request.getTag());
         stickyNote.setFontColor(request.getFontColor());
         stickyNote.setFontSize(request.getFontSize());
+        if (request.getZIndex() != null) {
+            stickyNote.setZIndex(request.getZIndex());
+        }
 
         if (request.getFrameId() != null) {
             stickyNote.setFrameId(request.getFrameId());
@@ -133,6 +136,9 @@ public class StickyNoteApplicationService {
         }
         if (request.getFontSize() != null) {
             stickyNote.setFontSize(request.getFontSize());
+        }
+        if (request.getZIndex() != null) {
+            stickyNote.setZIndex(request.getZIndex());
         }
         // FrameId != null 代表要更新
         if (request.getFrameId() != null) {
@@ -213,7 +219,8 @@ public class StickyNoteApplicationService {
                 stickyNote.getColor(),
                 stickyNote.getTag(),
                 stickyNote.getFontColor(),
-                stickyNote.getFontSize()
+                stickyNote.getFontSize(),
+                stickyNote.getZIndex()
         );
         dto.setFrameId(stickyNote.getFrameId());
         return dto;

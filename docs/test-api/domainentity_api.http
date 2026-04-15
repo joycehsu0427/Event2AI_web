@@ -44,6 +44,7 @@ Authorization: Bearer {{accessToken}}
   "name": "User",
   "type": "ENTITY",
   "description": "代表系統中的使用者實體",
+  "zIndex": 0,
   "attributes": [
     {
       "name": "id",
@@ -86,6 +87,7 @@ Authorization: Bearer {{accessToken}}
   "name": "Order",
   "type": "AGGREGATE",
   "description": "訂單聚合根",
+  "zIndex": 0,
   "attributes": []
 }
 
@@ -102,6 +104,7 @@ Authorization: Bearer {{accessToken}}
   "height": 120.0,
   "name": "Money",
   "type": "VALUE_OBJECT",
+  "zIndex": 0,
   "attributes": [
     {
       "name": "amount",
@@ -126,6 +129,15 @@ Authorization: Bearer {{accessToken}}
 {
   "name": "AppUser",
   "description": "更新後的使用者實體描述"
+}
+
+### 更新 DomainModelItem：修改 Z 軸（需要 JWT）
+PUT {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "zIndex": 5
 }
 
 ### 更新 DomainModelItem：修改位置與尺寸（需要 JWT）

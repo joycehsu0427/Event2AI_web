@@ -30,6 +30,8 @@ public class UpdateDomainModelItemRequest {
     @Valid
     private List<DomainAttributeRequest> attributes = new ArrayList<>();
 
+    private Integer zIndex;
+
     public UpdateDomainModelItemRequest() {
     }
 
@@ -121,5 +123,13 @@ public class UpdateDomainModelItemRequest {
 
     public void setAttributes(List<DomainAttributeRequest> attributes) {
         this.attributes = attributes == null ? new ArrayList<>() : attributes;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }
