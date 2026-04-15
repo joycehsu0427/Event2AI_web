@@ -60,7 +60,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
 import type { Stage as KonvaStage } from 'konva/lib/Stage';
@@ -250,6 +250,12 @@ const handleTransformEnd = (e: any) => {
   const scaleX = node.scaleX();
   const scaleY = node.scaleY();
   const rotation = node.rotation();
+  const clientRect = node.getClientRect({ skipTransform: true });
+  const nextWidth = Math.max(5, clientRect.width * scaleX);
+  const nextHeight = Math.max(5, clientRect.height * scaleY);
+
+  node.width(nextWidth);
+  node.height(nextHeight);
   node.scaleX(1);
   node.scaleY(1);
   node.rotation(0);
@@ -258,9 +264,15 @@ const handleTransformEnd = (e: any) => {
     boardStore.updateElement(elementId, {
       x: node.x(),
       y: node.y(),
-      width: Math.max(5, node.width() * scaleX),
-      height: Math.max(5, node.height() * scaleY),
+      width: nextWidth,
+      height: nextHeight,
       rotation: rotation,
+    });
+
+    void nextTick(() => {
+      const transformer = transformerRef.value?.getNode() as any;
+      transformer?.forceUpdate?.();
+      transformer?.getLayer()?.batchDraw();
     });
   }
 };

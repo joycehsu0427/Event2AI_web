@@ -50,7 +50,7 @@ function connectBoardTopic(boardId: string) {
       boardSubscription = client.subscribe(
         `/topic/boards/${boardId}/events`,
         (message: IMessage) => {
-          console.log('board event:', JSON.parse(message.body))
+          // console.log('board event:', JSON.parse(message.body))
           // TODO: 等 payload 格式定案後再 parse / 更新 store
         },
       )
