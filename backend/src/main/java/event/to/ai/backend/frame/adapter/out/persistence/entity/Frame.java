@@ -48,6 +48,9 @@ public class Frame {
     @Column(nullable = false, length = 200)
     private String title;
 
+    @Column(name = "z_index", nullable = false)
+    private Integer zIndex = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -106,6 +109,14 @@ public class Frame {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 
     public LocalDateTime getCreatedAt() {

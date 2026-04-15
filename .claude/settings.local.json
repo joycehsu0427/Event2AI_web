@@ -1,8 +1,6 @@
 {
   "permissions": {
     "allow": [
-      "Bash(grep -r \"updateElement\\\\|text:\\\\|stickyNote\" /d/Code/Event2AI_web/frontend/src --include=*.ts --include=*.tsx --include=*.vue -l)",
-      "Bash(grep -i \".java$\")",
       "Bash(xargs grep:*)"
     ]
   }

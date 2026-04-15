@@ -30,6 +30,8 @@ public class UpdateStickyNoteRequest {
 
     private String fontSize;
 
+    private Integer zIndex;
+
     // Constructors
     public UpdateStickyNoteRequest() {
     }
@@ -136,5 +138,13 @@ public class UpdateStickyNoteRequest {
 
     public void setFontSize(String fontSize) {
         this.fontSize = fontSize;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

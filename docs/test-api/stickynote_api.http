@@ -30,8 +30,8 @@ Content-Type: application/json
 GET {{baseUrl}}/api/sticky-notes
 Authorization: Bearer {{accessToken}}
 
-### 依 id 取得 StickyNote（需要 JWT）
-GET {{baseUrl}}/api/sticky-notes?id={{stickyNoteId}}
+### 依 stickyNoteId 取得 StickyNote（需要 JWT）
+GET {{baseUrl}}/api/sticky-notes?stickyNoteId={{stickyNoteId}}
 Authorization: Bearer {{accessToken}}
 
 ### 依 boardId 取得 StickyNotes（需要 JWT）
@@ -54,6 +54,7 @@ Authorization: Bearer {{accessToken}}
 
 {
   "boardId": "{{boardId}}",
+  "frameId": null,
   "posX": 0.0,
   "posY": 0.0,
   "geoX": 50.0,
@@ -62,7 +63,8 @@ Authorization: Bearer {{accessToken}}
   "color": "green",
   "tag": "not done",
   "fontColor": "#000000",
-  "fontSize": "14px"
+  "fontSize": "14px",
+  "zIndex": 0
 }
 
 ### 更新 StickyNote（需要 JWT，所有欄位皆可選填）
@@ -75,7 +77,8 @@ Authorization: Bearer {{accessToken}}
   "color": "yellow",
   "tag": "in progress",
   "fontColor": "#ff0000",
-  "fontSize": "16px"
+  "fontSize": "16px",
+  "zIndex": 1
 }
 
 ### 刪除 StickyNote（需要 JWT）

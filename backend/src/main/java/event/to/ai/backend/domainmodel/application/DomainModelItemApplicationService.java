@@ -78,6 +78,10 @@ public class DomainModelItemApplicationService {
 
         DomainModelItem domainModelItem = new DomainModelItem();
         domainModelItem.setBoard(board);
+        domainModelItem.setFrameId(request.getFrameId());
+        if (request.getZIndex() != null) {
+            domainModelItem.setZIndex(request.getZIndex());
+        }
         domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         domainModelItem.setSize(new Point2D(request.getWidth(), request.getHeight()));
         domainModelItem.setName(request.getName());
@@ -116,6 +120,17 @@ public class DomainModelItemApplicationService {
 
         requireWritePermission(domainModelItem.getBoard().getId(), actorUserId);
 
+        if (request.getFrameId() != null) {
+            if (request.getFrameId().equals("null")) {
+                domainModelItem.setFrameId(null);
+            } else {
+                try {
+                    domainModelItem.setFrameId(UUID.fromString(request.getFrameId()));
+                } catch (IllegalArgumentException e) {
+                    throw new IllegalArgumentException("Invalid FrameID format: " + request.getFrameId());
+                }
+            }
+        }
         if (request.getPosX() != null && request.getPosY() != null) {
             domainModelItem.setPos(new Point2D(request.getPosX(), request.getPosY()));
         }
@@ -130,6 +145,9 @@ public class DomainModelItemApplicationService {
         }
         if (request.getDescription() != null) {
             domainModelItem.setDescription(request.getDescription());
+        }
+        if (request.getZIndex() != null) {
+            domainModelItem.setZIndex(request.getZIndex());
         }
         if (request.getAttributes() != null) {
             List<DomainAttributeData> attributes;
@@ -195,6 +213,7 @@ public class DomainModelItemApplicationService {
         return new DomainModelItemDTO(
                 domainModelItem.getId(),
                 domainModelItem.getBoard().getId(),
+                domainModelItem.getFrameId(),
                 domainModelItem.getPos() != null ? domainModelItem.getPos().getX() : null,
                 domainModelItem.getPos() != null ? domainModelItem.getPos().getY() : null,
                 domainModelItem.getSize() != null ? domainModelItem.getSize().getX() : null,
@@ -203,6 +222,7 @@ public class DomainModelItemApplicationService {
                 domainModelItem.getType(),
                 domainModelItem.getDescription(),
                 attributeDTOs,
+                domainModelItem.getZIndex(),
                 domainModelItem.getCreatedAt(),
                 domainModelItem.getUpdatedAt()
         );

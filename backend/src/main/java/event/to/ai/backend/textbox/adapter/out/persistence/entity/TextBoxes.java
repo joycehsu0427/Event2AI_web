@@ -52,6 +52,9 @@ public class TextBoxes {
     @Column(name = "font_size")
     private String fontSize;
 
+    @Column(name = "z_index", nullable = false)
+    private Integer zIndex = 0;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -151,6 +154,14 @@ public class TextBoxes {
 
     public void setFontSize(String fontSize) {
         this.fontSize = fontSize;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 
     public LocalDateTime getCreatedAt() {

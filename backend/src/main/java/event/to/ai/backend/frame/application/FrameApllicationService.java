@@ -83,6 +83,9 @@ public class FrameApllicationService {
         frame.setPos(new Point2D(request.getPosX(), request.getPosY()));
         frame.setSize(new Point2D(request.getWidth(), request.getHeight()));
         frame.setTitle(request.getTitle());
+        if (request.getZIndex() != null) {
+            frame.setZIndex(request.getZIndex());
+        }
 
         Frame savedFrame = frameRepositoryPort.save(frame);
         FrameDTO dto = convertToDTO(savedFrame);
@@ -168,6 +171,9 @@ public class FrameApllicationService {
         if (request.getTitle() != null) {
             frame.setTitle(request.getTitle());
         }
+        if (request.getZIndex() != null) {
+            frame.setZIndex(request.getZIndex());
+        }
 
         Frame updatedFrame = frameRepositoryPort.save(frame);
         FrameDTO dto = convertToDTO(updatedFrame);
@@ -213,7 +219,8 @@ public class FrameApllicationService {
                 frame.getPos().getY(),
                 frame.getSize().getX(),
                 frame.getSize().getY(),
-                frame.getTitle()
+                frame.getTitle(),
+                frame.getZIndex()
         );
     }
 }

@@ -13,25 +13,25 @@ Content-Type: application/json
 ### 從登入回應擷取 token
 @accessToken = eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIzMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDAiLCJpYXQiOjE3NzI1Mzk5MzQsImV4cCI6MTc3MjU0MzUzNH0.0JOEUg4alsF0IuQKxqa5IOPmWC1SSjVlgQdEY95Wous
 @boardId = a4221021-1cdc-4135-959a-71550254b226
-@domainEntityId = 00000000-0000-0000-0000-000000000000
+@domainModelItemId = 00000000-0000-0000-0000-000000000000
 
-### ===== DomainEntity CRUD =====
+### ===== DomainModelItem CRUD =====
 
-### 取得所有 DomainEntities（需要 JWT）
-GET {{baseUrl}}/api/domain-entities
+### 取得所有 DomainModelItems（需要 JWT）
+GET {{baseUrl}}/api/domain-model-items
 Authorization: Bearer {{accessToken}}
 
-### 依 domainEntityId 取得 DomainEntity（需要 JWT）
-GET {{baseUrl}}/api/domain-entities?domainEntityId={{domainEntityId}}
+### 依 domainModelItemId 取得 DomainModelItem（需要 JWT）
+GET {{baseUrl}}/api/domain-model-items?domainModelItemId={{domainModelItemId}}
 Authorization: Bearer {{accessToken}}
 
-### 依 boardId 取得 DomainEntities（需要 JWT）
-GET {{baseUrl}}/api/domain-entities?boardId={{boardId}}
+### 依 boardId 取得 DomainModelItems（需要 JWT）
+GET {{baseUrl}}/api/domain-model-items?boardId={{boardId}}
 Authorization: Bearer {{accessToken}}
 
-### 建立 DomainEntity：含多個 attributes（需要 JWT）
-# @name createDomainEntity
-POST {{baseUrl}}/api/domain-entities
+### 建立 DomainModelItem（ENTITY）：含多個 attributes（需要 JWT）
+# @name createDomainModelItem
+POST {{baseUrl}}/api/domain-model-items
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -42,7 +42,9 @@ Authorization: Bearer {{accessToken}}
   "width": 240.0,
   "height": 160.0,
   "name": "User",
+  "type": "ENTITY",
   "description": "代表系統中的使用者實體",
+  "zIndex": 0,
   "attributes": [
     {
       "name": "id",
@@ -71,8 +73,8 @@ Authorization: Bearer {{accessToken}}
   ]
 }
 
-### 建立 DomainEntity：無 attributes（需要 JWT）
-POST {{baseUrl}}/api/domain-entities
+### 建立 DomainModelItem（AGGREGATE）：無 attributes（需要 JWT）
+POST {{baseUrl}}/api/domain-model-items
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -83,12 +85,14 @@ Authorization: Bearer {{accessToken}}
   "width": 200.0,
   "height": 120.0,
   "name": "Order",
-  "description": "訂單實體",
+  "type": "AGGREGATE",
+  "description": "訂單聚合根",
+  "zIndex": 0,
   "attributes": []
 }
 
-### 建立 DomainEntity：無 description（需要 JWT）
-POST {{baseUrl}}/api/domain-entities
+### 建立 DomainModelItem（VALUE_OBJECT）：無 description（需要 JWT）
+POST {{baseUrl}}/api/domain-model-items
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -98,25 +102,27 @@ Authorization: Bearer {{accessToken}}
   "posY": 200.0,
   "width": 200.0,
   "height": 120.0,
-  "name": "Product",
+  "name": "Money",
+  "type": "VALUE_OBJECT",
+  "zIndex": 0,
   "attributes": [
     {
-      "name": "id",
-      "dataType": "UUID",
-      "constraint": "PRIMARY KEY",
+      "name": "amount",
+      "dataType": "DECIMAL(10,2)",
+      "constraint": "NOT NULL",
       "displayOrder": 0
     },
     {
-      "name": "price",
-      "dataType": "DECIMAL(10,2)",
+      "name": "currency",
+      "dataType": "VARCHAR(3)",
       "constraint": "NOT NULL",
       "displayOrder": 1
     }
   ]
 }
 
-### 更新 DomainEntity：修改名稱與描述（需要 JWT，所有欄位皆可選填）
-PUT {{baseUrl}}/api/domain-entities/{{domainEntityId}}
+### 更新 DomainModelItem：修改名稱與描述（需要 JWT，所有欄位皆可選填）
+PUT {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -125,8 +131,17 @@ Authorization: Bearer {{accessToken}}
   "description": "更新後的使用者實體描述"
 }
 
-### 更新 DomainEntity：修改位置與尺寸（需要 JWT）
-PUT {{baseUrl}}/api/domain-entities/{{domainEntityId}}
+### 更新 DomainModelItem：修改 Z 軸（需要 JWT）
+PUT {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
+Content-Type: application/json
+Authorization: Bearer {{accessToken}}
+
+{
+  "zIndex": 5
+}
+
+### 更新 DomainModelItem：修改位置與尺寸（需要 JWT）
+PUT {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -137,8 +152,8 @@ Authorization: Bearer {{accessToken}}
   "height": 200.0
 }
 
-### 更新 DomainEntity：替換 attributes（需要 JWT）
-PUT {{baseUrl}}/api/domain-entities/{{domainEntityId}}
+### 更新 DomainModelItem：替換 attributes（需要 JWT）
+PUT {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
 Content-Type: application/json
 Authorization: Bearer {{accessToken}}
 
@@ -171,6 +186,6 @@ Authorization: Bearer {{accessToken}}
   ]
 }
 
-### 刪除 DomainEntity（需要 JWT）
-DELETE {{baseUrl}}/api/domain-entities/{{domainEntityId}}
+### 刪除 DomainModelItem（需要 JWT）
+DELETE {{baseUrl}}/api/domain-model-items/{{domainModelItemId}}
 Authorization: Bearer {{accessToken}}

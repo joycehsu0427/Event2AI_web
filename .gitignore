@@ -25,3 +25,4 @@ playwright-test/
 *.env
 
 /ToAIJsonFile/
+/.claude/

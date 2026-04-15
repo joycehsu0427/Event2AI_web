@@ -75,6 +75,9 @@ public class TextBoxApplicationService {
         textBoxes.setTag(request.getTag());
         textBoxes.setFontColor(request.getFontColor());
         textBoxes.setFontSize(request.getFontSize());
+        if (request.getZIndex() != null) {
+            textBoxes.setZIndex(request.getZIndex());
+        }
         if (request.getFrameID() != null) {
             textBoxes.setFrameID(request.getFrameID());
         }
@@ -116,6 +119,9 @@ public class TextBoxApplicationService {
         }
         if (request.getFontSize() != null) {
             textBoxes.setFontSize(request.getFontSize());
+        }
+        if (request.getZIndex() != null) {
+            textBoxes.setZIndex(request.getZIndex());
         }
         if (request.getFrameID() != null) {
             textBoxes.setFrameID(request.getFrameID());
@@ -181,7 +187,8 @@ public class TextBoxApplicationService {
                 null,
                 textBoxes.getTag(),
                 textBoxes.getFontColor(),
-                textBoxes.getFontSize()
+                textBoxes.getFontSize(),
+                textBoxes.getZIndex()
         );
         dto.setFrameID(textBoxes.getFrameID());
         return dto;

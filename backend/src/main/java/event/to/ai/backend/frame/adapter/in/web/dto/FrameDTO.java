@@ -11,11 +11,12 @@ public class FrameDTO {
     private Double width;
     private Double height;
     private String title;
+    private Integer zIndex;
 
     public FrameDTO() {
     }
 
-    public FrameDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height, String title) {
+    public FrameDTO(UUID id, UUID boardId, Double posX, Double posY, Double width, Double height, String title, Integer zIndex) {
         this.id = id;
         this.boardId = boardId;
         this.posX = posX;
@@ -23,6 +24,7 @@ public class FrameDTO {
         this.width = width;
         this.height = height;
         this.title = title;
+        this.zIndex = zIndex;
     }
 
     public UUID getId() {
@@ -79,5 +81,13 @@ public class FrameDTO {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }

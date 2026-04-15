@@ -16,13 +16,14 @@ public class TextBoxesDTO {
     private String tag;
     private String fontColor;
     private String fontSize;
+    private Integer zIndex;
 
     // Constructors
     public TextBoxesDTO() {
     }
 
     public TextBoxesDTO(UUID id, UUID boardId, Double posX, Double posY, Double geoX, Double geoY,
-                        String description, String color, String tag, String fontColor, String fontSize) {
+                        String description, String color, String tag, String fontColor, String fontSize, Integer zIndex) {
         this.id = id;
         this.boardId = boardId;
         this.posX = posX;
@@ -34,6 +35,7 @@ public class TextBoxesDTO {
         this.tag = tag;
         this.fontColor = fontColor;
         this.fontSize = fontSize;
+        this.zIndex = zIndex;
     }
 
     // Getters and Setters
@@ -131,5 +133,13 @@ public class TextBoxesDTO {
 
     public void setFontSize(String fontSize) {
         this.fontSize = fontSize;
+    }
+
+    public Integer getZIndex() {
+        return zIndex;
+    }
+
+    public void setZIndex(Integer zIndex) {
+        this.zIndex = zIndex;
     }
 }
