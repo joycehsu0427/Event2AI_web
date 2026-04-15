@@ -82,6 +82,7 @@ export interface BaseElement {
   width: number;
   height: number;
   rotation?: number;
+  frameId?: string | null;
   // Common visual properties
   fill?: string;
   stroke?: string;
@@ -96,7 +97,6 @@ export interface StickyNoteElement extends BaseElement {
   fontSize: number;
   textColor: string;
   backgroundColor: string;
-  frameId?: string | null;
 }
 
 export interface TextElement extends BaseElement {

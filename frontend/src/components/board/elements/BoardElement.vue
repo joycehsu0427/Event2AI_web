@@ -57,7 +57,7 @@ const elementGroupRef = ref<Group | null>(null);
 const frameDragState = ref<{
   frameStartX: number;
   frameStartY: number;
-  stickyStartPositions: Map<string, { x: number; y: number }>;
+  childStartPositions: Map<string, { x: number; y: number }>;
 } | null>(null);
 
 const editor = useInlineEditorController({
@@ -190,17 +190,17 @@ const handleDragStart = (e: any) => {
     return;
   }
 
-  const stickyStartPositions = new Map<string, { x: number; y: number }>();
+  const childStartPositions = new Map<string, { x: number; y: number }>();
   boardStore.getElements.forEach((el) => {
-    if (el.type === ElementType.StickyNote && el.frameId === props.element.id) {
-      stickyStartPositions.set(el.id, { x: el.x, y: el.y });
+    if (el.id !== props.element.id && el.frameId === props.element.id) {
+      childStartPositions.set(el.id, { x: el.x, y: el.y });
     }
   });
 
   frameDragState.value = {
     frameStartX: e.target.x(),
     frameStartY: e.target.y(),
-    stickyStartPositions,
+    childStartPositions,
   };
 };
 
@@ -217,14 +217,14 @@ const handleDragMove = (e: any) => {
   const dx = e.target.x() - frameDragState.value.frameStartX;
   const dy = e.target.y() - frameDragState.value.frameStartY;
 
-  frameDragState.value.stickyStartPositions.forEach((startPos, stickyId) => {
-    const stickyNode = stage.find(`#${stickyId}`)[0] as KonvaNode | undefined;
-    if (!stickyNode) {
+  frameDragState.value.childStartPositions.forEach((startPos, childId) => {
+    const childNode = stage.find(`#${childId}`)[0] as KonvaNode | undefined;
+    if (!childNode) {
       return;
     }
 
-    stickyNode.x(startPos.x + dx);
-    stickyNode.y(startPos.y + dy);
+    childNode.x(startPos.x + dx);
+    childNode.y(startPos.y + dy);
   });
 
   e.target.getLayer()?.batchDraw();
@@ -238,8 +238,8 @@ const handleDragEnd = (e: any) => {
     const dx = newX - frameDragState.value.frameStartX;
     const dy = newY - frameDragState.value.frameStartY;
 
-    frameDragState.value.stickyStartPositions.forEach((startPos, stickyId) => {
-      boardStore.updateElement(stickyId, {
+    frameDragState.value.childStartPositions.forEach((startPos, childId) => {
+      boardStore.updateElement(childId, {
         x: startPos.x + dx,
         y: startPos.y + dy,
       });
@@ -248,8 +248,10 @@ const handleDragEnd = (e: any) => {
     frameDragState.value = null;
   }
 
-  if (props.element.type === ElementType.StickyNote) {
-    // Check if sticky note is now within a different frame after drag
+  if (props.element.type === ElementType.StickyNote || 
+      props.element.type === ElementType.Text || 
+      props.element.type === ElementType.DomainModelItem) {
+    // Check if element is now within a different frame after drag
     const newFrameId = findOverlappingFrameId(newX, newY);
     const currentFrameId = props.element.frameId || null;
 
