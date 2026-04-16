@@ -1,4 +1,5 @@
 import { ElementType, type BoardElement } from '@/types/elements';
+import { getHexByName } from '@/constants/colors';
 
 export interface BoardWebSocketEvent {
   userId?: string | null;
@@ -10,21 +11,6 @@ export interface BoardWebSocketStore {
   elements: BoardElement[];
   addElement(element: Omit<BoardElement, 'id'>, id?: string, autoSelect?: boolean): void;
   deleteElements(ids: string[]): void;
-}
-
-const colorNameToHex: Record<string, string> = {
-  blue: '#1E90FF',
-  red: '#FF6B6B',
-  yellow: '#FFEB3B',
-  green: '#4CAF50',
-  purple: '#9C27B0',
-  pink: '#FF69B4',
-  orange: '#FF9800',
-  gray: '#757575',
-};
-
-function hexByColorName(colorName: string): string {
-  return colorNameToHex[colorName.toLowerCase()] || '#FFEB3B';
 }
 
 function updateElementLocal(store: BoardWebSocketStore, id: string, updates: Partial<BoardElement>) {
@@ -49,15 +35,14 @@ function createRemoteElement(store: BoardWebSocketStore, element: string, payloa
         frameId: payload.frameId || null,
         text: payload.description,
         fontSize: Number(payload.fontSize) || 20,
-        textColor: payload.fontColor || '#000000',
-        backgroundColor: payload.color ? hexByColorName(payload.color) : '#FFEB3B',
+        backgroundColor: getHexByName(payload.color),
         draggable: true,
         zIndex: payload.zIndex || 0,
       } as Omit<BoardElement, 'id'>,
       payload.id,
       false
     );
-    console.log('Remote sticky note created:', payload.id);
+    // console.log('Remote sticky note created:', payload.id);
     return;
   }
 
@@ -72,15 +57,14 @@ function createRemoteElement(store: BoardWebSocketStore, element: string, payloa
         frameId: payload.frameID || null,
         text: payload.description,
         fontSize: Number(payload.fontSize) || 24,
-        textColor: payload.fontColor || '#000000',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: getHexByName(payload.color),
         draggable: true,
         zIndex: payload.zIndex || 0,
       } as Omit<BoardElement, 'id'>,
       payload.id,
       false
     );
-    console.log('Remote text box created:', payload.id);
+    // console.log('Remote text box created:', payload.id);
     return;
   }
 
@@ -99,7 +83,7 @@ function createRemoteElement(store: BoardWebSocketStore, element: string, payloa
       payload.id,
       false
     );
-    console.log('Remote frame created:', payload.id);
+    // console.log('Remote frame created:', payload.id);
     return;
   }
 
@@ -120,7 +104,7 @@ function createRemoteElement(store: BoardWebSocketStore, element: string, payloa
       payload.id,
       false
     );
-    console.log('Remote domain model item created:', payload.id);
+    // console.log('Remote domain model item created:', payload.id);
     return;
   }
 
@@ -150,7 +134,7 @@ function createRemoteElement(store: BoardWebSocketStore, element: string, payloa
       payload.id,
       false
     );
-    console.log('Remote connector created:', payload.id);
+    // console.log('Remote connector created:', payload.id);
   }
 }
 
@@ -168,13 +152,12 @@ function updateRemoteElement(store: BoardWebSocketStore, element: string, payloa
       width: payload.geoX,
       height: payload.geoY,
       text: payload.description,
-      textColor: payload.fontColor,
       fontSize: Number(payload.fontSize) || 20,
-      backgroundColor: payload.color ? hexByColorName(payload.color) : undefined,
+      backgroundColor: getHexByName(payload.color),
       frameId: payload.frameId || null,
       zIndex: payload.zIndex,
     });
-    console.log('Remote sticky note updated:', payload.id);
+    // console.log('Remote sticky note updated:', payload.id);
     return;
   }
 
@@ -185,12 +168,11 @@ function updateRemoteElement(store: BoardWebSocketStore, element: string, payloa
       width: payload.geoX,
       height: payload.geoY,
       text: payload.description,
-      textColor: payload.fontColor,
       fontSize: Number(payload.fontSize) || 24,
       frameId: payload.frameID || null,
       zIndex: payload.zIndex,
     });
-    console.log('Remote text box updated:', payload.id);
+    // console.log('Remote text box updated:', payload.id);
     return;
   }
 
@@ -203,7 +185,7 @@ function updateRemoteElement(store: BoardWebSocketStore, element: string, payloa
       title: payload.title,
       zIndex: payload.zIndex,
     });
-    console.log('Remote frame updated:', payload.id);
+    // console.log('Remote frame updated:', payload.id);
     return;
   }
 
@@ -218,7 +200,7 @@ function updateRemoteElement(store: BoardWebSocketStore, element: string, payloa
       attributes: payload.attributes || [],
       zIndex: payload.zIndex,
     });
-    console.log('Remote domain model item updated:', payload.id);
+    // console.log('Remote domain model item updated:', payload.id);
     return;
   }
 
@@ -243,14 +225,14 @@ function updateRemoteElement(store: BoardWebSocketStore, element: string, payloa
       endArrow: payload.endArrow,
       zIndex: payload.zIndex,
     });
-    console.log('Remote connector updated:', payload.id);
+    // console.log('Remote connector updated:', payload.id);
   }
 }
 
 function deleteRemoteElement(store: BoardWebSocketStore, payload: any) {
   const elementId = payload.id;
   store.deleteElements([elementId]);
-  console.log('Remote element deleted:', elementId);
+  // console.log('Remote element deleted:', elementId);
 }
 
 export function handleBoardWebSocketEvent(
