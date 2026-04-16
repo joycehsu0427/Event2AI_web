@@ -46,7 +46,7 @@
 ## Frontend：
 - [x] 修正 `Frame` (D) 
 - [v] 修正 `DomainModelItem` (J)
-- [v] Create 一組 EventStorming Template 的按鈕 (D)
+- [x] Create 一組 EventStorming Template 的按鈕 (D)
 - [v] STOMP 完整推播功能串接與更新 (D)
 - [x] 功能列表：複製、貼上、剪下、上一步、下一步 (J)
 - [v] `Analsis` 的按鈕 + 壓縮 JsonFile (D)
@@ -55,12 +55,12 @@
 - [ ] EventStorming 內部可以直接用點擊的方式編輯參數 (J)
 - [x] 修正 Create `Rectangle` 創立時的大小問題 (D)
 - [x] 修正 `Rectangle` 的縮放問題 (D)
-- [v] 更改關於 `Frame`、`Connector` Z軸的相對關係
-- [v] 更改關於 `Frame`、`DomainModelItem` 的 API，ex：`DomainModelItem` 移進 `Frame` 中後，需要發API改變 `FrameId`
+- [ ] 更改關於 `Frame`、`Connector` Z軸的相對關係 
+- [x] 更改關於 `Frame`、`DomainModelItem` 的 API，ex：`DomainModelItem` 移進 `Frame` 中後，需要發API改變 `FrameId`
 
 ## Backend：
 - [x] 加上 `WebSocket` 的 `Message` 中缺少的 `UserId` (B)
-- [v] `Board` DELETE 會報錯 (B、I)
+- [v] `Board` DELETE 會報錯 (B)
 - [x] `DomainModel` 的 `ENUM` 在 Create 時會有問題 (I)
 - [x] 整理 test-api (I)
 - [ ] `Connector` 的箭頭折角 (B、I)
@@ -72,3 +72,21 @@
 ## DeadLine : 0416(四) AM 11:00
 
 
+---
+
+# 日期：0416(四)
+## Frontend：
+- [ ] `Connector` 的 Z-index 要在最上面 ()
+
+## Backend：
+- [ ] GetAllComponents 的 `Connector` 沒有回傳 (I)
+- [ ] CreateStickyNote 時，多了一個 `Tag` (I)
+- [ ] `Connector` 的 offset 意義 (B)
+- [ ] `Connector` 的 WS 推播 (B)
+
+## 報告重點：
+- 前端展示
+    - 分享 board 的測試
+    - Analysis 的按鈕
+    - Template 的按鈕
+    - domain model 繪製測試
