@@ -80,7 +80,7 @@
 
 ## Backend：
 - [x] GetAllComponents 的 `Connector` 沒有回傳 (I)
-- [ ] CreateStickyNote 時，多了一個 `Tag` (I)
+- [x] CreateStickyNote 時，多了一個 `Tag` (I) => 先不動，因為原本是 tag = "sticky-note"
 - [ ] `Connector` 的 offset 意義 (B)
 - [ ] `Connector` 的 WS 推播 (B)
 
