@@ -170,9 +170,16 @@ const handleAnchorDragEnd = (e: any, type: 'from' | 'to') => {
     // Find parent board element group
     const groupNode = node.findAncestor('.board-element-group') || node.parent;
     targetId = groupNode?.id();
-    const elementType = (groupNode?.attrs as any)?.type;
+    const elementType = (groupNode?.attrs as any)?.type || (node.attrs as any)?.type;
     targetType = mapElementTypeToConnectorTargetType(elementType);
-    side = ConnectorAnchorSide.LEFT; // Default snap side, can be optimized later
+    
+    // Determine the closest side
+    if (targetId) {
+      const el = boardStore.getElementById(targetId);
+      if (el) {
+        side = getClosestSide(stageX, stageY, el);
+      }
+    }
   }
 
   const updates: any = {};
@@ -189,6 +196,23 @@ const handleAnchorDragEnd = (e: any, type: 'from' | 'to') => {
   }
 
   boardStore.updateElement(props.element.id, updates);
+};
+
+const getClosestSide = (x: number, y: number, el: any): ConnectorAnchorSide => {
+  const centerX = el.x + el.width / 2;
+  const centerY = el.y + el.height / 2;
+  const dx = x - centerX;
+  const dy = y - centerY;
+
+  // Normalize by width and height to handle non-square elements
+  const nx = dx / (el.width / 2);
+  const ny = dy / (el.height / 2);
+
+  if (Math.abs(nx) > Math.abs(ny)) {
+    return nx > 0 ? ConnectorAnchorSide.RIGHT : ConnectorAnchorSide.LEFT;
+  } else {
+    return ny > 0 ? ConnectorAnchorSide.BOTTOM : ConnectorAnchorSide.TOP;
+  }
 };
 
 const mapElementTypeToConnectorTargetType = (type: string): ConnectorTargetType => {

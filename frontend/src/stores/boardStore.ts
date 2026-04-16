@@ -191,6 +191,16 @@ export const useBoardStore = defineStore('board', {
       }
     },
 
+    updateElementLocal(id: string, updates: Partial<BoardElement>) {
+      const index = this.elements.findIndex((el) => el.id === id);
+      if (index !== -1) {
+        const currentElement = this.elements[index];
+        if (!currentElement) return;
+
+        this.elements[index] = { ...currentElement, ...updates } as BoardElement;
+      }
+    },
+
     updateSelectedElementsColor(color: string) {
       this.selectedElementIds.forEach(id => {
         const element = this.getElementById(id);

@@ -1,25 +1,20 @@
 <template>
-  <v-group
-    :config="groupConfig"
-    @dblclick="handleDblClick"
-  >
-    <!-- 1. 外框背景 (使用計算出的高度) -->
-    <v-rect :config="rectConfig" />
+  <!-- 1. 外框背景 (使用計算出的高度) -->
+  <v-rect :config="rectConfig" @dblclick="handleDblClick" />
 
-    <!-- 2. 上方標題區 -->
-    <v-text :config="titleConfig" />
+  <!-- 2. 上方標題區 -->
+  <v-text :config="titleConfig" @dblclick="handleDblClick" />
 
-    <!-- 3. 中間分割橫線 -->
-    <v-line :config="lineConfig" />
+  <!-- 3. 中間分割橫線 -->
+  <v-line :config="lineConfig" />
 
-    <!-- 4. 下方屬性清單區 -->
-    <v-text :config="attributesConfig" />
-  </v-group>
+  <!-- 4. 下方屬性清單區 -->
+  <v-text :config="attributesConfig" @dblclick="handleDblClick" />
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue';
-import { DomainModelItemType, type DomainModelItemElement } from '@/types/elements';
+import { computed, watch } from 'vue';
+import { ElementType, DomainModelItemType, type DomainModelItemElement } from '@/types/elements';
 import { useBoardStore } from '@/stores/boardStore';
 
 const props = defineProps<{
@@ -39,14 +34,12 @@ const calculatedHeight = computed(() => {
   return Math.max(contentHeight, props.element.height, 100);
 });
 
-const groupConfig = computed(() => ({
-  id: props.element.id,
-  x: 0,
-  y: 0,
-  width: props.element.width,
-  height: calculatedHeight.value,
-  draggable: false,
-}));
+// Sync calculated height to store for connector anchor points
+watch(calculatedHeight, (newHeight) => {
+  if (props.element.height !== newHeight) {
+    boardStore.updateElementLocal(props.element.id, { height: newHeight });
+  }
+}, { immediate: true });
 
 const rectConfig = computed(() => ({
   width: props.element.width,
@@ -58,6 +51,7 @@ const rectConfig = computed(() => ({
   shadowBlur: 5,
   shadowColor: 'rgba(0,0,0,0.1)',
   shadowOffset: { x: 2, y: 2 },
+  type: ElementType.DomainModelItem,
 }));
 
 const titleConfig = computed(() => ({
@@ -72,6 +66,7 @@ const titleConfig = computed(() => ({
   fontStyle: 'bold',
   fill: '#2c3e50',
   wrap: 'char',
+  type: ElementType.DomainModelItem,
 }));
 
 const lineConfig = computed(() => ({
@@ -104,6 +99,7 @@ const attributesConfig = computed(() => {
     fill: '#34495e',
     wrap: 'none',
     lineHeight: 1.3,
+    type: ElementType.DomainModelItem,
   };
 });
 

@@ -351,18 +351,28 @@ const handleConnectorMouseDown = async (e: KonvaMouseEvent, stageX: number, stag
   
   let targetId = isElement ? target.id() : undefined;
   let targetType = ConnectorTargetType.FREE_POINT;
+  let side: ConnectorAnchorSide | undefined = undefined;
   
   if (isElement) {
     const node = target;
-    const elementType = (node.attrs as any).type || (node.parent?.attrs as any)?.type;
+    const groupNode = node.findAncestor('.board-element-group') || node.parent;
+    targetId = groupNode?.id();
+    const elementType = (groupNode?.attrs as any)?.type || (node.attrs as any)?.type;
     targetType = mapElementTypeToConnectorTargetType(elementType);
-    if (!targetId) targetId = node.parent?.id();
+    
+    if (targetId) {
+      const el = boardStore.getElementById(targetId);
+      if (el) {
+        side = getClosestSide(stageX, stageY, el);
+      }
+    }
   }
 
   if (!boardStore.connectorDrawingStart?.targetId && !boardStore.connectorDrawingStart?.point) {
     boardStore.startDrawingConnector({
       targetId: targetId,
       targetType: targetType,
+      side: side,
       point: !targetId ? { x: stageX, y: stageY } : undefined
     });
   } else {
@@ -370,6 +380,7 @@ const handleConnectorMouseDown = async (e: KonvaMouseEvent, stageX: number, stag
     const end = {
       targetId: targetId,
       targetType: targetType,
+      side: side,
       point: !targetId ? { x: stageX, y: stageY } : undefined
     };
 
@@ -380,11 +391,11 @@ const handleConnectorMouseDown = async (e: KonvaMouseEvent, stageX: number, stag
         boardId: boardId,
         fromTargetType: start.targetType,
         fromTargetId: start.targetId,
-        fromSide: start.targetId ? ConnectorAnchorSide.RIGHT : undefined,
+        fromSide: start.targetId ? (start.side || ConnectorAnchorSide.RIGHT) : undefined,
         fromPoint: start.point,
         toTargetType: end.targetType,
         toTargetId: end.targetId,
-        toSide: end.targetId ? ConnectorAnchorSide.LEFT : undefined,
+        toSide: end.targetId ? (end.side || ConnectorAnchorSide.LEFT) : undefined,
         toPoint: end.point,
         lineType: ConnectorLineType.STRAIGHT,
         strokeColor: '#333333',
@@ -405,6 +416,22 @@ const handleConnectorMouseDown = async (e: KonvaMouseEvent, stageX: number, stag
     } catch (err) {
       console.error('Failed to create connector:', err);
     }
+  }
+};
+
+const getClosestSide = (x: number, y: number, el: any): ConnectorAnchorSide => {
+  const centerX = el.x + el.width / 2;
+  const centerY = el.y + el.height / 2;
+  const dx = x - centerX;
+  const dy = y - centerY;
+
+  const nx = dx / (el.width / 2);
+  const ny = dy / (el.height / 2);
+
+  if (Math.abs(nx) > Math.abs(ny)) {
+    return nx > 0 ? ConnectorAnchorSide.RIGHT : ConnectorAnchorSide.LEFT;
+  } else {
+    return ny > 0 ? ConnectorAnchorSide.BOTTOM : ConnectorAnchorSide.TOP;
   }
 };
 

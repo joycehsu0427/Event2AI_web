@@ -113,6 +113,8 @@ const elementConfig = computed(() => {
     height: props.element.height,
     rotation: props.element.rotation || 0,
     draggable: !isThisElementBeingEdited.value && !boardStore.isDrawingConnector,
+    name: 'board-element-group',
+    type: props.element.type,
   };
 });
 
@@ -205,26 +207,33 @@ const handleDragStart = (e: any) => {
 };
 
 const handleDragMove = (e: any) => {
-  if (props.element.type !== ElementType.Frame || !frameDragState.value) {
-    return;
-  }
+  const newX = e.target.x();
+  const newY = e.target.y();
 
-  const stage = e.target.getStage();
-  if (!stage) {
-    return;
-  }
+  if (props.element.type === ElementType.Frame && frameDragState.value) {
+    const stage = e.target.getStage();
+    if (stage) {
+      const dx = newX - frameDragState.value.frameStartX;
+      const dy = newY - frameDragState.value.frameStartY;
 
-  const dx = e.target.x() - frameDragState.value.frameStartX;
-  const dy = e.target.y() - frameDragState.value.frameStartY;
-
-  frameDragState.value.childStartPositions.forEach((startPos, childId) => {
-    const childNode = stage.find(`#${childId}`)[0] as KonvaNode | undefined;
-    if (!childNode) {
-      return;
+      frameDragState.value.childStartPositions.forEach((startPos, childId) => {
+        const childNode = stage.find(`#${childId}`)[0] as KonvaNode | undefined;
+        if (childNode) {
+          const cx = startPos.x + dx;
+          const cy = startPos.y + dy;
+          childNode.x(cx);
+          childNode.y(cy);
+          // Update child store position for connectors attached to children
+          boardStore.updateElementLocal(childId, { x: cx, y: cy });
+        }
+      });
     }
+  }
 
-    childNode.x(startPos.x + dx);
-    childNode.y(startPos.y + dy);
+  // Update this element's position in store for connectors to follow
+  boardStore.updateElementLocal(props.element.id, {
+    x: newX,
+    y: newY,
   });
 
   e.target.getLayer()?.batchDraw();
