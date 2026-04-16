@@ -1,5 +1,6 @@
 package event.to.ai.backend.board.adapter.in.web.dto;
 
+import event.to.ai.backend.connector.adapter.in.web.dto.ConnectorDTO;
 import event.to.ai.backend.domainmodel.adapter.in.web.dto.DomainModelItemDTO;
 import event.to.ai.backend.frame.adapter.in.web.dto.FrameDTO;
 import event.to.ai.backend.stickynote.adapter.in.web.dto.StickyNoteDTO;
@@ -15,14 +16,17 @@ public class BoardComponentsDTO {
     private List<TextBoxesDTO> textBoxes;
     private List<FrameDTO> frames;
     private List<DomainModelItemDTO> domainModelItems;
+    private List<ConnectorDTO> connectors;
 
     public BoardComponentsDTO(UUID boardId, List<StickyNoteDTO> stickyNotes, List<TextBoxesDTO> textBoxes,
-                              List<FrameDTO> frames, List<DomainModelItemDTO> domainModelItems) {
+                              List<FrameDTO> frames, List<DomainModelItemDTO> domainModelItems,
+                              List<ConnectorDTO> connectors) {
         this.boardId = boardId;
         this.stickyNotes = stickyNotes;
         this.textBoxes = textBoxes;
         this.frames = frames;
         this.domainModelItems = domainModelItems;
+        this.connectors = connectors;
     }
 
     public UUID getBoardId() {
@@ -43,5 +47,9 @@ public class BoardComponentsDTO {
 
     public List<DomainModelItemDTO> getDomainModelItems() {
         return domainModelItems;
+    }
+
+    public List<ConnectorDTO> getConnectors() {
+        return connectors;
     }
 }

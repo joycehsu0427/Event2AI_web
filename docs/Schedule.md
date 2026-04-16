@@ -79,7 +79,7 @@
 - [ ] `Connector` 的 Z-index 要在最上面 ()
 
 ## Backend：
-- [ ] GetAllComponents 的 `Connector` 沒有回傳 (I)
+- [x] GetAllComponents 的 `Connector` 沒有回傳 (I)
 - [ ] CreateStickyNote 時，多了一個 `Tag` (I)
 - [ ] `Connector` 的 offset 意義 (B)
 - [ ] `Connector` 的 WS 推播 (B)
