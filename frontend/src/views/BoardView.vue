@@ -10,6 +10,7 @@
 import { useRoute } from 'vue-router';
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
+import { useAuthStore } from '@/stores/authStore';
 import type { BoardStoreState } from '@/stores/boardStore';
 import { ElementType, ConnectorTargetType, ConnectorAnchorSide, ConnectorLineType, ConnectorArrowType, type BoardElement, type DomainModelItemElement, type ConnectorElement } from '@/types/elements';
 import { useHistoryStore } from '@/stores/historyStore';
@@ -18,6 +19,7 @@ import Toolbar from '@/components/board/Toolbar.vue';
 import MiroBoard from '@/components/board/MiroBoard.vue';
 import DomainModelItemModal from '@/components/menu/DomainModelItemModal.vue';
 import { loadStateFromLocalStorage } from '@/utils/localStorage';
+import { handleBoardWebSocketEvent } from '@/utils/boardWebSocket';
 import { boardApi, stickyNoteApi, textBoxApi, frameApi, domainModelItemApi, connectorApi } from '@/api';
 import { getHexByName } from '@/constants/colors';
 import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
@@ -25,6 +27,7 @@ import { Client, type IMessage, type StompSubscription } from '@stomp/stompjs';
 const route = useRoute();
 const boardId = route.params.boardId as string;
 const boardStore = useBoardStore();
+const authStore = useAuthStore();
 const historyStore = useHistoryStore();
 const timerStore = useTimerStore();
 // const POLLING_INTERVAL_MS = 5000;
@@ -50,8 +53,8 @@ function connectBoardTopic(boardId: string) {
       boardSubscription = client.subscribe(
         `/topic/boards/${boardId}/events`,
         (message: IMessage) => {
-          // console.log('board event:', JSON.parse(message.body))
-          // TODO: 等 payload 格式定案後再 parse / 更新 store
+          const event = JSON.parse(message.body);
+          handleBoardWebSocketEvent(boardStore, event, authStore.currentUser?.id);
         },
       )
     },
@@ -176,9 +179,9 @@ async function fetchBoardData(boardId: string) {
       editingElementId: boardStore.getEditingElementId,
       editingDomainModelId: boardStore.editingDomainModelId,
       isDomainModelModalOpen: boardStore.isDomainModelModalOpen,
-      defaultStickyNoteColor: '#ffeb3b',
       isDrawingConnector: boardStore.isDrawingConnector,
       connectorDrawingStart: boardStore.connectorDrawingStart,
+      clipboard: boardStore.clipboard,
     };
     boardStore.loadBoardState(state);
   } catch (error) {
