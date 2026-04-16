@@ -9,14 +9,14 @@
       @mousemove="handleStageMouseMove"
     >
       <v-layer>
-        <!-- Connectors -->
-        <template v-for="element in connectorElements" :key="element.id">
-          <Connector :element="(element as ConnectorElement)" />
-        </template>
-
         <!-- Elements -->
         <template v-for="element in nonConnectorElements" :key="element.id">
           <BoardElement :element="element" @transformend="handleTransformEnd" />
+        </template>
+
+        <!-- Connectors -->
+        <template v-for="element in connectorElements" :key="element.id">
+          <Connector :element="(element as ConnectorElement)" />
         </template>
 
         <v-transformer ref="transformerRef" :config="{ rotateEnabled: false }" />
