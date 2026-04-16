@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface ConnectorRepository extends JpaRepository<Connector, UUID> {
 
     List<Connector> findByBoardId(UUID boardId);
+
+    void deleteAllByBoardId(UUID boardId);
 }

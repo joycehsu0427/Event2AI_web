@@ -3,6 +3,7 @@ package event.to.ai.backend.board.application;
 import event.to.ai.backend.board.adapter.in.web.dto.*;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.port.out.BoardContentRepositoryPort;
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
@@ -20,14 +21,17 @@ public class BoardApplicationService {
 
     private final BoardRepositoryPort boardRepositoryPort;
     private final BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+    private final BoardContentRepositoryPort boardContentRepositoryPort;
     private final UserRepositoryPort userRepositoryPort;
 
     @Autowired
     public BoardApplicationService(BoardRepositoryPort boardRepositoryPort,
                                    BoardMembershipRepositoryPort boardMembershipRepositoryPort,
+                                   BoardContentRepositoryPort boardContentRepositoryPort,
                                    UserRepositoryPort userRepositoryPort) {
         this.boardRepositoryPort = boardRepositoryPort;
         this.boardMembershipRepositoryPort = boardMembershipRepositoryPort;
+        this.boardContentRepositoryPort = boardContentRepositoryPort;
         this.userRepositoryPort = userRepositoryPort;
     }
 
@@ -164,6 +168,7 @@ public class BoardApplicationService {
         if (!boardRepositoryPort.existsById(id)) {
             throw new RuntimeException("Board not found with id: " + id);
         }
+        boardContentRepositoryPort.deleteAllByBoardId(id);
         boardMembershipRepositoryPort.deleteAllByBoardId(id);
         boardRepositoryPort.deleteById(id);
     }
