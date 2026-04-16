@@ -15,4 +15,6 @@ public interface StickyNoteRepository extends JpaRepository<StickyNote, UUID> {
     List<StickyNote> findByBoardIdAndColor(UUID boardId, String color);
 
     List<StickyNote> findByColor(String color);
+
+    void deleteAllByBoardId(UUID boardId);
 }

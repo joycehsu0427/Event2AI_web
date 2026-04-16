@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface FrameRepository extends JpaRepository<Frame, UUID> {
 
     List<Frame> findByBoardId(UUID boardId);
+
+    void deleteAllByBoardId(UUID boardId);
 }

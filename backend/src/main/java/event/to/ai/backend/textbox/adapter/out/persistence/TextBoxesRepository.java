@@ -12,6 +12,8 @@ public interface TextBoxesRepository extends JpaRepository<TextBoxes, UUID> {
 
     List<TextBoxes> findByBoardId(UUID boardId);
 
+    void deleteAllByBoardId(UUID boardId);
+
 //    List<TextBoxes> findByBoardIdAndColor(UUID boardId, String color);
 //
 //    List<TextBoxes> findByColor(String color);

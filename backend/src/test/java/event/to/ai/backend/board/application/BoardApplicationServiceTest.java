@@ -6,6 +6,7 @@ import event.to.ai.backend.board.adapter.in.web.dto.UpdateBoardRequest;
 import event.to.ai.backend.board.adapter.out.persistence.entity.Board;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembership;
 import event.to.ai.backend.board.adapter.out.persistence.entity.BoardMembershipRole;
+import event.to.ai.backend.board.application.port.out.BoardContentRepositoryPort;
 import event.to.ai.backend.board.application.port.out.BoardMembershipRepositoryPort;
 import event.to.ai.backend.board.application.port.out.BoardRepositoryPort;
 import event.to.ai.backend.board.application.port.out.UserRepositoryPort;
@@ -25,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.argThat;
+import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -37,6 +39,9 @@ class BoardApplicationServiceTest {
 
     @Mock
     private BoardMembershipRepositoryPort boardMembershipRepositoryPort;
+
+    @Mock
+    private BoardContentRepositoryPort boardContentRepositoryPort;
 
     @Mock
     private UserRepositoryPort userRepositoryPort;
@@ -234,8 +239,40 @@ class BoardApplicationServiceTest {
                 })
                 .And("delete should not be called", env -> {
                     UUID boardId = env.get("boardId", UUID.class);
+                    verify(boardContentRepositoryPort, never()).deleteAllByBoardId(boardId);
                     verify(boardRepositoryPort, never()).deleteById(boardId);
                     verify(boardMembershipRepositoryPort, never()).deleteAllByBoardId(boardId);
+                })
+                .Execute();
+    }
+
+    @EzScenario
+    public void deleteBoardShouldDeleteContentBeforeMembershipsAndBoard() {
+        Feature.New("Board Application Service")
+                .newScenario("Delete board removes board content before memberships and board row")
+                .Given("an existing owned board", env -> {
+                    UUID actorUserId = UUID.fromString("00000000-0000-0000-0000-000000000001");
+                    UUID boardId = UUID.randomUUID();
+                    Board board = new Board("Board", "Description");
+                    board.setId(boardId);
+
+                    env.put("actorUserId", actorUserId);
+                    env.put("boardId", boardId);
+                    when(boardMembershipRepositoryPort.findByBoardIdAndUserId(boardId, actorUserId))
+                            .thenReturn(Optional.of(membership(board, user(actorUserId), BoardMembershipRole.OWNER)));
+                    when(boardRepositoryPort.existsById(boardId)).thenReturn(true);
+                })
+                .When("deleting board", env -> {
+                    UUID actorUserId = env.get("actorUserId", UUID.class);
+                    UUID boardId = env.get("boardId", UUID.class);
+                    boardApplicationService.deleteBoard(actorUserId, boardId);
+                })
+                .Then("content, memberships, and board should be deleted in order", env -> {
+                    UUID boardId = env.get("boardId", UUID.class);
+                    var inOrder = inOrder(boardContentRepositoryPort, boardMembershipRepositoryPort, boardRepositoryPort);
+                    inOrder.verify(boardContentRepositoryPort).deleteAllByBoardId(boardId);
+                    inOrder.verify(boardMembershipRepositoryPort).deleteAllByBoardId(boardId);
+                    inOrder.verify(boardRepositoryPort).deleteById(boardId);
                 })
                 .Execute();
     }

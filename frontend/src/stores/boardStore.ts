@@ -45,7 +45,6 @@ export const useBoardStore = defineStore('board', {
     getCanvasTransform: (state) => state.canvasTransform,
     getElementById: (state) => (id: string) =>
       state.elements.find((el) => el.id === id),
-    getDefaultStickyNoteColor: (state) => state.defaultStickyNoteColor, // New getter
     getEditingElementId: (state) => state.editingElementId, // New getter
     getEditingDomainModel: (state) => 
       state.elements.find(el => el.id === state.editingDomainModelId) as DomainModelItemElement | undefined,
@@ -210,10 +209,6 @@ export const useBoardStore = defineStore('board', {
       });
     },
 
-    setDefaultStickyNoteColor(color: string) {
-      this.defaultStickyNoteColor = color;
-    },
-
     setEditingElement(id: string | null) {
       this.editingElementId = id;
     },
@@ -355,14 +350,19 @@ export const useBoardStore = defineStore('board', {
       });
 
       for (const element of sortedClipboard) {
+        // Skip connectors for now
+        if (element.type === ElementType.Connector) {
+          continue;
+        }
+
         let createdId: string | null = null;
         const newPos = {
-          x: element.x + OFFSET,
-          y: element.y + OFFSET,
+          x: (element as any).x + OFFSET,
+          y: (element as any).y + OFFSET,
         };
 
         // Determine the new frameId if the element belonged to a frame that was also copied
-        const newFrameId = element.frameId ? (oldToNewIdMap.get(element.frameId) || null) : null;
+        const newFrameId = (element as any).frameId ? (oldToNewIdMap.get((element as any).frameId) || null) : null;
 
         try {
           if (element.type === ElementType.StickyNote) {
@@ -370,14 +370,13 @@ export const useBoardStore = defineStore('board', {
               boardId,
               posX: newPos.x,
               posY: newPos.y,
-              geoX: element.width,
-              geoY: element.height,
-              description: element.text,
-              color: getNameByHex(element.backgroundColor),
-              fontColor: element.textColor,
-              fontSize: element.fontSize,
+              geoX: (element as any).width,
+              geoY: (element as any).height,
+              description: (element as any).text,
+              color: getNameByHex((element as any).backgroundColor),
+              fontColor: (element as any).textColor,
+              fontSize: (element as any).fontSize,
               tag: 'sticky-note',
-              frameId: newFrameId,
             });
             createdId = res.id;
           } else if (element.type === ElementType.Text) {
@@ -385,12 +384,13 @@ export const useBoardStore = defineStore('board', {
               boardId,
               posX: newPos.x,
               posY: newPos.y,
-              geoX: element.width,
-              geoY: element.height,
-              description: element.text,
-              fontColor: element.textColor,
-              fontSize: String(element.fontSize),
-              frameID: newFrameId as any, // Text API uses frameID
+              geoX: (element as any).width,
+              geoY: (element as any).height,
+              description: (element as any).text,
+              fontColor: (element as any).textColor,
+              fontSize: (element as any).fontSize,
+              color: '#FFFFFF',
+              tag: 'text-box',
             });
             createdId = res.id;
           } else if (element.type === ElementType.Frame) {
@@ -398,9 +398,9 @@ export const useBoardStore = defineStore('board', {
               boardId,
               posX: newPos.x,
               posY: newPos.y,
-              width: element.width,
-              height: element.height,
-              title: element.title,
+              width: (element as any).width,
+              height: (element as any).height,
+              title: (element as any).title,
             });
             createdId = res.id;
           } else if (element.type === ElementType.DomainModelItem) {
@@ -408,11 +408,11 @@ export const useBoardStore = defineStore('board', {
               boardId,
               posX: newPos.x,
               posY: newPos.y,
-              width: element.width,
-              height: element.height,
-              name: element.name,
-              type: element.modelType,
-              attributes: element.attributes,
+              width: (element as any).width,
+              height: (element as any).height,
+              name: (element as any).name,
+              type: (element as any).modelType,
+              attributes: (element as any).attributes,
               // DomainModelItem doesn't support frameId on backend yet
             });
             createdId = res.id;
@@ -441,8 +441,10 @@ export const useBoardStore = defineStore('board', {
         this.selectedElementIds = pastedIds;
         // Update clipboard positions and mapping for next paste
         this.clipboard.forEach((el) => {
-          el.x += OFFSET;
-          el.y += OFFSET;
+          if (el.type !== ElementType.Connector) {
+            (el as any).x += OFFSET;
+            (el as any).y += OFFSET;
+          }
           // Note: we don't update el.id or el.frameId in clipboard 
           // to keep them relative to the ORIGINAL clipboard state 
           // or we'd have to update the whole map.

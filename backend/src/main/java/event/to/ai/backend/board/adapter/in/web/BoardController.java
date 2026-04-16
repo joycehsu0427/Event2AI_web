@@ -3,6 +3,7 @@ package event.to.ai.backend.board.adapter.in.web;
 import event.to.ai.backend.auth.CurrentUserIdProvider;
 import event.to.ai.backend.board.adapter.in.web.dto.*;
 import event.to.ai.backend.board.application.BoardApplicationService;
+import event.to.ai.backend.connector.application.ConnectorApplicationService;
 import event.to.ai.backend.domainmodel.application.DomainModelItemApplicationService;
 import event.to.ai.backend.frame.application.FrameApllicationService;
 import event.to.ai.backend.stickynote.application.StickyNoteApplicationService;
@@ -34,6 +35,7 @@ public class BoardController {
     private final TextBoxApplicationService textBoxApplicationService;
     private final FrameApllicationService frameApllicationService;
     private final DomainModelItemApplicationService domainModelItemApplicationService;
+    private final ConnectorApplicationService connectorApplicationService;
     private final CurrentUserIdProvider currentUserIdProvider;
 
     @Autowired
@@ -42,12 +44,14 @@ public class BoardController {
                            TextBoxApplicationService textBoxApplicationService,
                            FrameApllicationService frameApllicationService,
                            DomainModelItemApplicationService domainModelItemApplicationService,
+                           ConnectorApplicationService connectorApplicationService,
                            CurrentUserIdProvider currentUserIdProvider) {
         this.boardApplicationService = boardApplicationService;
         this.stickyNoteApplicationService = stickyNoteApplicationService;
         this.textBoxApplicationService = textBoxApplicationService;
         this.frameApllicationService = frameApllicationService;
         this.domainModelItemApplicationService = domainModelItemApplicationService;
+        this.connectorApplicationService = connectorApplicationService;
         this.currentUserIdProvider = currentUserIdProvider;
     }
 
@@ -60,7 +64,8 @@ public class BoardController {
                     stickyNoteApplicationService.getStickyNotesByBoardId(currentUserId, boardId),
                     textBoxApplicationService.getTextBoxesByBoardId(currentUserId, boardId),
                     frameApllicationService.getFramesByBoardId(currentUserId, boardId),
-                    domainModelItemApplicationService.getDomainModelItemsByBoardId(currentUserId, boardId)
+                    domainModelItemApplicationService.getDomainModelItemsByBoardId(currentUserId, boardId),
+                    connectorApplicationService.getConnectorsByBoardId(currentUserId, boardId)
             );
             return ResponseEntity.ok(components);
         } catch (RuntimeException e) {

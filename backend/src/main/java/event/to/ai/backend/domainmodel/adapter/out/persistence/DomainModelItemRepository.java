@@ -11,4 +11,6 @@ import java.util.UUID;
 public interface DomainModelItemRepository extends JpaRepository<DomainModelItem, UUID> {
 
     List<DomainModelItem> findByBoardId(UUID boardId);
+
+    void deleteAllByBoardId(UUID boardId);
 }

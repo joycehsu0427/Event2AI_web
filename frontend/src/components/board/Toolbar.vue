@@ -18,6 +18,9 @@
 
     <button @click="addTextElement" title="Add Text">Text</button>
     <button @click="addFrameElement" title="Add Frame">Frame</button>
+    <button @click="addEventStormingTemplate" :disabled="isCreatingTemplate" title="Insert Event Storming Template">
+      {{ isCreatingTemplate ? 'Adding...' : 'Template' }}
+    </button>
 
     <!-- 2. Domain Model Tool -->
     <div class="tool-container">
@@ -59,10 +62,10 @@
 import { ref } from 'vue';
 import { useBoardStore } from '@/stores/boardStore';
 import { useHistoryStore } from '@/stores/historyStore';
-import { ElementType, DomainModelItemType, type FrameElement, type StickyNoteElement, type TextElement, type DomainModelItemElement, ConnectorTargetType } from '@/types/elements';
+import { ElementType, DomainModelItemType, type BoardElement, type FrameElement, type StickyNoteElement, type TextElement, type DomainModelItemElement, ConnectorTargetType } from '@/types/elements';
 import { useRoute, useRouter } from 'vue-router';
-import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainModelItemApi } from '@/api';
-import { STICKY_NOTE_COLOR_PALETTE, getNameByHex } from '@/constants/colors';
+import { stickyNoteApi, textBoxApi, frameApi, commonApi, domainModelItemApi, type EventStormingTemplateResponse } from '@/api';
+import { STICKY_NOTE_COLOR_PALETTE, getNameByHex, getHexByName } from '@/constants/colors';
 
 const route = useRoute();
 const router = useRouter();
@@ -73,6 +76,7 @@ const boardId = route.params.boardId as string;
 const showColorPicker = ref(false);
 const showModelTypePicker = ref(false);
 const isAnalyzing = ref(false);
+const isCreatingTemplate = ref(false);
 
 const stickyNoteColors = STICKY_NOTE_COLOR_PALETTE;
 const modelTypes = Object.values(DomainModelItemType);
@@ -119,6 +123,90 @@ const getViewportCenterBoardPosition = (elementWidth: number, elementHeight: num
     x: (viewportCenterX - x) / scale - elementWidth / 2,
     y: (viewportCenterY - y) / scale - elementHeight / 2,
   };
+};
+
+const getViewportCenterBoardPoint = () => {
+  const { x, y, scale } = boardStore.canvasTransform;
+  const viewportCenterX = window.innerWidth / 2;
+  const viewportCenterY = window.innerHeight / 2;
+
+  return {
+    x: (viewportCenterX - x) / scale,
+    y: (viewportCenterY - y) / scale,
+  };
+};
+
+const appendTemplateElements = (response: EventStormingTemplateResponse) => {
+  const templateElements: Array<{ id: string; element: Omit<BoardElement, 'id'> }> = [
+    ...(response.stickyNotes ?? []).map((note) => ({
+      id: note.id,
+      element: {
+        type: ElementType.StickyNote,
+        x: note.posX,
+        y: note.posY,
+        width: note.geoX,
+        height: note.geoY,
+        frameId: note.frameId ?? null,
+        text: note.description,
+        fontSize: Number(note.fontSize) || 20,
+        textColor: note.fontColor || '#000000',
+        backgroundColor: getHexByName(note.color),
+        draggable: true,
+      } satisfies Omit<StickyNoteElement, 'id'>,
+    })),
+    ...(response.textBoxes ?? []).map((text) => ({
+      id: text.id,
+      element: {
+        type: ElementType.Text,
+        x: text.posX,
+        y: text.posY,
+        width: text.geoX,
+        height: text.geoY,
+        frameId: text.frameId ?? null,
+        text: text.description,
+        fontSize: Number(text.fontSize) || 24,
+        fontFamily: 'Arial',
+        textColor: text.fontColor || '#000000',
+        draggable: true,
+      } satisfies Omit<TextElement, 'id'>,
+    })),
+    ...(response.frames ?? []).map((frame) => ({
+      id: frame.id,
+      element: {
+        type: ElementType.Frame,
+        x: frame.posX,
+        y: frame.posY,
+        width: frame.width,
+        height: frame.height,
+        title: frame.title,
+        draggable: true,
+      } satisfies Omit<FrameElement, 'id'>,
+    })),
+    ...(response.domainModelItems ?? []).map((item) => ({
+      id: item.id,
+      element: {
+        type: ElementType.DomainModelItem,
+        modelType: item.type as DomainModelItemType,
+        x: item.posX,
+        y: item.posY,
+        width: item.width,
+        height: item.height,
+        name: item.name,
+        attributes: item.attributes ?? [],
+        draggable: true,
+      } satisfies Omit<DomainModelItemElement, 'id'>,
+    })),
+  ];
+
+  let selectedId: string | null = response.frames?.[0]?.id ?? templateElements[0]?.id ?? null;
+
+  templateElements.forEach(({ id, element }) => {
+    boardStore.addElement(element, id, false);
+  });
+
+  if (selectedId) {
+    boardStore.selectElement(selectedId);
+  }
 };
 
 async function addStickyNoteApi(colorHex: string, position: { x: number; y: number }) {
@@ -244,6 +332,34 @@ const addFrameElement = async () => {
   historyStore.addState();
 };
 
+const addEventStormingTemplate = async () => {
+  showColorPicker.value = false;
+  showModelTypePicker.value = false;
+  boardStore.stopDrawingConnector();
+
+  const position = getViewportCenterBoardPoint();
+  isCreatingTemplate.value = true;
+
+  try {
+    const response = await frameApi.createEventStormingTemplate({
+      boardId,
+      posX: position.x,
+      posY: position.y,
+    });
+
+    if (response.boardId && response.boardId !== boardId) {
+      console.warn('Event storming template response boardId does not match current board');
+    }
+
+    appendTemplateElements(response);
+    historyStore.addState();
+  } catch (error) {
+    console.error('Error adding event storming template:', error);
+  } finally {
+    isCreatingTemplate.value = false;
+  }
+};
+
 async function addDomainModelItemApi(type: DomainModelItemType, position: { x: number; y: number }) {
   try {
     const data = await domainModelItemApi.create({
@@ -331,11 +447,66 @@ const deleteSelectedElements = async () => {
   }
 };
 
+type AnalysisItem = {
+  useCaseName: string;
+  [key: string]: unknown;
+};
+
+const sanitizeFileName = (value: string) => {
+  const normalized = value
+    .trim()
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .replace(/\s+/g, '_');
+
+  return normalized.slice(0, 120) || 'use_case';
+};
+
+const downloadJsonFile = (fileName: string, payload: unknown) => {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = `${fileName}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const downloadAnalysisResults = (results: AnalysisItem[]) => {
+  const duplicateCounter = new Map<string, number>();
+
+  results.forEach((item, index) => {
+    const baseName = sanitizeFileName(item.useCaseName || `use_case_${index + 1}`);
+    const seenCount = duplicateCounter.get(baseName) ?? 0;
+    const fileName = seenCount === 0 ? baseName : `${baseName}_${seenCount + 1}`;
+
+    duplicateCounter.set(baseName, seenCount + 1);
+    downloadJsonFile(fileName, item);
+  });
+};
+
 const handleAnalysis = async () => {
   isAnalyzing.value = true;
   try {
-    await commonApi.analysis(boardId);
-    alert('Analysis completed successfully');
+    const response = await commonApi.analysis(boardId);
+
+    if (!Array.isArray(response)) {
+      throw new Error('Unexpected analysis response format: expected an array.');
+    }
+
+    const items = response.filter(
+      (entry): entry is AnalysisItem =>
+        typeof entry === 'object' && entry !== null && typeof (entry as { useCaseName?: unknown }).useCaseName === 'string'
+    );
+
+    if (items.length === 0) {
+      alert('Analysis completed, but no use case data was returned.');
+      return;
+    }
+
+    downloadAnalysisResults(items);
   } catch (error) {
     console.error('Analysis failed:', error);
     alert('Analysis failed. Please try again.');
