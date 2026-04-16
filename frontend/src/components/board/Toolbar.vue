@@ -447,11 +447,66 @@ const deleteSelectedElements = async () => {
   }
 };
 
+type AnalysisItem = {
+  useCaseName: string;
+  [key: string]: unknown;
+};
+
+const sanitizeFileName = (value: string) => {
+  const normalized = value
+    .trim()
+    .replace(/[<>:"/\\|?*\x00-\x1F]/g, '_')
+    .replace(/\s+/g, '_');
+
+  return normalized.slice(0, 120) || 'use_case';
+};
+
+const downloadJsonFile = (fileName: string, payload: unknown) => {
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = `${fileName}.json`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+};
+
+const downloadAnalysisResults = (results: AnalysisItem[]) => {
+  const duplicateCounter = new Map<string, number>();
+
+  results.forEach((item, index) => {
+    const baseName = sanitizeFileName(item.useCaseName || `use_case_${index + 1}`);
+    const seenCount = duplicateCounter.get(baseName) ?? 0;
+    const fileName = seenCount === 0 ? baseName : `${baseName}_${seenCount + 1}`;
+
+    duplicateCounter.set(baseName, seenCount + 1);
+    downloadJsonFile(fileName, item);
+  });
+};
+
 const handleAnalysis = async () => {
   isAnalyzing.value = true;
   try {
-    await commonApi.analysis(boardId);
-    alert('Analysis completed successfully');
+    const response = await commonApi.analysis(boardId);
+
+    if (!Array.isArray(response)) {
+      throw new Error('Unexpected analysis response format: expected an array.');
+    }
+
+    const items = response.filter(
+      (entry): entry is AnalysisItem =>
+        typeof entry === 'object' && entry !== null && typeof (entry as { useCaseName?: unknown }).useCaseName === 'string'
+    );
+
+    if (items.length === 0) {
+      alert('Analysis completed, but no use case data was returned.');
+      return;
+    }
+
+    downloadAnalysisResults(items);
   } catch (error) {
     console.error('Analysis failed:', error);
     alert('Analysis failed. Please try again.');
